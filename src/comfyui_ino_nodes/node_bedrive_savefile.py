@@ -16,7 +16,7 @@ class BeDriveSaveFile:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "enabled": ("BOOLEAN", {"default": True}),
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "file_path": ("STRING", {
                     "multiline": False,
                     "default": "/stest/test.png"
