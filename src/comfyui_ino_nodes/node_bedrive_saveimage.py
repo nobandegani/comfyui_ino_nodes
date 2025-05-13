@@ -37,8 +37,8 @@ class BeDriveSaveImage:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "STRING")
-    RETURN_NAMES = ("image", "status_message")
+    RETURN_TYPES = ("IMAGE", "STRING", )
+    RETURN_NAMES = ("image", "status_message", )
     DESCRIPTION = cleandoc(__doc__)
     FUNCTION = "upload"
 
@@ -78,7 +78,7 @@ class BeDriveSaveImage:
             status = f"❌ Uploaded failed"
 
         print(result)
-        return (image, status)
+        return (image, status, )
 
     # @classmethod
     # def IS_CHANGED(s, image, string_field, int_field, float_field, print_to_screen):

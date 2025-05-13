@@ -10,13 +10,14 @@ __author__ = """InoNodes"""
 __email__ = "contact@inoland.net"
 __version__ = "0.0.1"
 
+
 from .src.comfyui_ino_nodes.node_bedrive_saveimage import BeDriveSaveImage
 from .src.comfyui_ino_nodes.node_bedrive_savefile import BeDriveSaveFile
 from .src.comfyui_ino_nodes.node_bedrive_getparentid import BeDriveGetParentID
 
 from .src.comfyui_ino_nodes.node_utils import InoParseFilePath
 from .src.comfyui_ino_nodes.node_utils import InoNotBoolean
-#from .src.comfyui_ino_nodes.node_utils import InoCountFiles
+from .src.comfyui_ino_nodes.node_utils import InoCountFiles
 
 
 NODE_CLASS_MAPPINGS = {
@@ -26,7 +27,7 @@ NODE_CLASS_MAPPINGS = {
 
     "Ino_ParseFilePath": InoParseFilePath,
     "Ino_NotBoolean": InoNotBoolean,
-    #"Ino_CountFiles": InoCountFiles,
+    "Ino_CountFiles": InoCountFiles,
 }
 
 
@@ -37,7 +38,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
     "Ino_ParseFilePath": "Ino Parse File Path",
     "Ino_NotBoolean": "Ino Not Boolean",
-    #"Ino_CountFiles": "Ino Count Files",
+    "Ino_CountFiles": "Ino Count Files",
 }
+
 
 WEB_DIRECTORY = "./web"

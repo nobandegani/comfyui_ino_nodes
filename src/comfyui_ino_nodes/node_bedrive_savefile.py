@@ -33,11 +33,14 @@ class BeDriveSaveFile:
                     "display": "number"
                 }),
                 "remove_after": ("BOOLEAN", {"default": True}),
-            }
+            },
+            "optional": {
+                "image": ("IMAGE",),
+            },
         }
 
-    RETURN_TYPES = ()
-    #RETURN_NAMES = ("image_output_name",)
+    RETURN_TYPES = ("STRING", "IMAGE",)
+    RETURN_NAMES = ("result", "image",)
     DESCRIPTION = cleandoc(__doc__)
     FUNCTION = "upload"
 
@@ -49,10 +52,10 @@ class BeDriveSaveFile:
     def __init__(self):
         pass
 
-    def upload(self, enabled, file_path, api_token, parent_id, remove_after):
+    def upload(self, enabled, file_path, api_token, parent_id, remove_after, image=None):
         if enabled == False:
             print("save file is disabled")
-            return ()
+            return ("save file is disabled", image)
 
         result = upload_file_to_bedrive(api_token, file_path, parent_id)
         if result.get("success"):
@@ -67,7 +70,7 @@ class BeDriveSaveFile:
             status = f"❌ Uploaded failed"
 
         print(result)
-        return ()
+        return (status, image, )
 
     # @classmethod
     # def IS_CHANGED(s, image, string_field, int_field, float_field, print_to_screen):
