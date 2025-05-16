@@ -36,7 +36,7 @@ def upload_file_to_bedrive(api_token, file_path, parent_id, relative_path=""):
         return {
             "success": False,
             "status_code": response.status_code,
-            "error": f"Failed to parse JSON: {str(e)}",
+            "error": "Failed to parse JSON",
             "raw_response": response.text
         }
 
@@ -48,5 +48,5 @@ def upload_file_to_bedrive(api_token, file_path, parent_id, relative_path=""):
         return {
             "success": False,
             "status_code": response.status_code,
-            "error": response_data.get("message", "Unknown error")
+            #"error": response_data.get("message", "Unknown error")
         }
