@@ -75,9 +75,8 @@ class BeDriveSaveImage:
 
             status = f"✅ Uploaded successfully"
         else:
-            status = f"❌ Uploaded failed"
+            status = result
 
-        print(result)
         return (image, status, )
 
     # @classmethod
