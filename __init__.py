@@ -21,6 +21,7 @@ from .src.comfyui_ino_nodes.node_utils import InoCountFiles
 from .src.comfyui_ino_nodes.node_utils import InoIntEqual
 from .src.comfyui_ino_nodes.node_utils import InoBranchImage
 from .src.comfyui_ino_nodes.node_utils import InoDateTimeAsString
+from .src.comfyui_ino_nodes.node_utils import InoRandomCharacterPrompt
 
 from .src.comfyui_ino_nodes.node_video_convert import InoVideoConvert
 
@@ -36,6 +37,7 @@ NODE_CLASS_MAPPINGS = {
     "Ino_IntEqual": InoIntEqual,
     "Ino_BranchImage": InoBranchImage,
     "Ino_DateTimeAsString": InoDateTimeAsString,
+    "Ino_RandomCharacterPrompt": InoRandomCharacterPrompt,
 
     "Ino_VideoConvert": InoVideoConvert,
 }
@@ -52,6 +54,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Ino_IntEqual": "Ino Int Equal",
     "Ino_BranchImage": "Ino Branch Image",
     "Ino_DateTimeAsString": "Ino DateTime As String",
+    "Ino_RandomCharacterPrompt": "Ino Random Character Prompt",
 
     "Ino_VideoConvert": "Ino Video Convert",
 }

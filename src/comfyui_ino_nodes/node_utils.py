@@ -2,6 +2,9 @@ from inspect import cleandoc
 
 import os
 import fnmatch
+import random
+import time
+import hashlib
 from datetime import datetime
 
 #---------------------------------InoParseFilePath
@@ -301,3 +304,187 @@ class InoDateTimeAsString:
             return (time_str, )
         else:
             return ("", )
+
+
+
+#---------------------------------InoRandomCharacterPrompt
+class InoRandomCharacterPrompt:
+    """
+        Random Character Prompt
+    """
+
+    def __init__(self):
+        pass
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                    "step": 1,
+                    "label": "Seed (0 = random)"
+                }),
+
+                "main": ("STRING", {
+                    "multiline": True,
+                    "label": "Main prompt",
+                    "default": "blonde hair, oval face, Caucasian, fair skin, 20-30 years old, female"
+                }),
+
+                "finetune": ("STRING", {
+                    "multiline": True,
+                    "label": "Finetune prompt",
+                    "default": "pretty, naked, Hair Elegant braided top knot bun, consistent facial features across all 4 frames"
+                }),
+
+                "lighting": ("STRING", {
+                    "multiline": True,
+                    "default": "The lighting is soft and matte, with no gloss or facial shine. The light is evenly diffused and balanced to avoid specular highlights or reflective hotspots on the skin. The face appears naturally lit, with smooth shadows and a non-reflective finish."
+                }),
+
+                "camera": ("STRING", {
+                    "multiline": True,
+                    "default": "Captured with a high-quality DSLR camera using a wide aperture lens, producing a shallow depth of field and a sharp, detailed image. The result is a super realistic portrait with professional photography quality and natural skin tones."
+                }),
+
+                "background": ("STRING", {
+                    "multiline": True,
+                    "default": "The background is plain white, clean and seamless, without texture or distractions."
+                }),
+
+                "random_face_shape": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+
+                "random_skin_tone": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+
+                "random_eye_color": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_eye_shape": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+
+                "random_eyelashes_style": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+
+                "random_eyebrow_shape": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_eyebrow_thickness": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+
+                "random_nose_shape": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_nose_size": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+
+                "random_lip_shape": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_lip_thickness": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+
+                "random_facial_marks": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+
+                "random_makeup_style": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_blush_or_highlight": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+            },
+        }
+
+    RETURN_TYPES = ("STRING", "INT", )
+    RETURN_NAMES = ("Prompt", "Seed", )
+    DESCRIPTION = cleandoc(__doc__)
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def __init__(self):
+        pass
+
+    def get_index(self, seed, offset, length):
+        return (seed + offset) % length
+
+    def function(
+        self,
+        seed,
+        main, finetune, lighting, camera, background,
+        random_face_shape, random_skin_tone,
+        random_eye_color, random_eye_shape,
+        random_eyelashes_style,
+        random_eyebrow_shape, random_eyebrow_thickness,
+        random_nose_shape, random_nose_size,
+        random_lip_shape, random_lip_thickness,
+        random_facial_marks, random_makeup_style, random_blush_or_highlight):
+
+        if seed == 0:
+            seed_number = random.seed(seed)
+            use_random = True
+        else:
+            use_random = False
+
+        parts = [main, finetune]
+
+        def pick(options, offset):
+            if use_random:
+                return random.choice(options)
+            else:
+                return options[self.get_index(seed, offset, len(options))]
+
+        if random_face_shape:
+            face_shapes = ["round face", "oval face", "square face", "heart-shaped face", "diamond face", "long face", "triangular face"]
+            choice=pick(face_shapes, 10)
+            parts.append(choice)
+
+        if random_skin_tone:
+            skin_tones = ["pale skin", "light skin", "olive skin", "tan skin", "brown skin", "dark skin", "freckled skin"]
+            parts.append(pick(skin_tones, 20))
+
+        if random_eye_color:
+            eye_colors = ["blue eyes", "green eyes", "brown eyes", "hazel eyes", "amber eyes", "gray eyes", "violet eyes", "heterochromia eyes"]
+            parts.append(pick(eye_colors, 30))
+
+        if random_eye_shape:
+            eye_shapes = ["almond shaped eyes", "round shaped eyes", "hooded shaped eyes", "monolid shaped eyes", "upturned shaped eyes", "downturned shaped eyes"]
+            parts.append(pick(eye_shapes, 40))
+
+        if random_eyelashes_style:
+            eyelash_styles = ["long eyelashes", "short eyelashes", "curled eyelashes", "thick eyelashes", "natural eyelashes"]
+            parts.append(pick(eyelash_styles, 50))
+
+        if random_eyebrow_shape:
+            eyebrow_shapes = ["arched eyebrows", "straight eyebrows", "curved eyebrows", "angled eyebrows", "soft round eyebrows"]
+            parts.append(pick(eyebrow_shapes, 60))
+
+        if random_eyebrow_thickness:
+            eyebrow_thicknesses = ["thick eyebrows", "thin eyebrows", "medium eyebrows"]
+            parts.append(pick(eyebrow_thicknesses, 70))
+
+        if random_nose_shape:
+            nose_shapes = ["button nose", "straight nose", "aquiline nose", "snub nose", "wide nose", "narrow nose"]
+            parts.append(pick(nose_shapes, 80))
+
+        if random_nose_size:
+            nose_sizes = ["small nose", "medium nose", "large nose"]
+            parts.append(pick(nose_sizes, 90))
+
+        if random_lip_shape:
+            lip_shapes = ["heart shaped lips", "round shaped lips", "bow shaped lips"]
+            parts.append(pick(lip_shapes, 100))
+
+        if random_lip_thickness:
+            lip_thicknesses = ["thick lips", "thin lips", "balanced lips"]
+            parts.append(pick(lip_thicknesses, 110))
+
+        if random_facial_marks:
+            facial_marks = ["light freckles", "beauty mark above lip", "tiny mole near eye", "faint cheek freckling", "subtle beauty spot", "cute nose freckle"]
+            parts.append(pick(facial_marks, 120))
+
+        if random_makeup_style:
+            makeup_styles = ["natural makeup", "dramatic makeup", "smokey eyes", "glossy lips", "colorful eyeshadow"]
+            parts.append(pick(makeup_styles, 130))
+
+        if random_blush_or_highlight:
+            blushes = ["rosy cheeks", "soft blush", "dewy highlight", "glowing skin", "matte finish"]
+            parts.append(pick(blushes, 140))
+
+        parts.append(lighting)
+        parts.append(camera)
+        parts.append(background)
+
+        final_prompt = ", ".join(filter(None, parts))
+        return (final_prompt, seed, )
+
+        @classmethod
+        def IS_CHANGED(cls, seed, **kwargs):
+            m = hashlib.sha256()
+            m.update(seed)
+            return m.digest().hex()
