@@ -356,27 +356,22 @@ class InoRandomCharacterPrompt:
                 }),
 
                 "random_face_shape": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
-
-                "random_skin_tone": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
-
-                "random_eye_color": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-                "random_eye_shape": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-
-                "random_eyelashes_style": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-
-                "random_eyebrow_shape": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-                "random_eyebrow_thickness": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-
-                "random_nose_shape": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-                "random_nose_size": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-
-                "random_lip_shape": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-                "random_lip_thickness": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-
-                "random_facial_marks": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-
-                "random_makeup_style": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
-                "random_blush_or_highlight": ("BOOLEAN", {"default": True, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_eyebrow_shapes": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_eyebrow_thickness": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_eye_colors": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_eye_shapes": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_eyelashes": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_eyelid_types": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_nose_shapes": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_nose_sizes": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_lip_shapes": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_lip_sizes": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_lip_fullness": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_cheek_bones": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_jawline": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_chin": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_makeup_style": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
+                "random_beauty_marks": ("BOOLEAN", {"default": False, "label_off": "Disabled", "label_on": "Enabled"}),
             },
         }
 
@@ -397,13 +392,15 @@ class InoRandomCharacterPrompt:
         self,
         seed,
         main, finetune, lighting, camera, background,
-        random_face_shape, random_skin_tone,
-        random_eye_color, random_eye_shape,
-        random_eyelashes_style,
-        random_eyebrow_shape, random_eyebrow_thickness,
-        random_nose_shape, random_nose_size,
-        random_lip_shape, random_lip_thickness,
-        random_facial_marks, random_makeup_style, random_blush_or_highlight):
+        random_face_shape,
+        random_eyebrow_shapes, random_eyebrow_thickness,
+        random_eye_colors, random_eye_shapes,
+        random_eyelashes, random_eyelid_types,
+        random_nose_shapes, random_nose_sizes,
+        random_lip_shapes, random_lip_sizes, random_lip_fullness,
+        random_cheek_bones, random_jawline, random_chin,
+        random_makeup_style, random_beauty_marks
+    ):
 
         if seed == 0:
             seed_number = random.seed(seed)
@@ -420,61 +417,296 @@ class InoRandomCharacterPrompt:
                 return options[self.get_index(seed, offset, len(options))]
 
         if random_face_shape:
-            face_shapes = ["round face", "oval face", "square face", "heart-shaped face", "diamond face", "long face", "triangular face"]
+            face_shapes = [
+                "oval",
+                "heart-shaped",
+                "diamond",
+                "square",
+                "round",
+                "long",
+                "soft triangle",
+                "inverted triangle",
+                "pear-shaped",
+                "slim angular",
+                "broad forehead with narrow chin shape",
+                "delicate V-shaped",
+                "contoured oval with high cheekbones"
+            ]
             choice=pick(face_shapes, 10)
-            parts.append(choice)
+            parts.append(choice + " face shape")
 
-        if random_skin_tone:
-            skin_tones = ["pale skin", "light skin", "olive skin", "tan skin", "brown skin", "dark skin", "freckled skin"]
-            parts.append(pick(skin_tones, 20))
-
-        if random_eye_color:
-            eye_colors = ["blue eyes", "green eyes", "brown eyes", "hazel eyes", "amber eyes", "gray eyes", "violet eyes", "heterochromia eyes"]
-            parts.append(pick(eye_colors, 30))
-
-        if random_eye_shape:
-            eye_shapes = ["almond shaped eyes", "round shaped eyes", "hooded shaped eyes", "monolid shaped eyes", "upturned shaped eyes", "downturned shaped eyes"]
-            parts.append(pick(eye_shapes, 40))
-
-        if random_eyelashes_style:
-            eyelash_styles = ["long eyelashes", "short eyelashes", "curled eyelashes", "thick eyelashes", "natural eyelashes"]
-            parts.append(pick(eyelash_styles, 50))
-
-        if random_eyebrow_shape:
-            eyebrow_shapes = ["arched eyebrows", "straight eyebrows", "curved eyebrows", "angled eyebrows", "soft round eyebrows"]
-            parts.append(pick(eyebrow_shapes, 60))
+        if random_eyebrow_shapes:
+            eyebrow_shapes = [
+                "soft arched",
+                "high arched",
+                "straight",
+                "rounded",
+                "curved",
+                "slightly angled",
+                "feathered arch",
+                "flat and wide",
+                "slim and lifted",
+                "natural arch"
+            ]
+            choice=pick(eyebrow_shapes, 10)
+            parts.append(choice + " eyebrow shape")
 
         if random_eyebrow_thickness:
-            eyebrow_thicknesses = ["thick eyebrows", "thin eyebrows", "medium eyebrows"]
-            parts.append(pick(eyebrow_thicknesses, 70))
+            eyebrow_thickness = [
+                "ultra thin",
+                "thin",
+                "medium thickness",
+                "thick",
+                "bold and defined",
+                "full and natural",
+                "fluffy",
+                "structured but soft"
+            ]
+            choice=pick(eyebrow_thickness, 10)
+            parts.append(choice + " eyebrow thickness")
 
-        if random_nose_shape:
-            nose_shapes = ["button nose", "straight nose", "aquiline nose", "snub nose", "wide nose", "narrow nose"]
-            parts.append(pick(nose_shapes, 80))
+        if random_eye_colors:
+            eye_colors = [
+                "warm hazel with golden flecks",
+                "light amber with honey undertones",
+                "deep espresso brown",
+                "cool gray-blue",
+                "forest green with subtle brown rings",
+                "emerald green with a vibrant shimmer",
+                "soft olive green",
+                "icy blue with silver highlights",
+                "sky blue with a hint of teal",
+                "steel gray with a soft blue tint",
+                "light brown with a hint of amber glow",
+                "dark brown with reddish undertones",
+                "gray-green blend with a soft matte finish",
+                "light hazel with a green inner ring",
+                "blue-gray with pale speckles",
+                "moss green with warm golden centers",
+                "cool taupe-gray",
+                "greenish hazel with a copper halo",
+                "light slate blue with dark limbal ring"
+            ]
+            choice=pick(eye_colors, 10)
+            parts.append(choice + " eye color")
 
-        if random_nose_size:
-            nose_sizes = ["small nose", "medium nose", "large nose"]
-            parts.append(pick(nose_sizes, 90))
+        if random_eye_shapes:
+            eye_shapes = [
+                "almond-shaped",
+                "round",
+                "monolid",
+                "hooded",
+                "upturned",
+                "downturned",
+                "deep-set",
+                "protruding",
+                "close-set",
+                "wide-set",
+                "cat-like",
+                "droopy",
+                "fox",
+                "doe",
+                "slanted",
+                "tapered",
+                "asymmetrical",
+                "narrow",
+                "large soft",
+                "sharp angular"
+            ]
+            choice=pick(eye_shapes, 10)
+            parts.append(choice + " eye shape")
 
-        if random_lip_shape:
-            lip_shapes = ["heart shaped lips", "round shaped lips", "bow shaped lips"]
-            parts.append(pick(lip_shapes, 100))
+        if random_eyelashes:
+            eyelashes = [
+                "long and curled",
+                "naturally thick",
+                "defined and lifted",
+                "full and fluttery",
+                "soft wispy",
+                "voluminous cat-eye",
+                "outer corner accent",
+                "bold doll-like",
+                "delicate lower",
+                "natural medium-length"
+            ]
+            choice=pick(eyelashes, 10)
+            parts.append(choice + " eyelashes")
 
-        if random_lip_thickness:
-            lip_thicknesses = ["thick lips", "thin lips", "balanced lips"]
-            parts.append(pick(lip_thicknesses, 110))
+        if random_eyelid_types:
+            eyelid_types = [
+                "monolid",
+                "double",
+                "hooded",
+                "semi-hooded",
+                "visible crease",
+                "smooth flat",
+                "deep-set",
+                "wide lid",
+                "tapered double",
+                "soft rounded"
+            ]
+            choice=pick(eyelid_types, 10)
+            parts.append(choice + " eyelid")
 
-        if random_facial_marks:
-            facial_marks = ["light freckles", "beauty mark above lip", "tiny mole near eye", "faint cheek freckling", "subtle beauty spot", "cute nose freckle"]
-            parts.append(pick(facial_marks, 120))
+        if random_nose_shapes:
+            nose_shapes = [
+                "straight",
+                "slightly upturned",
+                "button",
+                "Greek",
+                "Roman",
+                "nubian",
+                "snub ",
+                "celestial",
+                "aquiline",
+                "soft rounded nose tip",
+                "narrow nose bridge",
+                "wide nose base",
+                "concave profile",
+                "petite straight",
+                "elegant curved"
+            ]
+            choice=pick(nose_shapes, 10)
+            parts.append(choice + " nose shape")
+
+        if random_nose_sizes:
+            nose_sizes = [
+                 "small and subtle",
+                 "medium balanced",
+                 "slightly wide",
+                 "petite narrow",
+                 "slender and long",
+                 "soft and rounded",
+                 "refined and elegant",
+                 "compact and proportionate"
+            ]
+            choice=pick(nose_sizes, 10)
+            parts.append(choice + " nose size")
+
+        if random_lip_shapes:
+            lip_shapes = [
+                "heart-shaped",
+                "bow-shaped",
+                "round full",
+                "wide symmetrical",
+                "tapered lips with pointed corners",
+                "defined cupid’s bow",
+                "soft oval",
+                "slightly asymmetrical",
+                "downturned corners ",
+                "classic balanced"
+            ]
+            choice=pick(lip_shapes, 10)
+            parts.append(choice + " lip shape")
+
+        if random_lip_sizes:
+            lip_sizes = [
+                "petite",
+                "medium-sized",
+                "wide",
+                "long but narrow",
+                "short and compact",
+                "full-length lips with narrow height"
+            ]
+            choice=pick(lip_sizes, 10)
+            parts.append(choice + " lip size")
+
+        if random_lip_fullness:
+            lip_fullness = [
+                "full upper and lower",
+                "plump lower lip with thinner upper",
+                "even medium",
+                "slightly fuller upper lip",
+                "natural soft",
+                "subtle plump with visible definition"
+            ]
+            choice = pick(lip_fullness, 10)
+            parts.append(choice + " lip fullness")
+
+        if random_cheek_bones:
+            cheek_bones = [
+                "high and prominent",
+                "soft rounded",
+                "sculpted cheekbones with shadow",
+                "subtle cheekbone lift",
+                "defined but natural",
+                "low cheekbones with wide spacing",
+                "narrow and elegant",
+                "angular cheekbones with contour",
+                "slightly elevated",
+                "youthful full"
+            ]
+            choice=pick(cheek_bones, 10)
+            parts.append(choice + " cheekbones")
+
+        if random_jawline:
+            jawline = [
+                "defined V-shaped",
+                "soft rounded",
+                "sharp angular",
+                "slim tapered",
+                "broad but smooth",
+                "delicate jawline with narrow chin",
+                "medium defined",
+                "wide jawline with soft edges",
+                "refined oval",
+                "contoured yet natural"
+            ]
+            choice=pick(jawline, 10)
+            parts.append(choice + " jawline")
+
+        if random_chin:
+            chin = [
+                "soft rounded",
+                "pointed",
+                "subtle cleft",
+                "narrow chin with taper",
+                "short and delicate",
+                "slightly squared",
+                "refined V-shaped",
+                "medium-length balanced",
+                "petite chin with gentle curve",
+                "elongated chin with narrow tip"
+            ]
+            choice=pick(chin, 10)
+            parts.append(choice + " chin")
 
         if random_makeup_style:
-            makeup_styles = ["natural makeup", "dramatic makeup", "smokey eyes", "glossy lips", "colorful eyeshadow"]
-            parts.append(pick(makeup_styles, 130))
+            makeup_style = [
+                 "natural no-makeup look with glowing skin",
+                 "soft glam with rosy cheeks and nude lips",
+                 "bold smokey eyes with matte nude lipstick",
+                 "classic red lips with winged eyeliner",
+                 "peachy monochrome makeup with soft shimmer",
+                 "golden hour look with warm bronze tones",
+                 "clean girl aesthetic with dewy finish and minimal makeup",
+                 "vibrant eyeliner with subtle lip tint",
+                 "Korean-inspired dewy skin with gradient lips",
+                 "Arabian-style makeup with dramatic eyes and contour",
+                 "editorial high-fashion look with sculpted cheeks and bold brows",
+                 "vintage pin-up makeup with red lips and black liner flick",
+                 "romantic pink eyeshadow with glossy lips",
+                 "fresh spring look with pastel tones and light highlight",
+                 "bronzed goddess look with full lashes and golden glow",
+                 "subtle glam with champagne shimmer and pink lips",
+                 "elegant evening makeup with dark eyes and soft lips",
+                 "soft smoky eyes with peach lips",
+                 "neutral matte tones with light contour",
+                 "mauve tones with fluttery lashes and defined lips"
+            ]
+            choice=pick(makeup_style, 10)
+            parts.append(choice + " makeup style")
 
-        if random_blush_or_highlight:
-            blushes = ["rosy cheeks", "soft blush", "dewy highlight", "glowing skin", "matte finish"]
-            parts.append(pick(blushes, 140))
+        if random_beauty_marks:
+            beauty_marks = [
+                "freckle cluster across the nose bridge",
+                "light freckles scattered over the cheeks",
+                "light sun-kissed freckles across the nose and cheeks",
+                "faint freckle trail from nose to cheek",
+                "natural freckles with uneven spacing",
+            ]
+            choice=pick(beauty_marks, 10)
+            parts.append(choice + "")
 
         parts.append(lighting)
         parts.append(camera)
