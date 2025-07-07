@@ -22,9 +22,11 @@ from .src.comfyui_ino_nodes.node_utils import InoIntEqual
 from .src.comfyui_ino_nodes.node_utils import InoBranchImage
 from .src.comfyui_ino_nodes.node_utils import InoDateTimeAsString
 from .src.comfyui_ino_nodes.node_utils import InoRandomCharacterPrompt
+from .src.comfyui_ino_nodes.node_utils import InoCalculateLoraConfig
 
 from .src.comfyui_ino_nodes.node_video_convert import InoVideoConvert
 
+from .src.comfyui_ino_nodes.node_cloudreve import Cloudreve_Get_Captcha
 
 NODE_CLASS_MAPPINGS = {
     "Ino_SaveImage": BeDriveSaveImage,
@@ -38,8 +40,11 @@ NODE_CLASS_MAPPINGS = {
     "Ino_BranchImage": InoBranchImage,
     "Ino_DateTimeAsString": InoDateTimeAsString,
     "Ino_RandomCharacterPrompt": InoRandomCharacterPrompt,
+    "Ino_CalculateLoraConfig": InoCalculateLoraConfig,
 
     "Ino_VideoConvert": InoVideoConvert,
+
+    "CR_GetCaptcha": Cloudreve_Get_Captcha,
 }
 
 
@@ -55,8 +60,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Ino_BranchImage": "Ino Branch Image",
     "Ino_DateTimeAsString": "Ino DateTime As String",
     "Ino_RandomCharacterPrompt": "Ino Random Character Prompt",
+    "Ino_CalculateLoraConfig": "Ino Calculate Lora Config",
 
     "Ino_VideoConvert": "Ino Video Convert",
+    "CR_GetCaptcha": "CR Get Captcha",
 }
 
 
