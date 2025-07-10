@@ -749,6 +749,11 @@ class InoCalculateLoraConfig:
                     "step": 1,
                     "display": "number"
                 }),
+                "max_lora_parts": ("INT", {
+                    "default": 4,
+                    "step": 1,
+                    "display": "number"
+                }),
             },
         }
 
@@ -790,7 +795,7 @@ class InoCalculateLoraConfig:
         pass
 
 
-    def function(self, enabled, dataset_count, max_batch_size):
+    def function(self, enabled, dataset_count, max_batch_size, max_lora_parts):
         if not enabled:
             return 0, 0, 0, 0, 0
 
@@ -814,7 +819,7 @@ class InoCalculateLoraConfig:
         else:
             lr = 0.00015
 
-        return int(dim), int(alpha), int(steps), int(steps / 10), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
+        return int(dim), int(alpha), int(steps), int(steps / max_lora_parts), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
 
 
 
