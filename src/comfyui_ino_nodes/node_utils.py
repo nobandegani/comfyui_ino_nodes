@@ -749,8 +749,32 @@ class InoCalculateLoraConfig:
             },
         }
 
-    RETURN_TYPES = ("INT", "INT", "INT", "INT", "INT",)
-    RETURN_NAMES = ("steps", "batch_size", "dim", "alpha", "learning rate")
+    RETURN_TYPES = ("INT",
+                    "INT",
+                    "INT",
+                    "INT",
+                    "INT",
+                    "FLOAT",
+                    "FLOAT",
+                    "FLOAT",
+                    "INT",
+                    "STRING",
+                    "BOOLEAN",
+                    "INT",
+                    "FLOAT",
+                    "BOOLEAN")
+    RETURN_NAMES = ("DIM(Linear rank)",
+                    "Alpha(Linear alpha)",
+                    "Steps", "Batch size",
+                    "Gradient accumulation",
+                    "Learning rate",
+                    "Weight decay",
+                    "EMA decay",
+                    "DOP loss multiplier",
+                    "Noise Scheduler",
+                    "EMA", "LoRA Weight",
+                    "Caption dropout rate",
+                    "Cache latents")
     DESCRIPTION = cleandoc(__doc__)
     FUNCTION = "function"
 
@@ -764,17 +788,17 @@ class InoCalculateLoraConfig:
         if not enabled:
             return 0, 0, 0, 0, 0
 
-        steps = int(dataset_count * 60)
+        steps = int(dataset_count * 50)
 
-        batch_size = min(max_batch_size, max(1, dataset_count // 5))
-
-        if dataset_count < 40:
-            dim = 8
-        elif dataset_count < 80:
-            dim = 16
+        if steps > 3500:
+            ema = True
         else:
-            dim = 32
+            ema = False
 
+        batch_size = min(max_batch_size, max(1, dataset_count // 10))
+        grad_accum = max(1, 24 // batch_size)
+
+        dim = 32
         alpha = dim // 2
 
         if dataset_count <= 40:
@@ -784,4 +808,4 @@ class InoCalculateLoraConfig:
         else:
             lr = 0.00015
 
-        return steps, batch_size, dim, alpha, lr
+        return int(dim), int(alpha), int(steps), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
