@@ -1,4 +1,6 @@
 import torch
+import numpy as np
+from PIL import Image
 
 from .helper_cloudreve import rc_get_captcha
 
@@ -37,10 +39,11 @@ class Cloudreve_Get_Captcha:
 
     def function(self, enabled, server_address):
         if not enabled:
-            return ("Disabled", "", torch.zeros((1, 3, 64, 64), dtype=torch.float32))
+            img_tensor = torch.zeros((1, 512, 512, 3), dtype=torch.float32)
+            return "Disabled", "", img_tensor
 
         img, ticket = rc_get_captcha(server_address)
-        return ("Fetched", ticket, img)
+        return "Fetched", ticket, img
 
     # @classmethod
     # def IS_CHANGED(s, image, string_field, int_field, float_field, print_to_screen):
