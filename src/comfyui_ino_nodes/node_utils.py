@@ -754,6 +754,7 @@ class InoCalculateLoraConfig:
                     "INT",
                     "INT",
                     "INT",
+                    "INT",
                     "FLOAT",
                     "FLOAT",
                     "FLOAT",
@@ -765,7 +766,9 @@ class InoCalculateLoraConfig:
                     "BOOLEAN")
     RETURN_NAMES = ("DIM(Linear rank)",
                     "Alpha(Linear alpha)",
-                    "Steps", "Batch size",
+                    "Steps",
+                    "Save every",
+                    "Batch size",
                     "Gradient accumulation",
                     "Learning rate",
                     "Weight decay",
@@ -788,15 +791,15 @@ class InoCalculateLoraConfig:
         if not enabled:
             return 0, 0, 0, 0, 0
 
-        steps = int(dataset_count * 50)
+        batch_size = min(max_batch_size, max(1, dataset_count // 10))
+        grad_accum = max(1, 24 // batch_size)
+
+        steps = int(dataset_count * 60 )
 
         if steps > 3500:
             ema = True
         else:
             ema = False
-
-        batch_size = min(max_batch_size, max(1, dataset_count // 10))
-        grad_accum = max(1, 24 // batch_size)
 
         dim = 32
         alpha = dim // 2
@@ -808,4 +811,4 @@ class InoCalculateLoraConfig:
         else:
             lr = 0.00015
 
-        return int(dim), int(alpha), int(steps), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
+        return int(dim), int(alpha), int(steps), int(steps / 10), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
