@@ -844,8 +844,8 @@ class InoGetFolderBatchID:
             }
         }
 
-    RETURN_TYPES = ("INT","STRING","STRING")
-    RETURN_NAMES = ("Batch ID", "Batch ID String", "Batch ID Path")
+    RETURN_TYPES = ("INT", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("Batch ID", "Batch ID String", "Batch ID Path Rel", "Batch ID Path Abs")
     DESCRIPTION = cleandoc(__doc__)
     FUNCTION = "function"
 
@@ -879,7 +879,9 @@ class InoGetFolderBatchID:
             final_batch_num = 1
 
         final_batch_str = f"Batch_{final_batch_num:03}"
-        final_batch_path = input_path / final_batch_str
-        return final_batch_num, final_batch_str, str(final_batch_path)
+        final_batch_abs_path = (input_path / final_batch_str).resolve()
+        final_batch_rel_path = final_batch_abs_path.relative_to(Path(parent_path).resolve())
+
+        return final_batch_num, final_batch_str, str(final_batch_rel_path), str(final_batch_abs_path)
 
 
