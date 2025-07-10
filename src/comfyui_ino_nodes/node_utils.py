@@ -828,12 +828,18 @@ class InoGetFolderBatchID:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "path": ("STRING", {
+                "batch_path": ("STRING", {
                     "multiline": False,
-                    "default": "path to the batch folder"
+                    "default": ""
                 }),
                 "get_last_one": ("BOOLEAN", {
                     "default": True
+                }),
+            },
+            "optional": {
+                "parent_path": ("STRING", {
+                    "multiline": False,
+                    "default": "ComfyUI/output/Assets"
                 }),
             }
         }
@@ -849,11 +855,14 @@ class InoGetFolderBatchID:
         pass
 
 
-    def function(self, enabled, path, get_last_one):
+    def function(self, enabled, batch_path, get_last_one, parent_path):
         if not enabled:
             return 0, "", ""
 
-        input_path = Path(path)
+        input_path = Path(batch_path)
+        if not input_path.is_absolute():
+            input_path = Path(parent_path) / input_path
+        input_path = input_path.resolve()
 
         batch_id_folders = [
             folder.name for folder in input_path.iterdir()
