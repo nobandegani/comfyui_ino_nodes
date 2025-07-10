@@ -23,6 +23,7 @@ from .src.comfyui_ino_nodes.node_utils import InoBranchImage
 from .src.comfyui_ino_nodes.node_utils import InoDateTimeAsString
 from .src.comfyui_ino_nodes.node_utils import InoRandomCharacterPrompt
 from .src.comfyui_ino_nodes.node_utils import InoCalculateLoraConfig
+from .src.comfyui_ino_nodes.node_utils import InoGetFolderBatchID
 
 from .src.comfyui_ino_nodes.node_video_convert import InoVideoConvert
 
@@ -41,6 +42,7 @@ NODE_CLASS_MAPPINGS = {
     "Ino_DateTimeAsString": InoDateTimeAsString,
     "Ino_RandomCharacterPrompt": InoRandomCharacterPrompt,
     "Ino_CalculateLoraConfig": InoCalculateLoraConfig,
+    "Ino_GetFolderBatchID": InoGetFolderBatchID,
 
     "Ino_VideoConvert": InoVideoConvert,
 
@@ -61,6 +63,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Ino_DateTimeAsString": "Ino DateTime As String",
     "Ino_RandomCharacterPrompt": "Ino Random Character Prompt",
     "Ino_CalculateLoraConfig": "Ino Calculate Lora Config",
+    "Ino_GetFolderBatchID": "Ino Get Folder Batch ID",
 
     "Ino_VideoConvert": "Ino Video Convert",
     "CR_GetCaptcha": "CR Get Captcha",

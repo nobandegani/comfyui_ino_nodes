@@ -1,10 +1,13 @@
 from inspect import cleandoc
 
 import os
+import re
 import fnmatch
 import random
 import time
 import hashlib
+
+from pathlib import Path
 from datetime import datetime
 
 #---------------------------------InoParseFilePath
@@ -812,3 +815,62 @@ class InoCalculateLoraConfig:
             lr = 0.00015
 
         return int(dim), int(alpha), int(steps), int(steps / 10), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
+
+
+
+class InoGetFolderBatchID:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "path": ("STRING", {
+                    "multiline": False,
+                    "default": "path to the batch folder"
+                }),
+                "get_last_one": ("BOOLEAN", {
+                    "default": True
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("INT","STRING","STRING")
+    RETURN_NAMES = ("Batch ID", "Batch ID String", "Batch ID Path")
+    DESCRIPTION = cleandoc(__doc__)
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def __init__(self):
+        pass
+
+
+    def function(self, enabled, path, get_last_one):
+        if not enabled:
+            return 0, "", ""
+
+        input_path = Path(path)
+
+        batch_id_folders = [
+            folder.name for folder in input_path.iterdir()
+            if folder.is_dir() and re.match(r'Batch_\d{3}', folder.name)
+        ]
+
+        if batch_id_folders:
+            last_batch_num = max(int(re.search(r'\d{3}', name).group()) for name in batch_id_folders)
+            if get_last_one:
+                final_batch_num = last_batch_num
+            else:
+                final_batch_num = last_batch_num + 1
+        else:
+            final_batch_num = 1
+
+        final_batch_str = f"Batch_{final_batch_num:03}"
+        final_batch_path = input_path / final_batch_str
+        return final_batch_num, final_batch_str, str(final_batch_path)
+
+
