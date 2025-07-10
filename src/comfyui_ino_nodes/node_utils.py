@@ -819,7 +819,9 @@ class InoCalculateLoraConfig:
         else:
             lr = 0.00015
 
-        return int(dim), int(alpha), int(steps), int(steps / max_lora_parts), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
+        save_every = steps / max_lora_parts
+
+        return int(dim), int(alpha), int(steps), int(save_every), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
 
 
 
