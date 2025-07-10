@@ -828,7 +828,11 @@ class InoGetFolderBatchID:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "batch_path": ("STRING", {
+                "batch_type": ("STRING", {
+                    "multiline": False,
+                    "default": ""
+                }),
+                "creator_name": ("STRING", {
                     "multiline": False,
                     "default": ""
                 }),
@@ -855,13 +859,11 @@ class InoGetFolderBatchID:
         pass
 
 
-    def function(self, enabled, batch_path, get_last_one, parent_path):
+    def function(self, enabled, batch_type, creator_name, get_last_one, parent_path):
         if not enabled:
             return 0, "", ""
 
-        input_path = Path(batch_path)
-        if not input_path.is_absolute():
-            input_path = Path(parent_path) / input_path
+        input_path = Path(parent_path) / creator_name / batch_type
         input_path = input_path.resolve()
 
         batch_id_folders = [
