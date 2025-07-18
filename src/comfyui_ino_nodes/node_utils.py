@@ -872,6 +872,7 @@ class InoGetFolderBatchID:
 
         input_path = Path(parent_path) / creator_name / batch_type
         input_path = input_path.resolve()
+        input_path.mkdir(parents=True, exist_ok=True)
 
         batch_id_folders = [
             folder.name for folder in input_path.iterdir()
