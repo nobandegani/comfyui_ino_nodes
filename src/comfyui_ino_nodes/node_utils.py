@@ -890,7 +890,8 @@ class InoGetFolderBatchID:
 
         final_batch_str = f"Batch_{final_batch_num:03}"
         final_batch_abs_path = (input_path / final_batch_str).resolve()
-        final_batch_rel_path = final_batch_abs_path.relative_to(Path(parent_path).resolve())
+
+        final_batch_rel_path = final_batch_abs_path.relative_to(Path(Path(parent_path).parent).resolve())
 
         return final_batch_num, final_batch_str, str(final_batch_rel_path), str(final_batch_abs_path)
 
