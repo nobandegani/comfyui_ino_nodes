@@ -800,14 +800,11 @@ class InoCalculateLoraConfig:
             return 0, 0, 0, 0, 0
 
         batch_size = min(max_batch_size, max(1, dataset_count // 10))
-        grad_accum = max(1, 24 // batch_size)
+        grad_accum = max(1, 12 // batch_size)
 
-        steps = int(dataset_count * 60 )
+        steps = int(dataset_count * 35 )
 
-        if steps > 3500:
-            ema = True
-        else:
-            ema = False
+        ema = False
 
         dim = 32
         alpha = dim // 2
