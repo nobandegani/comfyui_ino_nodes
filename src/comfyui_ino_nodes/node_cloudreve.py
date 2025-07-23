@@ -2,11 +2,8 @@ import torch
 import numpy as np
 from PIL import Image
 
-from CloudreveClient import CloudreveClient
-
 from inspect import cleandoc
 
-cloudreve_client = CloudreveClient()
 
 class Cloudreve_Get_Captcha:
     """
@@ -43,9 +40,6 @@ class Cloudreve_Get_Captcha:
         if not enabled:
             img_tensor = torch.zeros((1, 512, 512, 3), dtype=torch.float32)
             return "Disabled", "", img_tensor
-
-        img, ticket = rc_get_captcha(server_address)
-        return "Fetched", ticket, img
 
     # @classmethod
     # def IS_CHANGED(s, image, string_field, int_field, float_field, print_to_screen):

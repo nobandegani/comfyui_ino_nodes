@@ -27,7 +27,6 @@ from .src.comfyui_ino_nodes.node_utils import InoGetFolderBatchID
 
 from .src.comfyui_ino_nodes.node_video_convert import InoVideoConvert
 
-from .src.comfyui_ino_nodes.node_cloudreve import Cloudreve_Get_Captcha
 
 NODE_CLASS_MAPPINGS = {
     "Ino_SaveImage": BeDriveSaveImage,
@@ -45,8 +44,6 @@ NODE_CLASS_MAPPINGS = {
     "Ino_GetFolderBatchID": InoGetFolderBatchID,
 
     "Ino_VideoConvert": InoVideoConvert,
-
-    "CR_GetCaptcha": Cloudreve_Get_Captcha,
 }
 
 
@@ -66,7 +63,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Ino_GetFolderBatchID": "Ino Get Folder Batch ID",
 
     "Ino_VideoConvert": "Ino Video Convert",
-    "CR_GetCaptcha": "CR Get Captcha",
 }
 
 
