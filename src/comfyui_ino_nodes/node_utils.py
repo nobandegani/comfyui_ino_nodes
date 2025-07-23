@@ -750,7 +750,7 @@ class InoCalculateLoraConfig:
                     "display": "number"
                 }),
                 "max_lora_parts": ("INT", {
-                    "default": 4,
+                    "default": 6,
                     "step": 1,
                     "display": "number"
                 }),
