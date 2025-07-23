@@ -388,6 +388,12 @@ class InoRandomCharacterPrompt:
     def __init__(self):
         pass
 
+    @classmethod
+    def IS_CHANGED(cls, seed, **kwargs):
+        m = hashlib.sha256()
+        m.update(seed)
+        return m.digest().hex()
+
     def get_index(self, seed, offset, length):
         return (seed + offset) % length
 
@@ -718,12 +724,6 @@ class InoRandomCharacterPrompt:
         final_prompt = ", ".join(filter(None, parts))
         return (final_prompt, seed, )
 
-        @classmethod
-        def IS_CHANGED(cls, seed, **kwargs):
-            m = hashlib.sha256()
-            m.update(seed)
-            return m.digest().hex()
-
 
 
 
@@ -832,6 +832,13 @@ class InoGetFolderBatchID:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                    "step": 1,
+                    "label": "Seed (0 = random)"
+                }),
                 "batch_type": ("STRING", {
                     "multiline": False,
                     "default": ""
@@ -862,10 +869,16 @@ class InoGetFolderBatchID:
     def __init__(self):
         pass
 
+    @classmethod
+    def IS_CHANGED(cls, seed, **kwargs):
+        m = hashlib.sha256()
+        m.update(seed)
+        return m.digest().hex()
 
-    def function(self, enabled, batch_type, creator_name, get_last_one, parent_path):
+    def function(self, enabled, seed, batch_type, creator_name, get_last_one, parent_path):
         if not enabled:
             return 0, "", ""
+        seed_number = random.seed(seed)
 
         input_path = Path(parent_path) / creator_name / batch_type
         input_path = input_path.resolve()
