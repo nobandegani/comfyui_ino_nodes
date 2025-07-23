@@ -2,9 +2,11 @@ import torch
 import numpy as np
 from PIL import Image
 
-from .helper_cloudreve import rc_get_captcha
+from CloudreveClient import CloudreveClient
 
 from inspect import cleandoc
+
+cloudreve_client = CloudreveClient()
 
 class Cloudreve_Get_Captcha:
     """
