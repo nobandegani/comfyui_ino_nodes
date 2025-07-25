@@ -749,6 +749,11 @@ class InoCalculateLoraConfig:
                     "step": 1,
                     "display": "number"
                 }),
+                "target_epochs": ("INT", {
+                    "default": 25,
+                    "step": 1,
+                    "display": "number"
+                }),
                 "max_lora_parts": ("INT", {
                     "default": 6,
                     "step": 1,
@@ -795,14 +800,14 @@ class InoCalculateLoraConfig:
         pass
 
 
-    def function(self, enabled, dataset_count, max_batch_size, max_lora_parts):
+    def function(self, enabled, dataset_count, max_batch_size, target_epochs, max_lora_parts):
         if not enabled:
             return 0, 0, 0, 0, 0
 
         batch_size = min(max_batch_size, max(1, dataset_count // 10))
         grad_accum = max(1, 12 // batch_size)
 
-        steps = int(dataset_count * 35 )
+        steps = int(dataset_count * target_epochs / batch_size)
 
         ema = False
 
