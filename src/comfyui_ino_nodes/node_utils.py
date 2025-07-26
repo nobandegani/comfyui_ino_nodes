@@ -776,7 +776,8 @@ class InoCalculateLoraConfig:
                     "BOOLEAN",
                     "INT",
                     "FLOAT",
-                    "BOOLEAN")
+                    "BOOLEAN",
+                    "INT")
     RETURN_NAMES = ("DIM(Linear rank)",
                     "Alpha(Linear alpha)",
                     "Steps",
@@ -790,7 +791,8 @@ class InoCalculateLoraConfig:
                     "Noise Scheduler",
                     "EMA", "LoRA Weight",
                     "Caption dropout rate",
-                    "Cache latents")
+                    "Cache latents",
+                    "Sample Every")
     DESCRIPTION = cleandoc(__doc__)
     FUNCTION = "function"
 
@@ -822,8 +824,8 @@ class InoCalculateLoraConfig:
             lr = 0.00015
 
         save_every = steps / max_lora_parts
-
-        return int(dim), int(alpha), int(steps), int(save_every), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True
+        sample_every = steps / 10
+        return int(dim), int(alpha), int(steps), int(save_every), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True, int(sample_every)
 
 
 
