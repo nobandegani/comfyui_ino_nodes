@@ -11,9 +11,7 @@ __email__ = "contact@inoland.net"
 __version__ = "0.0.1"
 
 
-from .src.comfyui_ino_nodes.node_bedrive_saveimage import BeDriveSaveImage
-from .src.comfyui_ino_nodes.node_bedrive_savefile import BeDriveSaveFile
-from .src.comfyui_ino_nodes.node_bedrive_getparentid import BeDriveGetParentID
+from .src.comfyui_ino_nodes.bedrive import BeDriveSaveImage, BeDriveSaveFile, BeDriveGetParentID
 
 from .src.comfyui_ino_nodes.node_utils import InoParseFilePath
 from .src.comfyui_ino_nodes.node_utils import InoNotBoolean
@@ -25,7 +23,8 @@ from .src.comfyui_ino_nodes.node_utils import InoRandomCharacterPrompt
 from .src.comfyui_ino_nodes.node_utils import InoCalculateLoraConfig
 from .src.comfyui_ino_nodes.node_utils import InoGetFolderBatchID
 from .src.comfyui_ino_nodes.node_utils import InoStringToggleCase
-from .src.comfyui_ino_nodes.node_video_convert import InoVideoConvert
+
+from .src.comfyui_ino_nodes.depricated import InoVideoConvert
 
 from .src.comfyui_ino_nodes import CloudreveInit, CloudreveSignin, CloudreveUploadFile
 
