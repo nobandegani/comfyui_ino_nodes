@@ -24,6 +24,8 @@ dev = [
     "pre-commit", # runs linting on commit
     "pytest",  # testing
     "ruff",  # linting
+    "inocloudreve",
+    "inopyutils"
 ]
 
 [project.urls]

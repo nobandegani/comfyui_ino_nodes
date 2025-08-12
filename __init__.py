@@ -27,6 +27,7 @@ from .src.comfyui_ino_nodes.node_utils import InoGetFolderBatchID
 from .src.comfyui_ino_nodes.node_utils import InoStringToggleCase
 from .src.comfyui_ino_nodes.node_video_convert import InoVideoConvert
 
+from .src.comfyui_ino_nodes import CloudreveInit, CloudreveSignin, CloudreveUploadFile
 
 NODE_CLASS_MAPPINGS = {
     "Ino_SaveImage": BeDriveSaveImage,
@@ -45,6 +46,10 @@ NODE_CLASS_MAPPINGS = {
     "Ino_StringToggleCase": InoStringToggleCase,
 
     "Ino_VideoConvert": InoVideoConvert,
+
+    "CloudreveInit": CloudreveInit,
+    "CloudreveSignin": CloudreveSignin,
+    "CloudreveUploadFile": CloudreveUploadFile,
 }
 
 
@@ -65,6 +70,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Ino_StringToggleCase": "Ino String Toggle Case",
 
     "Ino_VideoConvert": "Ino Video Convert",
+
+    "CloudreveInit": "Cloudreve Init",
+    "CloudreveSignin": "Cloudreve Signin",
+    "CloudreveUploadFile": "Cloudreve Upload File",
 }
 
 
