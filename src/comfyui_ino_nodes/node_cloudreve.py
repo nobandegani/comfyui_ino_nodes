@@ -50,11 +50,8 @@ class CloudreveInit:
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
-        try:
-            _cloudreve_client.init(server_address)
-            return "Success", "Cloudreve init success", ""
-        except Exception as e:
-            return "Failed", "Cloudreve init failed", str(e)
+        _cloudreve_client.init(server_address)
+        return "Success", "Cloudreve init success", ""
 
 
 class CloudreveSignin:
@@ -104,14 +101,11 @@ class CloudreveSignin:
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
-        try:
-            res = await _cloudreve_client.password_sign_in(
-                email=email,
-                password=password
-            )
-            return res['success'], res['msg'], res
-        except Exception as e:
-            return "Failed", "Cloudreve signin failed", str(e)
+        res = await _cloudreve_client.password_sign_in(
+            email=email,
+            password=password
+        )
+        return res['success'], res['msg'], res
 
 
 class CloudreveUploadFile:
@@ -161,12 +155,9 @@ class CloudreveUploadFile:
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
-        try:
-            res = await _cloudreve_client.upload_file(
-                local_path=local_path,
-                remote_path=cloud_path,
-                storage_policy=SparkHelper.get_default_storage_policy()["id"]
-            )
-            return res['success'], res['msg'], res
-        except Exception as e:
-            return "Failed", "Cloudreve signin failed", str(e)
+        res = await _cloudreve_client.upload_file(
+            local_path=local_path,
+            remote_path=cloud_path,
+            storage_policy=SparkHelper.get_default_storage_policy()["id"]
+        )
+        return res['success'], res['msg'], res
