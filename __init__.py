@@ -26,6 +26,9 @@ from .src.comfyui_ino_nodes.node_utils import InoStringToggleCase
 
 from .src.comfyui_ino_nodes.depricated import InoVideoConvert
 
+
+from .src.comfyui_ino_nodes.utils import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
+
 from .src.comfyui_ino_nodes import CloudreveInit, CloudreveSignin, CloudreveUploadFile
 
 NODE_CLASS_MAPPINGS = {
@@ -45,6 +48,12 @@ NODE_CLASS_MAPPINGS = {
     "Ino_StringToggleCase": InoStringToggleCase,
 
     "Ino_VideoConvert": InoVideoConvert,
+
+    "Zip": Zip,
+    "Unzip": Unzip,
+    "RemoveFile": RemoveFile,
+    "RemoveFolder": RemoveFolder,
+    "IncrementBatchName": IncrementBatchName,
 
     "CloudreveInit": CloudreveInit,
     "CloudreveSignin": CloudreveSignin,
@@ -69,6 +78,12 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Ino_StringToggleCase": "Ino String Toggle Case",
 
     "Ino_VideoConvert": "Ino Video Convert",
+
+    "Zip": "Zip",
+    "Unzip": "Unzip",
+    "RemoveFile": "Remove File",
+    "RemoveFolder": "Remove Folder",
+    "IncrementBatchName": "Increment Batch Name",
 
     "CloudreveInit": "Cloudreve Init",
     "CloudreveSignin": "Cloudreve Signin",
