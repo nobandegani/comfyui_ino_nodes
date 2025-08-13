@@ -28,6 +28,9 @@ class CloudreveInit:
                     "multiline": False,
                     "default": "https://cloudreve.com"
                 })
+            },
+            "optional": {
+                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -46,7 +49,7 @@ class CloudreveInit:
         m.update(seed)
         return m.digest().hex()
 
-    def function(self, enabled, seed, server_address):
+    def function(self, enabled, seed, server_address, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
@@ -79,6 +82,9 @@ class CloudreveSignin:
                     "multiline": False,
                     "default": "*******"
                 })
+            },
+            "optional": {
+                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -97,7 +103,7 @@ class CloudreveSignin:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, email, password):
+    async def function(self, enabled, seed, email, password, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
@@ -133,6 +139,9 @@ class CloudreveUploadFile:
                     "multiline": False,
                     "default": "Ino/test"
                 })
+            },
+            "optional": {
+                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -151,7 +160,7 @@ class CloudreveUploadFile:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, local_path, cloud_path):
+    async def function(self, enabled, seed, local_path, cloud_path, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
