@@ -25,6 +25,9 @@ class IncrementBatchName:
                     "multiline": False,
                     "default": "Batch_00001"
                 }),
+            },
+            "optional": {
+                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -43,7 +46,7 @@ class IncrementBatchName:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, name):
+    async def function(self, enabled, seed, name, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
@@ -78,6 +81,9 @@ class Zip:
                     "multiline": False,
                     "default": ""
                 })
+            },
+            "optional": {
+                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -96,7 +102,7 @@ class Zip:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, to_zip, path_to_save, zip_file_name):
+    async def function(self, enabled, seed, to_zip, path_to_save, zip_file_name, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
@@ -133,6 +139,9 @@ class Unzip:
                     "multiline": False,
                     "default": ""
                 })
+            },
+            "optional": {
+                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -151,7 +160,7 @@ class Unzip:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, zip_path, output_path):
+    async def function(self, enabled, seed, zip_path, output_path, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
@@ -182,6 +191,9 @@ class RemoveFile:
                     "multiline": False,
                     "default": ""
                 })
+            },
+            "optional": {
+                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -200,7 +212,7 @@ class RemoveFile:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, file_path):
+    async def function(self, enabled, seed, file_path, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
@@ -211,7 +223,7 @@ class RemoveFile:
 
 class RemoveFolder:
     """
-        Remove File
+        Remove Folder
     """
 
     @classmethod
@@ -230,6 +242,9 @@ class RemoveFolder:
                     "multiline": False,
                     "default": ""
                 })
+            },
+            "optional": {
+                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -248,7 +263,7 @@ class RemoveFolder:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, folder_path):
+    async def function(self, enabled, seed, folder_path, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
