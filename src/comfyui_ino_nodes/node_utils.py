@@ -948,4 +948,3 @@ class InoStringToggleCase:
             return input_string
         result = str(input_string).upper() if toggle_to else str(input_string).lower()
         return (result, )
-

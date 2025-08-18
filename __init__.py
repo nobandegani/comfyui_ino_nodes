@@ -28,6 +28,7 @@ from .src.comfyui_ino_nodes.depricated import InoVideoConvert
 
 
 from .src.comfyui_ino_nodes.utils import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
+from .src.comfyui_ino_nodes.utils import InoGetSamplerModel, InoGetSamplerConfig
 
 from .src.comfyui_ino_nodes import CloudreveInit, CloudreveSignin, CloudreveUploadFile
 
@@ -54,6 +55,9 @@ NODE_CLASS_MAPPINGS = {
     "RemoveFile": RemoveFile,
     "RemoveFolder": RemoveFolder,
     "IncrementBatchName": IncrementBatchName,
+
+    "InoGetSamplerConfig": InoGetSamplerConfig,
+    "InoGetSamplerModel": InoGetSamplerModel,
 
     "CloudreveInit": CloudreveInit,
     "CloudreveSignin": CloudreveSignin,
@@ -84,6 +88,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "RemoveFile": "Remove File",
     "RemoveFolder": "Remove Folder",
     "IncrementBatchName": "Increment Batch Name",
+
+    "InoGetSamplerConfig": "Ino Get Sampler Config",
+    "InoGetSamplerModel": "Ino Get Sampler Model",
 
     "CloudreveInit": "Cloudreve Init",
     "CloudreveSignin": "Cloudreve Signin",
