@@ -1,4 +1,51 @@
 import hashlib
+from pathlib import Path
+import json
+from copy import deepcopy
+
+def _as_int(v, default):
+    try: return int(v)
+    except (TypeError, ValueError): return default
+
+def _as_float(v, default):
+    try: return float(v)
+    except (TypeError, ValueError): return default
+
+def get_model_by_name(name: str, config:str = "default"):
+    """
+    Return the model dict whose 'name' matches `name` (case-insensitive),
+    loaded from ../configs/models.json (relative to this file).
+    The JSON is cached after the first read.
+    """
+
+    if config == "default":
+        base_dir = Path(__file__).resolve().parent.parent
+        cfg_path = base_dir / "configs" / "models.json"
+    else:
+        cfg_path = Path(config)
+
+    if not hasattr(get_model_by_name, "_index"):
+
+        if not cfg_path.exists():
+            raise FileNotFoundError(f"models.json not found at: {cfg_path}")
+
+        with cfg_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        models = data.get("models", [])
+        index = {}
+        for m in models:
+            if isinstance(m, dict) and "name" in m:
+                index[m["name"].strip().lower()] = m
+
+        get_model_by_name._index = index
+
+    key = (name or "").strip().lower()
+    idx = get_model_by_name._index
+    if key not in idx:
+        raise KeyError(f"Model '{name}' not found in models.json")
+
+    return deepcopy(idx[key])
 
 class InoGetSamplerModel:
     """
@@ -12,7 +59,7 @@ class InoGetSamplerModel:
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "config": ("STRING", {
                     "multiline": False,
-                    "default": ""
+                    "default": "default"
                 }),
                 "name": ("STRING", {
                     "multiline": False,
@@ -21,8 +68,9 @@ class InoGetSamplerModel:
             }
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "MODEL", "CLIP", "VAE",)
-    RETURN_NAMES = ("Config", "Name", "Model", "CLIP", "VAE")
+    RETURN_TYPES = ("STRING", "MODEL", "CLIP", "VAE",)
+    RETURN_NAMES = ("CONFIG", "MODEL", "CLIP", "VAE")
+
     FUNCTION = "function"
 
     CATEGORY = "InoNodes"
@@ -31,37 +79,39 @@ class InoGetSamplerModel:
         if not enabled:
             return config, name, None, None, None
 
+        model_cfg = get_model_by_name(name, config)
+
         from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
 
         unet_loader = UNETLoader()
         load_unet = unet_loader.load_unet(
-            unet_name="flux1dev/chroma-unlocked-v33.safetensors",
-            weight_dtype="default"
+            unet_name=model_cfg["unet"],
+            weight_dtype=model_cfg["weight_type"]
         )
 
-        dual_clip = False
+        dual_clip = model_cfg["use_dual_clip"]
         if dual_clip:
             clip_loader = DualCLIPLoader()
             load_clip = clip_loader.load_clip(
-                clip_name1="flux1d/t5/t5xxl_fp16.safetensors",
-                clip_name2="flux1d/t5/t5xxl_fp16.safetensors",
-                type="chroma",
+                clip_name1=model_cfg["clip1"],
+                clip_name2=model_cfg["clip2"],
+                type=model_cfg["type"],
                 device="default",
             )
         else:
             clip_loader = CLIPLoader()
             load_clip = clip_loader.load_clip(
-                clip_name="flux1d/t5/t5xxl_fp16.safetensors",
-                type="chroma",
+                clip_name=model_cfg["clip1"],
+                type=model_cfg["type"],
                 device="default",
             )
 
         vae_loader = VAELoader()
         load_vae = vae_loader.load_vae(
-            vae_name="FLUX1/ae.safetensors",
+            vae_name=model_cfg["vae"],
         )
 
-        return (config, name, load_unet[0], load_clip[0], load_vae[0], )
+        return (model_cfg, load_unet[0], load_clip[0], load_vae[0], )
 
 
 class InoGetSamplerConfig:
@@ -82,12 +132,9 @@ class InoGetSamplerConfig:
                     "label": "Seed (0 = random)"
                 }),
                 "config": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                }),
-                "name": ("STRING", {
-                    "multiline": False,
-                    "default": ""
+                    "multiline": True,
+                    "default": "",
+                    "label": "Config json"
                 }),
                 "model": ("MODEL", {}),
                 "clip": ("CLIP", {}),
@@ -104,25 +151,32 @@ class InoGetSamplerConfig:
             },
             "optional": {
                 "steps": ("INT", {
-                    "default": 0,
-                    "min": 0,
+                    "default": -1,
+                    "min": -1,
                     "max": 100,
                     "step": 1,
-                    "label": "(0 = default)"
+                    "label": "(-1 = default)"
                 }),
-                "cfg": ("INT", {
-                    "default": 0,
-                    "min": 0,
+                "cfg": ("FLOAT", {
+                    "default": -1,
+                    "min": -1,
                     "max": 50,
-                    "step": 1,
-                    "label": "(0 = default)"
+                    "step": 0.01,
+                    "label": "(-1 = default)"
                 }),
-                "denoise": ("INT", {
-                    "default": 0,
-                    "min": 0,
+                "guidance": ("FLOAT", {
+                    "default": -1,
+                    "min": -1,
                     "max": 50,
-                    "step": 1,
-                    "label": "(0 = default)"
+                    "step": 0.01,
+                    "label": "(-1 = default)"
+                }),
+                "denoise": ("FLOAT", {
+                    "default": -1,
+                    "min": -1,
+                    "max": 50,
+                    "step": 0.01,
+                    "label": "(-1 = default)"
                 }),
                 "sampler_name": ("STRING", {
                     "multiline": False,
@@ -135,8 +189,8 @@ class InoGetSamplerConfig:
             }
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "INT", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "CONDITIONING", "CONDITIONING", )
-    RETURN_NAMES = ("Config", "Name", "seed", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "POSITIVE", "NEGATIVE", )
+    RETURN_TYPES = ("INT", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "CONDITIONING", "CONDITIONING", "INT", "FLOAT", "FLOAT", "FLOAT", "STRING", "STRING", )
+    RETURN_NAMES = ("Seed", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "POSITIVE", "NEGATIVE", "Steps", "CFG", "Guidance", "Denoise", "Sampler Name", "Scheduler Name", )
     FUNCTION = "function"
 
     CATEGORY = "InoNodes"
@@ -148,18 +202,40 @@ class InoGetSamplerConfig:
         return m.digest().hex()
 
     def function(self, enabled, seed,
-                 config, name,
+                 config,
                  model, clip, positive, negative,
-                 steps, cfg, denoise, sampler_name, scheduler_name):
+                 steps, cfg, guidance, denoise, sampler_name, scheduler_name):
         if not enabled:
-            return config, name, seed,
+            return config,
+
+        if isinstance(config, str):
+            config_str = config.strip()
+            if not config_str:
+                model_cfg = {}
+            else:
+                try:
+                    model_cfg = json.loads(config_str)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
+        elif isinstance(config, dict):
+            model_cfg = config
+        else:
+            raise TypeError("`config` must be a JSON string or a dict.")
+
+        final_steps = steps if steps != -1 else _as_int(model_cfg.get("steps", -1), -1)
+        final_cfg = cfg if cfg != -1 else _as_float(model_cfg.get("cfg", -1), -1)
+        final_guidance = guidance if guidance != -1 else _as_float(model_cfg.get("guidance", -1), -1)
+        final_denoise = denoise if denoise != -1 else _as_float(model_cfg.get("denoise", -1), -1)
+
+        final_sampler_name = sampler_name if sampler_name != "default" else model_cfg.get("sampler_name", "none")
+        final_scheduler_name = scheduler_name if scheduler_name != "default" else model_cfg.get("scheduler_name", "none")
+
+        use_negative_prompt = bool(model_cfg.get("use_negative_prompt", model_cfg.get("use_negative", False)))
+        use_flux_clip_encoder = bool(model_cfg.get("use_flux_encoder", False))
 
         from nodes import CLIPTextEncode, ConditioningZeroOut
         from comfy_extras.nodes_custom_sampler import BasicGuider, CFGGuider, RandomNoise, KSamplerSelect, BasicScheduler
         from comfy_extras.nodes_flux import CLIPTextEncodeFlux, FluxGuidance
-
-        use_negative_prompt = True
-        use_flux_clip_encoder = False
 
         if use_flux_clip_encoder:
             positive_clip_encoder = CLIPTextEncodeFlux()
@@ -167,7 +243,7 @@ class InoGetSamplerConfig:
                 clip=clip,
                 clip_l = positive,
                 t5xxl=negative,
-                guidance=cfg
+                guidance=final_guidance
             )
         else:
             positive_clip_encoder = CLIPTextEncode()
@@ -194,7 +270,7 @@ class InoGetSamplerConfig:
                 model=model,
                 positive=positive_condition[0],
                 negative=negative_condition[0],
-                cfg=cfg
+                cfg=final_cfg
             )
         else:
             guider = BasicGuider()
@@ -210,15 +286,17 @@ class InoGetSamplerConfig:
 
         sampler_selector = KSamplerSelect()
         get_sampler = sampler_selector.get_sampler(
-            sampler_name="euler"
+            sampler_name=final_sampler_name
         )
 
         scheduler_selector = BasicScheduler()
         get_sigmas = scheduler_selector.get_sigmas(
             model=model,
-            scheduler="simple",
-            steps=steps,
-            denoise=denoise,
+            scheduler=final_scheduler_name,
+            steps=final_steps,
+            denoise=final_denoise,
         )
 
-        return (config, name, seed, get_noise[0], get_guider[0], get_sampler[0], get_sigmas[0], positive_condition[0], negative_condition[0], )
+        return (seed,
+                get_noise[0], get_guider[0], get_sampler[0], get_sigmas[0], positive_condition[0], negative_condition[0],
+                final_steps, final_cfg, final_guidance, final_denoise, final_sampler_name, final_scheduler_name,)
