@@ -47,7 +47,7 @@ def get_model_by_name(name: str, config:str = "default"):
 
     return deepcopy(idx[key])
 
-class InoGetSamplerModel:
+class InoLoadModels:
     """
 
     """
@@ -137,16 +137,11 @@ class InoGetSamplerConfig:
                     "label": "Config json"
                 }),
                 "model": ("MODEL", {}),
-                "clip": ("CLIP", {}),
-                "positive": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "label": "positive or flux clip l"
+                "positive": ("CONDITIONING", {
+                    "label": "Positive"
                 }),
-                "negative": ("STRING", {
-                    "multiline": True,
-                    "default": "",
-                    "label": "Negative or flux t5xxl"
+                "negative": ("CONDITIONING", {
+                    "label": "Negative"
                 }),
             },
             "optional": {
@@ -158,13 +153,6 @@ class InoGetSamplerConfig:
                     "label": "(-1 = default)"
                 }),
                 "cfg": ("FLOAT", {
-                    "default": -1,
-                    "min": -1,
-                    "max": 50,
-                    "step": 0.01,
-                    "label": "(-1 = default)"
-                }),
-                "guidance": ("FLOAT", {
                     "default": -1,
                     "min": -1,
                     "max": 50,
@@ -189,8 +177,8 @@ class InoGetSamplerConfig:
             }
         }
 
-    RETURN_TYPES = ("INT", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "CONDITIONING", "CONDITIONING", "INT", "FLOAT", "FLOAT", "FLOAT", "STRING", "STRING", )
-    RETURN_NAMES = ("Seed", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "POSITIVE", "NEGATIVE", "Steps", "CFG", "Guidance", "Denoise", "Sampler Name", "Scheduler Name", )
+    RETURN_TYPES = ("INT", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "INT", "FLOAT", "FLOAT", "STRING", "STRING", )
+    RETURN_NAMES = ("Seed", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "Steps", "CFG", "Denoise", "Sampler Name", "Scheduler Name", )
     FUNCTION = "function"
 
     CATEGORY = "InoNodes"
@@ -203,8 +191,8 @@ class InoGetSamplerConfig:
 
     def function(self, enabled, seed,
                  config,
-                 model, clip, positive, negative,
-                 steps, cfg, guidance, denoise, sampler_name, scheduler_name):
+                 model, positive, negative,
+                 steps, cfg, denoise, sampler_name, scheduler_name):
         if not enabled:
             return config,
 
@@ -224,24 +212,132 @@ class InoGetSamplerConfig:
 
         final_steps = steps if steps != -1 else _as_int(model_cfg.get("steps", -1), -1)
         final_cfg = cfg if cfg != -1 else _as_float(model_cfg.get("cfg", -1), -1)
-        final_guidance = guidance if guidance != -1 else _as_float(model_cfg.get("guidance", -1), -1)
         final_denoise = denoise if denoise != -1 else _as_float(model_cfg.get("denoise", -1), -1)
 
         final_sampler_name = sampler_name if sampler_name != "default" else model_cfg.get("sampler_name", "none")
         final_scheduler_name = scheduler_name if scheduler_name != "default" else model_cfg.get("scheduler_name", "none")
 
-        use_negative_prompt = bool(model_cfg.get("use_negative_prompt", model_cfg.get("use_negative", False)))
+        use_cfg = bool(model_cfg.get("use_cfg", False))
+
+        from comfy_extras.nodes_custom_sampler import BasicGuider, CFGGuider, RandomNoise, KSamplerSelect, BasicScheduler
+
+        if use_cfg:
+            guider = CFGGuider()
+            get_guider = guider.get_guider(
+                model=model,
+                positive=positive,
+                negative=negative,
+                cfg=final_cfg
+            )
+        else:
+            guider = BasicGuider()
+            get_guider = guider.get_guider(
+                model=model,
+                conditioning=positive,
+            )
+
+        random_noise = RandomNoise()
+        get_noise = random_noise.get_noise(
+            noise_seed=seed,
+        )
+
+        sampler_selector = KSamplerSelect()
+        get_sampler = sampler_selector.get_sampler(
+            sampler_name=final_sampler_name
+        )
+
+        scheduler_selector = BasicScheduler()
+        get_sigmas = scheduler_selector.get_sigmas(
+            model=model,
+            scheduler=final_scheduler_name,
+            steps=final_steps,
+            denoise=final_denoise,
+        )
+
+        return (seed,
+                get_noise[0], get_guider[0], get_sampler[0], get_sigmas[0],
+                final_steps, final_cfg, final_denoise, final_sampler_name, final_scheduler_name,)
+
+
+
+class InoGetConditioning:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "config": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "label": "Config json"
+                }),
+                "clip": ("CLIP", {}),
+                "positive": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "label": "positive or flux clip l"
+                }),
+                "negative": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "label": "Negative or flux t5xxl"
+                }),
+            },
+            "optional": {
+                "guidance": ("FLOAT", {
+                    "default": -1,
+                    "min": -1,
+                    "max": 50,
+                    "step": 0.01,
+                    "label": "(-1 = default)"
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", "FLOAT", )
+    RETURN_NAMES = ("POSITIVE", "NEGATIVE", "Guidance", )
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, enabled,
+                 config,
+                 clip, positive, negative,
+                 guidance):
+        if not enabled:
+            return config,
+
+        if isinstance(config, str):
+            config_str = config.strip()
+            if not config_str:
+                model_cfg = {}
+            else:
+                try:
+                    model_cfg = json.loads(config_str)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
+        elif isinstance(config, dict):
+            model_cfg = config
+        else:
+            raise TypeError("`config` must be a JSON string or a dict.")
+
+        final_guidance = guidance if guidance != -1 else _as_float(model_cfg.get("guidance", -1), -1)
+
+        use_negative_prompt = bool(model_cfg.get("use_negative_prompt", False))
         use_flux_clip_encoder = bool(model_cfg.get("use_flux_encoder", False))
 
         from nodes import CLIPTextEncode, ConditioningZeroOut
-        from comfy_extras.nodes_custom_sampler import BasicGuider, CFGGuider, RandomNoise, KSamplerSelect, BasicScheduler
-        from comfy_extras.nodes_flux import CLIPTextEncodeFlux, FluxGuidance
+        from comfy_extras.nodes_flux import CLIPTextEncodeFlux
 
         if use_flux_clip_encoder:
             positive_clip_encoder = CLIPTextEncodeFlux()
             positive_condition = positive_clip_encoder.encode(
                 clip=clip,
-                clip_l = positive,
+                clip_l=positive,
                 t5xxl=negative,
                 guidance=final_guidance
             )
@@ -264,39 +360,5 @@ class InoGetSamplerConfig:
                 conditioning=positive_condition[0]
             )
 
-        if use_negative_prompt:
-            guider = CFGGuider()
-            get_guider = guider.get_guider(
-                model=model,
-                positive=positive_condition[0],
-                negative=negative_condition[0],
-                cfg=final_cfg
-            )
-        else:
-            guider = BasicGuider()
-            get_guider = guider.get_guider(
-                model=model,
-                conditioning=positive_condition[0],
-            )
-
-        random_noise = RandomNoise()
-        get_noise = random_noise.get_noise(
-            noise_seed=seed,
-        )
-
-        sampler_selector = KSamplerSelect()
-        get_sampler = sampler_selector.get_sampler(
-            sampler_name=final_sampler_name
-        )
-
-        scheduler_selector = BasicScheduler()
-        get_sigmas = scheduler_selector.get_sigmas(
-            model=model,
-            scheduler=final_scheduler_name,
-            steps=final_steps,
-            denoise=final_denoise,
-        )
-
-        return (seed,
-                get_noise[0], get_guider[0], get_sampler[0], get_sigmas[0], positive_condition[0], negative_condition[0],
-                final_steps, final_cfg, final_guidance, final_denoise, final_sampler_name, final_scheduler_name,)
+        return (positive_condition[0], negative_condition[0],
+                final_guidance, )

@@ -1,5 +1,5 @@
 from .file_helper import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
-from .sampler_helper import InoGetSamplerModel, InoGetSamplerConfig
+from .sampler_helper import InoLoadModels, InoGetConditioning, InoGetSamplerConfig
 
 __all__ = [
     "Zip",
@@ -7,6 +7,7 @@ __all__ = [
     "RemoveFile",
     "RemoveFolder",
     "IncrementBatchName",
-    "InoGetSamplerModel",
+    "InoLoadModels",
+    "InoGetConditioning",
     "InoGetSamplerConfig",
 ]
