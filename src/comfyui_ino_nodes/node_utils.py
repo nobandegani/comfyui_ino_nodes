@@ -948,3 +948,35 @@ class InoStringToggleCase:
             return input_string
         result = str(input_string).upper() if toggle_to else str(input_string).lower()
         return (result, )
+
+
+class InoBoolToSwitch:
+    """
+        Convert bool to int, 2 for true, 1 for false
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "input_bool": ("BOOLEAN", {})
+            }
+        }
+
+    RETURN_TYPES = ("INT", )
+    RETURN_NAMES = ("INT", )
+    DESCRIPTION = cleandoc(__doc__)
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, enabled, input_bool):
+        if not enabled:
+            return -1
+
+        if input_bool:
+            result = 2
+        else:
+            result = 1
+
+        return (result, )

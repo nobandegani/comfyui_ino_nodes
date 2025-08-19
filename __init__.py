@@ -23,6 +23,7 @@ from .src.comfyui_ino_nodes.node_utils import InoRandomCharacterPrompt
 from .src.comfyui_ino_nodes.node_utils import InoCalculateLoraConfig
 from .src.comfyui_ino_nodes.node_utils import InoGetFolderBatchID
 from .src.comfyui_ino_nodes.node_utils import InoStringToggleCase
+from .src.comfyui_ino_nodes.node_utils import InoBoolToSwitch
 
 from .src.comfyui_ino_nodes.depricated import InoVideoConvert
 
@@ -47,6 +48,7 @@ NODE_CLASS_MAPPINGS = {
     "Ino_CalculateLoraConfig": InoCalculateLoraConfig,
     "Ino_GetFolderBatchID": InoGetFolderBatchID,
     "Ino_StringToggleCase": InoStringToggleCase,
+    "Ino_BoolToSwitch": InoBoolToSwitch,
 
     "Ino_VideoConvert": InoVideoConvert,
 
@@ -82,6 +84,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Ino_CalculateLoraConfig": "Ino Calculate Lora Config",
     "Ino_GetFolderBatchID": "Ino Get Folder Batch ID",
     "Ino_StringToggleCase": "Ino String Toggle Case",
+    "Ino_BoolToSwitch": "Ino Bool To Switch",
 
     "Ino_VideoConvert": "Ino Video Convert",
 
