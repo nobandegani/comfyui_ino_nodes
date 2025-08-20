@@ -61,10 +61,7 @@ class InoLoadModels:
                     "multiline": False,
                     "default": "default"
                 }),
-                "name": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                }),
+                "name": (["flux1dev", "chroma"], ),
             }
         }
 
@@ -276,15 +273,20 @@ class InoGetConditioning:
                     "label": "Config json"
                 }),
                 "clip": ("CLIP", {}),
-                "positive": ("STRING", {
+                "positive1": ("STRING", {
                     "multiline": True,
                     "default": "",
                     "label": "positive or flux clip l"
                 }),
+                "positive2": ("STRING", {
+                    "multiline": True,
+                    "default": "",
+                    "label": "flux t5xxl"
+                }),
                 "negative": ("STRING", {
                     "multiline": True,
                     "default": "",
-                    "label": "Negative or flux t5xxl"
+                    "label": "Negative"
                 }),
             },
             "optional": {
@@ -306,7 +308,7 @@ class InoGetConditioning:
 
     def function(self, enabled,
                  config,
-                 clip, positive, negative,
+                 clip, positive1, positive2, negative,
                  guidance):
         if not enabled:
             return config,
@@ -337,15 +339,15 @@ class InoGetConditioning:
             positive_clip_encoder = CLIPTextEncodeFlux()
             positive_condition = positive_clip_encoder.encode(
                 clip=clip,
-                clip_l=positive,
-                t5xxl=negative,
+                clip_l=positive1,
+                t5xxl=positive2,
                 guidance=final_guidance
             )
         else:
             positive_clip_encoder = CLIPTextEncode()
             positive_condition = positive_clip_encoder.encode(
                 clip=clip,
-                text=positive,
+                text=positive1,
             )
 
         if use_negative_prompt:

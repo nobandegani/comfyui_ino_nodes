@@ -22,7 +22,7 @@
     {
       "name": "chroma",
       "type": "chroma",
-      "unet": "flux1dev/chroma-unlocked-v33.safetensors",
+      "unet": "flux1dev/chroma-unlocked-v50.safetensors",
       "weight_type": "default",
       "use_dual_clip": false,
       "use_flux_encoder": false,
