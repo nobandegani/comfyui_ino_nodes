@@ -61,7 +61,7 @@ class InoLoadModels:
                     "multiline": False,
                     "default": "default"
                 }),
-                "name": (["flux1dev", "chroma"], ),
+                "name": (["Flux1Dev", "Flux1DevUnlocked", "GetPhatV11Softcore", "JibMixFlux", "FuxCapacity", "Chroma"], ),
             }
         }
 
