@@ -62,17 +62,20 @@ class InoLoadModels:
                     "default": "default"
                 }),
                 "name": (["Flux1Dev", "Flux1DevUnlocked", "GetPhatV11Softcore", "JibMixFlux", "FuxCapacity", "Chroma"], ),
+            },
+            "optional": {
+                "clip_device": (["default", "cpu"], {"advanced": True}),
             }
         }
 
-    RETURN_TYPES = ("STRING", "MODEL", "CLIP", "VAE",)
-    RETURN_NAMES = ("CONFIG", "MODEL", "CLIP", "VAE")
+    RETURN_TYPES = ("STRING", "MODEL", "CLIP", "VAE", "STRING", "STRING", "STRING", )
+    RETURN_NAMES = ("CONFIG", "MODEL", "CLIP", "VAE", "Tags", "Description", "LoraCompatible", )
 
     FUNCTION = "function"
 
     CATEGORY = "InoNodes"
 
-    def function(self, enabled, config, name):
+    def function(self, enabled, config, name, clip_device):
         if not enabled:
             return config, name, None, None, None
 
@@ -93,14 +96,14 @@ class InoLoadModels:
                 clip_name1=model_cfg["clip1"],
                 clip_name2=model_cfg["clip2"],
                 type=model_cfg["type"],
-                device="default",
+                device=clip_device,
             )
         else:
             clip_loader = CLIPLoader()
             load_clip = clip_loader.load_clip(
                 clip_name=model_cfg["clip1"],
                 type=model_cfg["type"],
-                device="default",
+                device=clip_device,
             )
 
         vae_loader = VAELoader()
@@ -108,7 +111,7 @@ class InoLoadModels:
             vae_name=model_cfg["vae"],
         )
 
-        return (model_cfg, load_unet[0], load_clip[0], load_vae[0], )
+        return (model_cfg, load_unet[0], load_clip[0], load_vae[0], model_cfg["tags"], model_cfg["description"], model_cfg["lora_compatible"])
 
 
 class InoGetSamplerConfig:
