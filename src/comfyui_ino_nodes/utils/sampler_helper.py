@@ -3,6 +3,9 @@ from pathlib import Path
 import json
 from copy import deepcopy
 
+from comfy_extras.nodes_flux import FluxGuidance
+
+
 def _as_int(v, default):
     try: return int(v)
     except (TypeError, ValueError): return default
@@ -61,7 +64,15 @@ class InoLoadModels:
                     "multiline": False,
                     "default": "default"
                 }),
-                "name": (["Flux1Dev", "Flux1DevUnlocked", "GetPhatV11Softcore", "JibMixFlux", "FuxCapacity", "Chroma"], ),
+                "name": ([
+                             "Flux1Dev",
+                             "Flux1Krea",
+                             "Flux1DevUnlocked",
+                             "GetPhatV11Softcore",
+                             "JibMixFlux",
+                             "FuxCapacity",
+                             "Chroma"
+                         ], ),
             },
             "optional": {
                 "clip_device": (["default", "cpu"], {"advanced": True}),
@@ -334,9 +345,10 @@ class InoGetConditioning:
 
         use_negative_prompt = bool(model_cfg.get("use_negative_prompt", False))
         use_flux_clip_encoder = bool(model_cfg.get("use_flux_encoder", False))
+        use_flux_guidance = bool(model_cfg.get("use_flux_guidance", False))
 
         from nodes import CLIPTextEncode, ConditioningZeroOut
-        from comfy_extras.nodes_flux import CLIPTextEncodeFlux
+        from comfy_extras.nodes_flux import CLIPTextEncodeFlux, FluxGuidance
 
         if use_flux_clip_encoder:
             positive_clip_encoder = CLIPTextEncodeFlux()
@@ -351,6 +363,13 @@ class InoGetConditioning:
             positive_condition = positive_clip_encoder.encode(
                 clip=clip,
                 text=positive1,
+            )
+
+        if not use_flux_clip_encoder and use_flux_guidance:
+            flux_guidance = FluxGuidance()
+            positive_condition = flux_guidance.append(
+                conditioning=positive_condition[0],
+                guidance=final_guidance,
             )
 
         if use_negative_prompt:
