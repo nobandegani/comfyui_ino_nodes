@@ -16,27 +16,15 @@ def _as_float(v, default):
     try: return float(v)
     except (TypeError, ValueError): return default
 
-def _get_model_type (model_type: str = "model") -> str:
-    """Get model type from config."""
-    if model_type == "model" or model_type is None or model_type == "":
-        type_final = "models"
-    elif model_type == "creator_lora":
-        type_final = "creator_loras"
-    else:
-        type_final = model_type
-    return type_final
-
-def _resolve_models_path(config: str = "default", model_type: str = "") -> Path:
+def _resolve_models_path(config: str = "default", model_type: str = "models") -> Path:
     """Resolve models .json path. 'default' => ../configs/models.json (relative to this file)."""
-
-    type_final = _get_model_type(model_type)
 
     if config == "default":
         base_dir = Path(__file__).resolve().parent.parent  # comfyui_ino_nodes/
-        return (base_dir / "configs" / f"{type_final}.json").resolve()
+        return (base_dir / "configs" / f"{model_type}.json").resolve()
     return Path(config).expanduser().resolve()
 
-def _load_models_list(config: str = "default", model_type: str = "") -> List[Dict]:
+def _load_models_list(config: str = "default", model_type: str = "models") -> List[Dict]:
     """Load models list with file-mtime cache."""
     path = _resolve_models_path(config, model_type)
     if not path.exists():
@@ -59,13 +47,13 @@ def _load_models_list(config: str = "default", model_type: str = "") -> List[Dic
 
     return cache["_models"]
 
-def get_models(config: str = "default", config_type: str = "model") -> Tuple[List[str], List[Dict]]:
+def get_models(config: str = "default", model_type: str = "models") -> Tuple[List[str], List[Dict]]:
     """
     Return (names, models):
       - names: list of model names (strings)
       - models: list of model dicts
     """
-    models = deepcopy(_load_models_list(config, config_type))
+    models = deepcopy(_load_models_list(config, model_type))
     names = [m.get("name", "") for m in models if isinstance(m, dict)]
     return names, models
 
@@ -77,6 +65,55 @@ def get_model_by_name(name: str, models: List[Dict]) -> Dict:
             return deepcopy(m)
     raise KeyError(f"Model '{name}' not found.")
 
+
+def prepare_lora_config(lora_config: str) -> Dict:
+    """Prepare LoRA config"""
+
+    if not lora_config or lora_config == "" or lora_config == "none":
+        return {
+            "use_lora": False,
+            "lora_config": None
+        }
+
+    if isinstance(lora_config, str):
+        config_str = lora_config.strip()
+        try:
+            model_cfg = json.loads(config_str)
+        except json.JSONDecodeError as e:
+            return {
+                "use_lora": False,
+                "lora_config": None
+            }
+    elif isinstance(lora_config, dict):
+        model_cfg = lora_config
+    else:
+        return {
+            "use_lora": False,
+            "lora_config": None
+        }
+
+    return {
+        "use_lora": True,
+        "lora_config": model_cfg
+    }
+
+def load_lora(config_str, model, clip):
+    """Load LoRA"""
+    from nodes import LoraLoader
+    prepared_config = prepare_lora_config(config_str)
+    if prepared_config["use_lora"]:
+        config_dict = prepared_config["lora_config"]
+        lora_loader = LoraLoader()
+        lora_loaded = lora_loader.load_lora(
+            model=model,
+            clip=clip,
+            lora_name=config_dict["file"],
+            strength_model=config_dict["strength_model"],
+            strength_clip=config_dict["strength_clip"]
+        )
+        return lora_loaded[0], lora_loaded[1]
+    else:
+        return model, clip
 
 class InoGetModelConfig:
     """
@@ -118,7 +155,7 @@ class InoGetLoraConfig:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "lora": (list(get_models(config="default", config_type="creator_lora")[0]), {"tooltip": "The name of the LoRA."}),
+                "lora": (list(get_models(config="default", model_type="loras")[0]), {"tooltip": "The name of the LoRA."}),
             }
         }
 
@@ -135,7 +172,7 @@ class InoGetLoraConfig:
         ):
         if not enabled:
             return (lora, "", )
-        model_cfg = get_model_by_name(lora, get_models(config="default", config_type="creator_lora")[1])
+        model_cfg = get_model_by_name(lora, get_models(config="default", model_type="loras")[1])
         return (lora, model_cfg, )
 
 
@@ -199,7 +236,7 @@ class InoLoadSamplerModels:
         else:
             raise TypeError("`config` must be a JSON string or a dict.")
 
-        from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader, LoraLoader
+        from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
 
         unet_loader = UNETLoader()
         load_unet = unet_loader.load_unet(
@@ -229,10 +266,24 @@ class InoLoadSamplerModels:
             vae_name=model_cfg["vae"],
         )
 
-        print(f"lora1_name: {lora_1_config}")
-        print(f"lora2_name: {lora_2_config}")
         model_loaded = load_unet[0]
         clip_loaded = load_clip[0]
+
+        lora_1_loaded = load_lora(lora_1_config, model_loaded, clip_loaded)
+        model_loaded = lora_1_loaded[0]
+        clip_loaded = lora_1_loaded[1]
+
+        lora_2_loaded = load_lora(lora_2_config, model_loaded, clip_loaded)
+        model_loaded = lora_2_loaded[0]
+        clip_loaded = lora_2_loaded[1]
+
+        lora_3_loaded = load_lora(lora_3_config, model_loaded, clip_loaded)
+        model_loaded = lora_3_loaded[0]
+        clip_loaded = lora_3_loaded[1]
+
+        lora_4_loaded = load_lora(lora_4_config, model_loaded, clip_loaded)
+        model_loaded = lora_4_loaded[0]
+        clip_loaded = lora_4_loaded[1]
 
         return ( model_loaded, clip_loaded, load_vae[0], )
 
