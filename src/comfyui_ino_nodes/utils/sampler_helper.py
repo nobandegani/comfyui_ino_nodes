@@ -357,27 +357,17 @@ class InoGetConditioning:
                     "label": "Negative"
                 }),
             },
-            "optional": {
-                "guidance": ("FLOAT", {
-                    "default": -1,
-                    "min": -1,
-                    "max": 50,
-                    "step": 0.01,
-                    "label": "(-1 = default)"
-                }),
-            }
         }
 
-    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", "FLOAT", )
-    RETURN_NAMES = ("POSITIVE", "NEGATIVE", "Guidance", )
+    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", )
+    RETURN_NAMES = ("POSITIVE", "NEGATIVE", )
     FUNCTION = "function"
 
     CATEGORY = "InoSamplerHelper"
 
     def function(self, enabled,
                  config,
-                 clip, positive1, positive2, negative,
-                 guidance):
+                 clip, positive1, positive2, negative):
         if not enabled:
             return config,
 
@@ -395,7 +385,7 @@ class InoGetConditioning:
         else:
             raise TypeError("`config` must be a JSON string or a dict.")
 
-        final_guidance = guidance if guidance != -1 else _as_float(model_cfg.get("guidance", -1), -1)
+        final_guidance = _as_float(model_cfg.get("guidance", -1), -1)
 
         use_negative_prompt = bool(model_cfg.get("use_negative_prompt", False))
         use_flux_clip_encoder = bool(model_cfg.get("use_flux_encoder", False))
@@ -438,5 +428,4 @@ class InoGetConditioning:
                 conditioning=positive_condition[0]
             )
 
-        return (positive_condition[0], negative_condition[0],
-                final_guidance, )
+        return (positive_condition[0], negative_condition[0], )
