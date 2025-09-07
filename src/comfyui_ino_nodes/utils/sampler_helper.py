@@ -66,12 +66,16 @@ class InoLoadModels:
                 }),
                 "name": ([
                              "Flux1Dev",
+                             "Flux1Kontext",
                              "Flux1Krea",
                              "Flux1DevUnlocked",
-                             "GetPhatV11Softcore",
-                             "JibMixFlux",
-                             "FuxCapacity",
-                             "Chroma"
+                             "GetPhatV11",
+                             "JibMixFluxV10",
+                             "JibMixFluxV11",
+                             "FuxCapacityV31",
+                             "UltraFineTuneV4",
+                             "FluxedUpV51",
+                             "ChromaV50"
                          ], ),
             },
             "optional": {
