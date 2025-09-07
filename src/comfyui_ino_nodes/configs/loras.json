@@ -5,24 +5,26 @@
       "base_model": "flux1dev",
       "type": "person",
       "trigger_word": "karlakush2org",
+      "trigger_words": "",
       "file": "flux1dev/creators/karlakush2org_V005_.safetensors",
       "weight_type": "fp16",
       "strength_model": 0.9,
       "strength_clip": 0.9,
-      "trigger_words": "",
-      "description": ""
+      "description": "",
+      "Tags": ""
     },
     {
       "name": "RealisticAmplifier",
       "base_model": "flux1dev",
       "type": "finetune",
       "trigger_word": "d1g1cam",
+      "trigger_words": "",
       "file": "flux1dev/Digicam.safetensors",
       "weight_type": "fp16",
       "strength_model": 0.9,
       "strength_clip": 0.9,
-      "trigger_words": "",
-      "description": "UltraReal Fine-Tune"
+      "description": "UltraReal Fine-Tune",
+      "Tags": ""
     }
   ]
 }

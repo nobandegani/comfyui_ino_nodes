@@ -175,6 +175,192 @@ class InoGetLoraConfig:
         model_cfg = get_model_by_name(lora, get_models(config="default", model_type="loras")[1])
         return (lora, model_cfg, )
 
+class InoShowModelConfig:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "config": ("STRING", {
+                    "multiline": True,
+                }),
+            }
+        }
+
+    RETURN_TYPES = (
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "BOOLEAN",
+        "BOOLEAN",
+        "BOOLEAN",
+        "FLOAT",
+        "BOOLEAN",
+        "STRING",
+        "STRING",
+        "STRING",
+        "BOOLEAN",
+        "INT",
+        "STRING",
+        "STRING",
+        "INT",
+        "INT",
+        "STRING",
+        "STRING",
+        "STRING",
+    )
+    RETURN_NAMES = (
+        "Name",
+        "Type",
+        "Unet",
+        "WeightType",
+        "UseDualClip",
+        "UseFluxEncoder",
+        "UseFluxGuidance",
+        "Guidance",
+        "UseNegativePrompt",
+        "Clip1",
+        "Clip2",
+        "VAE",
+        "UseCFG",
+        "CFG",
+        "SamplerName",
+        "SchedulerName",
+        "Steps",
+        "Denoise",
+        "Tags",
+        "Description",
+        "LoraCompatible",
+    )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self, enabled, config):
+        if not enabled:
+            return None
+        if isinstance(config, str):
+            config_str = config.strip()
+            if not config_str:
+                model_cfg = {}
+            else:
+                try:
+                    model_cfg = json.loads(config_str)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
+        elif isinstance(config, dict):
+            model_cfg = config
+        else:
+            raise TypeError("`config` must be a JSON string or a dict.")
+
+        return (
+            model_cfg["name"],
+            model_cfg["type"],
+            model_cfg["unet"],
+            model_cfg["weight_type"],
+            model_cfg["use_dual_clip"],
+            model_cfg["use_flux_encoder"],
+            model_cfg["use_flux_guidance"],
+            model_cfg["guidance"],
+            model_cfg["use_negative_prompt"],
+            model_cfg["clip1"],
+            model_cfg["clip2"],
+            model_cfg["vae"],
+            model_cfg["use_cfg"],
+            model_cfg["cfg"],
+            model_cfg["sampler_name"],
+            model_cfg["scheduler_name"],
+            model_cfg["steps"],
+            model_cfg["denoise"],
+            model_cfg["tags"],
+            model_cfg["description"],
+            model_cfg["lora_compatible"],
+
+        )
+
+class InoShowLoraConfig:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "config": ("STRING", {
+                    "multiline": True,
+                }),
+            }
+        }
+
+    RETURN_TYPES = (
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+        "FLOAT",
+        "FLOAT",
+        "STRING",
+        "STRING",
+    )
+    RETURN_NAMES = (
+        "Name",
+        "BaseModel",
+        "Type",
+        "TriggerWord",
+        "TriggerWords",
+        "File",
+        "WeightType",
+        "ModelStrength",
+        "ClipStrength",
+        "Description",
+        "Tags",
+    )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self, enabled, config):
+        if not enabled:
+            return None
+        if isinstance(config, str):
+            config_str = config.strip()
+            if not config_str:
+                model_cfg = {}
+            else:
+                try:
+                    model_cfg = json.loads(config_str)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
+        elif isinstance(config, dict):
+            model_cfg = config
+        else:
+            raise TypeError("`config` must be a JSON string or a dict.")
+
+        return (
+            model_cfg["name"],
+            model_cfg["base_model"],
+            model_cfg["type"],
+            model_cfg["trigger_word"],
+            model_cfg["trigger_words"],
+            model_cfg["file"],
+            model_cfg["weight_type"],
+            model_cfg["strength_model"],
+            model_cfg["strength_clip"],
+            model_cfg["description"],
+            model_cfg["tags"],
+        )
 
 class InoLoadSamplerModels:
     """

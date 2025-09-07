@@ -24,7 +24,9 @@ from .src.comfyui_ino_nodes.node_utils import InoBoolToSwitch
 
 
 from .src.comfyui_ino_nodes.utils.file_helper import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
-from .src.comfyui_ino_nodes.utils.sampler_helper import InoGetModelConfig, InoGetLoraConfig, InoLoadSamplerModels, InoGetConditioning, InoGetSamplerConfig
+
+from .src.comfyui_ino_nodes.utils.sampler_helper import InoGetModelConfig, InoShowModelConfig, InoGetLoraConfig, InoShowLoraConfig
+from .src.comfyui_ino_nodes.utils.sampler_helper import InoLoadSamplerModels, InoGetConditioning, InoGetSamplerConfig
 
 from .src.comfyui_ino_nodes import CloudreveInit, CloudreveSignin, CloudreveUploadFile
 
@@ -48,7 +50,9 @@ NODE_CLASS_MAPPINGS = {
     "IncrementBatchName": IncrementBatchName,
 
     "InoGetModelConfig": InoGetModelConfig,
+    "InoShowModelConfig": InoShowModelConfig,
     "InoGetLoraConfig": InoGetLoraConfig,
+    "InoShowLoraConfig": InoShowLoraConfig,
     "InoLoadSamplerModels": InoLoadSamplerModels,
     "InoGetConditioning": InoGetConditioning,
     "InoGetSamplerConfig": InoGetSamplerConfig,
@@ -86,7 +90,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "IncrementBatchName": "Increment Batch Name",
 
     "InoGetModelConfig": "Ino Get Model Config",
+    "InoShowModelConfig": "Ino Show Model Config",
     "InoGetLoraConfig": "Ino Get Lora Config",
+    "InoShowLoraConfig": "Ino Show Lora Config",
     "InoLoadSamplerModels": "Ino Load Sampler Models",
     "InoGetConditioning": "Ino Get Conditioning",
     "InoGetSamplerConfig": "Ino Get Sampler Config",
