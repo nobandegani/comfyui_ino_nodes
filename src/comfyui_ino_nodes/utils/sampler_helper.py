@@ -111,9 +111,9 @@ def load_lora(config_str, model, clip):
             strength_model=config_dict["strength_model"],
             strength_clip=config_dict["strength_clip"]
         )
-        return lora_loaded[0], lora_loaded[1]
+        return lora_loaded[0], lora_loaded[1], f"{config_dict["trigger_word"]}, "
     else:
-        return model, clip
+        return model, clip, ""
 
 class InoGetModelConfig:
     """
@@ -393,8 +393,8 @@ class InoLoadSamplerModels:
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CLIP", "VAE", )
-    RETURN_NAMES = ("MODEL", "CLIP", "VAE", )
+    RETURN_TYPES = ("MODEL", "CLIP", "VAE", "STRING")
+    RETURN_NAMES = ("MODEL", "CLIP", "VAE", "TriggerWords")
 
     FUNCTION = "function"
 
@@ -454,24 +454,29 @@ class InoLoadSamplerModels:
 
         model_loaded = load_unet[0]
         clip_loaded = load_clip[0]
+        trigger_words = ""
 
         lora_1_loaded = load_lora(lora_1_config, model_loaded, clip_loaded)
         model_loaded = lora_1_loaded[0]
         clip_loaded = lora_1_loaded[1]
+        trigger_words = trigger_words + lora_1_loaded[2]
 
         lora_2_loaded = load_lora(lora_2_config, model_loaded, clip_loaded)
         model_loaded = lora_2_loaded[0]
         clip_loaded = lora_2_loaded[1]
+        trigger_words = trigger_words + lora_2_loaded[2]
 
         lora_3_loaded = load_lora(lora_3_config, model_loaded, clip_loaded)
         model_loaded = lora_3_loaded[0]
         clip_loaded = lora_3_loaded[1]
+        trigger_words = trigger_words + lora_3_loaded[2]
 
         lora_4_loaded = load_lora(lora_4_config, model_loaded, clip_loaded)
         model_loaded = lora_4_loaded[0]
         clip_loaded = lora_4_loaded[1]
+        trigger_words = trigger_words + lora_4_loaded[2]
 
-        return ( model_loaded, clip_loaded, load_vae[0], )
+        return ( model_loaded, clip_loaded, load_vae[0], trigger_words, )
 
 
 class InoGetSamplerConfig:
