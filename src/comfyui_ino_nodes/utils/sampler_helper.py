@@ -2,7 +2,9 @@ import hashlib
 from pathlib import Path
 import json
 from copy import deepcopy
+from typing import List, Dict, Tuple
 
+import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
 
 
@@ -14,43 +16,69 @@ def _as_float(v, default):
     try: return float(v)
     except (TypeError, ValueError): return default
 
-def get_model_by_name(name: str, config:str = "default"):
-    """
-    Return the model dict whose 'name' matches `name` (case-insensitive),
-    loaded from ../configs/models.json (relative to this file).
-    The JSON is cached after the first read.
-    """
+def _get_model_type (model_type: str = "model") -> str:
+    """Get model type from config."""
+    if model_type == "model" or model_type is None or model_type == "":
+        type_final = "models"
+    elif model_type == "creator_lora":
+        type_final = "creator_loras"
+    else:
+        type_final = model_type
+    return type_final
+
+def _resolve_models_path(config: str = "default", model_type: str = "") -> Path:
+    """Resolve models .json path. 'default' => ../configs/models.json (relative to this file)."""
+
+    type_final = _get_model_type(model_type)
 
     if config == "default":
-        base_dir = Path(__file__).resolve().parent.parent
-        cfg_path = base_dir / "configs" / "models.json"
-    else:
-        cfg_path = Path(config)
+        base_dir = Path(__file__).resolve().parent.parent  # comfyui_ino_nodes/
+        return (base_dir / "configs" / f"{type_final}.json").resolve()
+    return Path(config).expanduser().resolve()
 
-    if not hasattr(get_model_by_name, "_index"):
+def _load_models_list(config: str = "default", model_type: str = "") -> List[Dict]:
+    """Load models list with file-mtime cache."""
+    path = _resolve_models_path(config, model_type)
+    if not path.exists():
+        raise FileNotFoundError(f"models.json not found at: {path}")
 
-        if not cfg_path.exists():
-            raise FileNotFoundError(f"models.json not found at: {cfg_path}")
+    cache = _load_models_list.__dict__
+    mtime = path.stat().st_mtime
 
-        with cfg_path.open("r", encoding="utf-8") as f:
+    if cache.get("_path") != str(path) or cache.get("_mtime") != mtime:
+        with path.open("r", encoding="utf-8") as f:
             data = json.load(f)
 
         models = data.get("models", [])
-        index = {}
-        for m in models:
-            if isinstance(m, dict) and "name" in m:
-                index[m["name"].strip().lower()] = m
+        if not isinstance(models, list):
+            raise ValueError("Invalid models.json: 'models' must be a list")
 
-        get_model_by_name._index = index
+        cache["_path"] = str(path)
+        cache["_mtime"] = mtime
+        cache["_models"] = models
 
+    return cache["_models"]
+
+def get_models(config: str = "default", config_type: str = "model") -> Tuple[List[str], List[Dict]]:
+    """
+    Return (names, models):
+      - names: list of model names (strings)
+      - models: list of model dicts
+    """
+    models = deepcopy(_load_models_list(config, config_type))
+    names = [m.get("name", "") for m in models if isinstance(m, dict)]
+    return names, models
+
+def get_model_by_name(name: str, models: List[Dict]) -> Dict:
+    """Find a model by name (case-insensitive) from a models list."""
     key = (name or "").strip().lower()
-    idx = get_model_by_name._index
-    if key not in idx:
-        raise KeyError(f"Model '{name}' not found in models.json")
+    for m in models:
+        if isinstance(m, dict) and m.get("name", "").strip().lower() == key:
+            return deepcopy(m)
+    raise KeyError(f"Model '{name}' not found.")
 
-    return deepcopy(idx[key])
 
-class InoLoadModels:
+class InoGetModelConfig:
     """
 
     """
@@ -60,43 +88,118 @@ class InoLoadModels:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "config": ("STRING", {
-                    "multiline": False,
-                    "default": "default"
+                "model": (list(get_models()[0]), {"tooltip": "The name of the LoRA."}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("ModelName", "ModelConfig")
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self,
+                 enabled,
+                 model,
+        ):
+        if not enabled:
+            return (model, "", )
+        model_cfg = get_model_by_name(model, get_models()[1])
+        return (model, model_cfg, )
+
+class InoGetLoraConfig:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "lora": (list(get_models(config="default", config_type="creator_lora")[0]), {"tooltip": "The name of the LoRA."}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "STRING")
+    RETURN_NAMES = ("LoraName", "LoraConfig")
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self,
+                 enabled,
+                 lora,
+        ):
+        if not enabled:
+            return (lora, "", )
+        model_cfg = get_model_by_name(lora, get_models(config="default", config_type="creator_lora")[1])
+        return (lora, model_cfg, )
+
+
+class InoLoadSamplerModels:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_config": ("STRING", {
+                    "multiline": True,
                 }),
-                "name": ([
-                             "Flux1Dev",
-                             "Flux1Kontext",
-                             "Flux1Krea",
-                             "Flux1DevUnlocked",
-                             "GetPhatV11",
-                             "JibMixFluxV10",
-                             "JibMixFluxV11",
-                             "FuxCapacityV31",
-                             "UltraFineTuneV4",
-                             "FluxedUpV51",
-                             "ChromaV50"
-                         ], ),
+                "lora_1_config": ("STRING", {
+                    "multiline": True,
+                }),
+                "lora_2_config": ("STRING", {
+                    "multiline": True,
+                }),
+                "lora_3_config": ("STRING", {
+                    "multiline": True,
+                }),
+                "lora_4_config": ("STRING", {
+                    "multiline": True,
+                }),
             },
             "optional": {
                 "clip_device": (["default", "cpu"], {"advanced": True}),
             }
         }
 
-    RETURN_TYPES = ("STRING", "MODEL", "CLIP", "VAE", "STRING", "STRING", "STRING", )
-    RETURN_NAMES = ("CONFIG", "MODEL", "CLIP", "VAE", "Tags", "Description", "LoraCompatible", )
+    RETURN_TYPES = ("MODEL", "CLIP", "VAE", )
+    RETURN_NAMES = ("MODEL", "CLIP", "VAE", )
 
     FUNCTION = "function"
 
-    CATEGORY = "InoNodes"
+    CATEGORY = "InoSamplerHelper"
 
-    def function(self, enabled, config, name, clip_device):
+    def function(self,
+                 enabled,
+                 model_config,
+                 lora_1_config, lora_2_config, lora_3_config, lora_4_config,
+                 clip_device):
         if not enabled:
-            return config, name, None, None, None
+            return (None, None, None, )
 
-        model_cfg = get_model_by_name(name, config)
+        if isinstance(model_config, str):
+            config_str = model_config.strip()
+            if not config_str:
+                model_cfg = {}
+            else:
+                try:
+                    model_cfg = json.loads(config_str)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
+        elif isinstance(model_config, dict):
+            model_cfg = model_config
+        else:
+            raise TypeError("`config` must be a JSON string or a dict.")
 
-        from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
+        from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader, LoraLoader
 
         unet_loader = UNETLoader()
         load_unet = unet_loader.load_unet(
@@ -126,7 +229,12 @@ class InoLoadModels:
             vae_name=model_cfg["vae"],
         )
 
-        return (model_cfg, load_unet[0], load_clip[0], load_vae[0], model_cfg["tags"], model_cfg["description"], model_cfg["lora_compatible"])
+        print(f"lora1_name: {lora_1_config}")
+        print(f"lora2_name: {lora_2_config}")
+        model_loaded = load_unet[0]
+        clip_loaded = load_clip[0]
+
+        return ( model_loaded, clip_loaded, load_vae[0], )
 
 
 class InoGetSamplerConfig:
@@ -196,7 +304,7 @@ class InoGetSamplerConfig:
     RETURN_NAMES = ("Seed", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "Steps", "CFG", "Denoise", "Sampler Name", "Scheduler Name", )
     FUNCTION = "function"
 
-    CATEGORY = "InoNodes"
+    CATEGORY = "InoSamplerHelper"
 
     @classmethod
     def IS_CHANGED(cls, seed, **kwargs):
@@ -322,7 +430,7 @@ class InoGetConditioning:
     RETURN_NAMES = ("POSITIVE", "NEGATIVE", "Guidance", )
     FUNCTION = "function"
 
-    CATEGORY = "InoNodes"
+    CATEGORY = "InoSamplerHelper"
 
     def function(self, enabled,
                  config,
