@@ -1,12 +1,38 @@
 {
   "models": [
     {
-      "name": "KarlaKush",
+      "name": "KarlaKushV5",
       "base_model": "flux1dev",
       "type": "person",
       "trigger_word": "karlakush2org",
       "trigger_words": "",
       "file": "flux1dev/creators/karlakush2org_V005_.safetensors",
+      "weight_type": "fp16",
+      "strength_model": 0.9,
+      "strength_clip": 0.9,
+      "description": "",
+      "Tags": ""
+    },
+    {
+      "name": "AlyTayV1",
+      "base_model": "flux1dev",
+      "type": "person",
+      "trigger_word": "alytay2org",
+      "trigger_words": "",
+      "file": "flux1dev/creators/alytay2org_v001.safetensors",
+      "weight_type": "fp16",
+      "strength_model": 0.9,
+      "strength_clip": 0.9,
+      "description": "",
+      "Tags": ""
+    },
+    {
+      "name": "TanaRainV1",
+      "base_model": "flux1dev",
+      "type": "person",
+      "trigger_word": "tanarain2org",
+      "trigger_words": "",
+      "file": "flux1dev/creators/tanarain2org_v001.safetensors",
       "weight_type": "fp16",
       "strength_model": 0.9,
       "strength_clip": 0.9,
