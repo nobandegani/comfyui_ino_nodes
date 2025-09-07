@@ -247,13 +247,6 @@ class InoGetSamplerConfig:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "step": 1,
-                    "label": "Seed (0 = random)"
-                }),
                 "config": ("STRING", {
                     "multiline": True,
                     "default": "",
@@ -267,57 +260,20 @@ class InoGetSamplerConfig:
                     "label": "Negative"
                 }),
             },
-            "optional": {
-                "steps": ("INT", {
-                    "default": -1,
-                    "min": -1,
-                    "max": 100,
-                    "step": 1,
-                    "label": "(-1 = default)"
-                }),
-                "cfg": ("FLOAT", {
-                    "default": -1,
-                    "min": -1,
-                    "max": 50,
-                    "step": 0.01,
-                    "label": "(-1 = default)"
-                }),
-                "denoise": ("FLOAT", {
-                    "default": -1,
-                    "min": -1,
-                    "max": 50,
-                    "step": 0.01,
-                    "label": "(-1 = default)"
-                }),
-                "sampler_name": ("STRING", {
-                    "multiline": False,
-                    "default": "default"
-                }),
-                "scheduler_name": ("STRING", {
-                    "multiline": False,
-                    "default": "default"
-                }),
-            }
         }
 
-    RETURN_TYPES = ("INT", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "INT", "FLOAT", "FLOAT", "STRING", "STRING", )
-    RETURN_NAMES = ("Seed", "NOISE", "GUIDER", "SAMPLER", "SIGMAS", "Steps", "CFG", "Denoise", "Sampler Name", "Scheduler Name", )
+    RETURN_TYPES = ("GUIDER", "SAMPLER", "SIGMAS", )
+    RETURN_NAMES = ("GUIDER", "SAMPLER", "SIGMAS", )
     FUNCTION = "function"
 
     CATEGORY = "InoSamplerHelper"
 
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
-
-    def function(self, enabled, seed,
+    def function(self, enabled,
                  config,
                  model, positive, negative,
-                 steps, cfg, denoise, sampler_name, scheduler_name):
+        ):
         if not enabled:
-            return config,
+            return None, None, None,
 
         if isinstance(config, str):
             config_str = config.strip()
@@ -333,16 +289,9 @@ class InoGetSamplerConfig:
         else:
             raise TypeError("`config` must be a JSON string or a dict.")
 
-        final_steps = steps if steps != -1 else _as_int(model_cfg.get("steps", -1), -1)
-        final_cfg = cfg if cfg != -1 else _as_float(model_cfg.get("cfg", -1), -1)
-        final_denoise = denoise if denoise != -1 else _as_float(model_cfg.get("denoise", -1), -1)
-
-        final_sampler_name = sampler_name if sampler_name != "default" else model_cfg.get("sampler_name", "none")
-        final_scheduler_name = scheduler_name if scheduler_name != "default" else model_cfg.get("scheduler_name", "none")
-
         use_cfg = bool(model_cfg.get("use_cfg", False))
 
-        from comfy_extras.nodes_custom_sampler import BasicGuider, CFGGuider, RandomNoise, KSamplerSelect, BasicScheduler
+        from comfy_extras.nodes_custom_sampler import BasicGuider, CFGGuider, KSamplerSelect, BasicScheduler
 
         if use_cfg:
             guider = CFGGuider()
@@ -350,7 +299,7 @@ class InoGetSamplerConfig:
                 model=model,
                 positive=positive,
                 negative=negative,
-                cfg=final_cfg
+                cfg=model_cfg.get("cfg", -1)
             )
         else:
             guider = BasicGuider()
@@ -359,27 +308,20 @@ class InoGetSamplerConfig:
                 conditioning=positive,
             )
 
-        random_noise = RandomNoise()
-        get_noise = random_noise.get_noise(
-            noise_seed=seed,
-        )
-
         sampler_selector = KSamplerSelect()
         get_sampler = sampler_selector.get_sampler(
-            sampler_name=final_sampler_name
+            sampler_name=model_cfg.get("sampler_name", "none")
         )
 
         scheduler_selector = BasicScheduler()
         get_sigmas = scheduler_selector.get_sigmas(
             model=model,
-            scheduler=final_scheduler_name,
-            steps=final_steps,
-            denoise=final_denoise,
+            scheduler=model_cfg.get("scheduler_name", "none"),
+            steps=model_cfg.get("steps", -1),
+            denoise=model_cfg.get("denoise", -1),
         )
 
-        return (seed,
-                get_noise[0], get_guider[0], get_sampler[0], get_sigmas[0],
-                final_steps, final_cfg, final_denoise, final_sampler_name, final_scheduler_name,)
+        return (get_guider[0], get_sampler[0], get_sigmas[0], )
 
 
 
