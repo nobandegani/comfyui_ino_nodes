@@ -210,7 +210,7 @@
     {
       "name": "FluxedUpV51",
       "type": "flux",
-      "unet": "flux1dev/ultrarealFineTune_v4.safetensors",
+      "unet": "flux1dev/fluxedUpFluxNSFW_51FP16.safetensors",
       "weight_type": "default",
       "use_dual_clip": true,
       "use_flux_encoder": false,
