@@ -120,9 +120,9 @@ class InoBoolToSwitch:
 
         return (result, )
 
-class InoStringToEnum:
+class InoStringToCombo:
     """
-        Convert string to enum value
+        Convert string to combo value
     """
 
     @classmethod
@@ -137,8 +137,8 @@ class InoStringToEnum:
             }
         }
 
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("ENUM", )
+    RETURN_TYPES = ("COMBO", )
+    RETURN_NAMES = ("COMBO", )
 
     FUNCTION = "function"
     CATEGORY = "InoNodes"

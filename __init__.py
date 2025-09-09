@@ -20,7 +20,7 @@ from .src.comfyui_ino_nodes.utils.lora_helper import InoCalculateLoraConfig
 
 from .src.comfyui_ino_nodes.utils.prompt_helper import InoRandomCharacterPrompt
 
-from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToEnum
+from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToCombo
 
 from .src.comfyui_ino_nodes.utils.file_helper import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
 
@@ -44,7 +44,7 @@ NODE_CLASS_MAPPINGS = {
     "InoNotBoolean": InoNotBoolean,
     "InoStringToggleCase": InoStringToggleCase,
     "InoBoolToSwitch": InoBoolToSwitch,
-    "InoStringToEnum": InoStringToEnum,
+    "InoStringToCombo": InoStringToCombo,
 
     "Zip": Zip,
     "Unzip": Unzip,
@@ -59,7 +59,6 @@ NODE_CLASS_MAPPINGS = {
     "InoLoadSamplerModels": InoLoadSamplerModels,
     "InoGetConditioning": InoGetConditioning,
     "InoGetSamplerConfig": InoGetSamplerConfig,
-
 
     "CloudreveInit": CloudreveInit,
     "CloudreveSignin": CloudreveSignin,
@@ -82,6 +81,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InoIntEqual": "Ino Int Equal",
     "InoStringToggleCase": "Ino String Toggle Case",
     "InoBoolToSwitch": "Ino Bool To Switch",
+    "InoStringToCombo": "Ino String To Combo",
 
     "Zip": "Zip",
     "Unzip": "Unzip",
