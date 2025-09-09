@@ -53,39 +53,6 @@ class InoParseFilePath:
         return (dir_path, name, ext, )
 
 
-
-#---------------------------------InoNotBoolean
-class InoNotBoolean:
-    """
-        reverse boolean
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "boolean": ("BOOLEAN", {"default": True}),
-            }
-        }
-
-    RETURN_TYPES = ("BOOLEAN", )
-    RETURN_NAMES = ("boolean", )
-    DESCRIPTION = cleandoc(__doc__)
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def __init__(self):
-        pass
-
-
-    def function(self, boolean):
-        return (not boolean, )
-
-
-
-
-
 #---------------------------------InoCountFiles
 class InoCountFiles:
     """
@@ -148,52 +115,6 @@ class InoCountFiles:
             final_matches = name_matches
 
         return (len(final_matches),)
-
-
-
-
-
-
-#---------------------------------InoIntEqual
-class InoIntEqual:
-    """
-        check if its equal to the input Int
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "int_a": ("INT", {
-                    "default": 0,
-                    "step": 1,
-                    "display": "number"
-                }),
-                "int_b": ("INT", {
-                    "default": 0,
-                    "step": 1,
-                    "display": "number"
-                }),
-            },
-
-        }
-
-    RETURN_TYPES = ("BOOLEAN", )
-    RETURN_NAMES = ("is equal", )
-    DESCRIPTION = cleandoc(__doc__)
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def __init__(self):
-        pass
-
-
-    def function(self, int_a, int_b):
-        return (int_a == int_b, )
-
-
-
 
 
 #---------------------------------InoImageBranch
@@ -911,72 +832,3 @@ class InoGetFolderBatchID:
         final_batch_rel_path = final_batch_abs_path.relative_to(Path(Path(parent_path).parent).resolve())
 
         return final_batch_num, final_batch_str, str(final_batch_rel_path), str(final_batch_abs_path)
-
-
-
-class InoStringToggleCase:
-    """
-
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "input_string": ("STRING", {
-                    "multiline": True,
-                    "default": "Test String"
-                }),
-                "toggle_to": ("BOOLEAN", {"default": True, "label_off": "Lower", "label_on": "Upper"}),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("String", )
-    DESCRIPTION = cleandoc(__doc__)
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def __init__(self):
-        pass
-
-
-    def function(self, enabled, input_string, toggle_to):
-        if not enabled:
-            return input_string
-        result = str(input_string).upper() if toggle_to else str(input_string).lower()
-        return (result, )
-
-
-class InoBoolToSwitch:
-    """
-        Convert bool to int, 2 for true, 1 for false
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "input_bool": ("BOOLEAN", {})
-            }
-        }
-
-    RETURN_TYPES = ("INT", )
-    RETURN_NAMES = ("INT", )
-    DESCRIPTION = cleandoc(__doc__)
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(self, enabled, input_bool):
-        if not enabled:
-            return -1
-
-        if input_bool:
-            result = 2
-        else:
-            result = 1
-
-        return (result, )
