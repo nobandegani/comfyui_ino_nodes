@@ -16,11 +16,11 @@ from .src.comfyui_ino_nodes.node_utils import InoBranchImage
 from .src.comfyui_ino_nodes.node_utils import InoDateTimeAsString
 from .src.comfyui_ino_nodes.node_utils import InoGetFolderBatchID
 
-from src.comfyui_ino_nodes.utils.lora_helper import InoCalculateLoraConfig
+from .src.comfyui_ino_nodes.utils.lora_helper import InoCalculateLoraConfig
 
-from src.comfyui_ino_nodes.utils.prompt_helper import InoRandomCharacterPrompt
+from .src.comfyui_ino_nodes.utils.prompt_helper import InoRandomCharacterPrompt
 
-from src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToEnum
+from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToEnum
 
 from .src.comfyui_ino_nodes.utils.file_helper import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
 
