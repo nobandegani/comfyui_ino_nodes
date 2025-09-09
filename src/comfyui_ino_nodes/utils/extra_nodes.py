@@ -119,3 +119,32 @@ class InoBoolToSwitch:
             result = 1
 
         return (result, )
+
+class InoStringToEnum:
+    """
+        Convert string to enum value
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "input_string": ("STRING", {
+                    "multiline": False,
+                    "default": "default"
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("ENUM", )
+
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, enabled, input_string):
+        if not enabled or not input_string:
+            return (input_string, )
+
+        return (input_string, )
