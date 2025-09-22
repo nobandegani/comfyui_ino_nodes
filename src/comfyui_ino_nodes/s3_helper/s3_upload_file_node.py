@@ -1,0 +1,38 @@
+import os
+from .s3_client import get_s3_instance
+
+S3_INSTANCE = get_s3_instance()
+
+class InoS3UploadFile:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required":{
+                "s3_filename": ("STRING", {"default": ""}),
+                "local_path": ("STRING", {"default": "input/example.png"}),
+                "s3_folder": ("STRING", {"default": "output"}),
+                "delete_local": (["false", "true"],),
+            }
+        }
+
+    CATEGORY = "InoS3Helper"
+    INPUT_NODE = True
+    OUTPUT_NODE = True
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("s3_paths",)
+    FUNCTION = "function"
+
+    def function(self, local_path, s3_folder, delete_local, s3_filename):
+        if isinstance(local_path, str):
+            local_path = [local_path]
+        s3_paths = []
+        for path in local_path:
+            f_name = s3_filename if s3_filename else os.path.basename(path)
+            s3_path = os.path.join(s3_folder, f_name)
+            file_path = S3_INSTANCE.upload_file(path, s3_path)
+            s3_paths.append(file_path)
+            if delete_local == "true":
+                os.remove(path)
+                print(f"Deleted file at {path}")
+        print(f"Uploaded file to S3 at {s3_path}")
+        return { "ui": { "s3_paths": s3_paths },  "result": (s3_paths,) }

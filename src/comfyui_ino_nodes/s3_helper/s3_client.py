@@ -1,15 +1,10 @@
 import os
-import json
-import tempfile
-import numpy as np
-from PIL import Image
-from PIL.PngImagePlugin import PngInfo
-from comfy.cli_args import args
 import boto3
 from botocore.exceptions import NoCredentialsError
 from botocore.config import Config
 
 from dotenv import load_dotenv
+load_dotenv()
 
 load_dotenv()
 
@@ -174,129 +169,10 @@ def get_s3_instance():
             bucket_name=os.getenv("S3_BUCKET_NAME"),
             endpoint_url=os.getenv("S3_ENDPOINT_URL")
         )
-        print(f"se_region: {os.getenv("S3_REGION")}")
-        print(f"se_region: {os.getenv("S3_ACCESS_KEY")}")
+        print(f"s3_region: {os.getenv("S3_REGION")}")
+        print(f"s3_access: {os.getenv("S3_ACCESS_KEY")}")
         return s3_instance
     except Exception as e:
         err = f"Failed to create S3 instance: {e} Please check your environment variables."
         print(err)
         #logger.error(err)
-
-S3_INSTANCE = get_s3_instance()
-
-class InoS3UploadFile:
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required":{
-                "s3_filename": ("STRING", {"default": ""}),
-                "local_path": ("STRING", {"default": "input/example.png"}),
-                "s3_folder": ("STRING", {"default": "output"}),
-                "delete_local": (["false", "true"],),
-            }
-        }
-
-    CATEGORY = "InoS3Helper"
-    INPUT_NODE = True
-    OUTPUT_NODE = True
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("s3_paths",)
-    FUNCTION = "function"
-
-    def function(self, local_path, s3_folder, delete_local, s3_filename):
-        if isinstance(local_path, str):
-            local_path = [local_path]
-        s3_paths = []
-        for path in local_path:
-            f_name = s3_filename if s3_filename else os.path.basename(path)
-            s3_path = os.path.join(s3_folder, f_name)
-            file_path = S3_INSTANCE.upload_file(path, s3_path)
-            s3_paths.append(file_path)
-            if delete_local == "true":
-                os.remove(path)
-                print(f"Deleted file at {path}")
-        print(f"Uploaded file to S3 at {s3_path}")
-        return { "ui": { "s3_paths": s3_paths },  "result": (s3_paths,) }
-
-
-S3_INSTANCE = get_s3_instance()
-
-
-class InoS3UploadImage:
-    def __init__(self):
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-        self.temp_dir = os.path.join(base_dir, "temp/")
-        self.s3_output_dir = os.getenv("S3_OUTPUT_DIR")
-        self.type = "output"
-        self.prefix_append = ""
-        self.compress_level = 4
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {"required": {
-            "images": ("IMAGE",),
-            "filename_prefix": ("STRING", {"default": "Image"})},
-            "hidden": {"prompt": "PROMPT", "extra_pnginfo": "EXTRA_PNGINFO"
-                       },
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("s3_image_paths",)
-    FUNCTION = "function"
-    OUTPUT_NODE = True
-    OUTPUT_IS_LIST = (True,)
-    CATEGORY = "InoS3Helper"
-
-    def function(self, images, filename_prefix="ComfyUI", prompt=None, extra_pnginfo=None):
-        filename_prefix += self.prefix_append
-        full_output_folder, filename, counter, subfolder, filename_prefix = S3_INSTANCE.get_save_path(filename_prefix,
-                                                                                                      images[0].shape[
-                                                                                                          1],
-                                                                                                      images[0].shape[
-                                                                                                          0])
-        results = list()
-        s3_image_paths = list()
-
-        for image in images:
-            i = 255. * image.cpu().numpy()
-            img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-            metadata = None
-            if not args.disable_metadata:
-                metadata = PngInfo()
-                if prompt is not None:
-                    metadata.add_text("prompt", json.dumps(prompt))
-                if extra_pnginfo is not None:
-                    for x in extra_pnginfo:
-                        metadata.add_text(x, json.dumps(extra_pnginfo[x]))
-
-            file = f"{filename}_{counter:05}_.png"
-            temp_file = None
-            try:
-                # Create a temporary file
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as temp_file:
-                    temp_file_path = temp_file.name
-
-                    # Save the image to the temporary file
-                    img.save(temp_file_path, pnginfo=metadata, compress_level=self.compress_level)
-
-                    # Upload the temporary file to S3
-                    s3_path = os.path.join(full_output_folder, file)
-                    file_path = S3_INSTANCE.upload_file(temp_file_path, s3_path)
-
-                    # Add the s3 path to the s3_image_paths list
-                    s3_image_paths.append(file_path)
-
-                    # Add the result to the results list
-                    results.append({
-                        "filename": file,
-                        "subfolder": subfolder,
-                        "type": self.type
-                    })
-                    counter += 1
-
-            finally:
-                # Delete the temporary file
-                if temp_file_path and os.path.exists(temp_file_path):
-                    os.remove(temp_file_path)
-
-        return {"ui": {"images": results}, "result": (s3_image_paths,)}
