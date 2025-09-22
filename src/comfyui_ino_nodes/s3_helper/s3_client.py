@@ -6,9 +6,6 @@ from botocore.config import Config
 from dotenv import load_dotenv
 load_dotenv()
 
-load_dotenv()
-
-
 class S3:
     def __init__(self, region, access_key, secret_key, bucket_name, endpoint_url):
         self.region = region

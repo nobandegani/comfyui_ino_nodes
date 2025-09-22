@@ -16,12 +16,12 @@ class InoS3UploadVideo:
 
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("s3_video_paths",)
-    FUNCTION = "save_video_files"
+    FUNCTION = "function"
     OUTPUT_NODE = True
     OUTPUT_IS_LIST = (True,)
-    CATEGORY = "ComfyS3"
+    CATEGORY = "InoS3Helper"
 
-    def save_video_files(self, filenames, filename_prefix="VideoFiles"):
+    def function(self, filenames, filename_prefix="VideoFiles"):
         filename_prefix += self.prefix_append
         local_files = filenames[1]
         full_output_folder, filename, counter, _, filename_prefix = S3_INSTANCE.get_save_path(filename_prefix)

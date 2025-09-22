@@ -19,11 +19,11 @@ class InoS3DownloadImage:
                     {"image": (sorted(files), {"image_upload": False})},
                 }
 
-    CATEGORY = "ComfyS3"
+    CATEGORY = "InoS3Helper"
     RETURN_TYPES = ("IMAGE", "MASK")
-    FUNCTION = "load_image"
+    FUNCTION = "function"
 
-    def load_image(self, image):
+    def function(self, image):
         s3_path = os.path.join(os.getenv("S3_INPUT_DIR"), image)
         image_path = S3_INSTANCE.download_file(s3_path=s3_path, local_path=f"input/{image}")
 

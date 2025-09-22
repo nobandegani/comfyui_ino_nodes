@@ -11,14 +11,14 @@ class InoS3DownloadFile:
             }
         }
 
-    CATEGORY = "ComfyS3"
+    CATEGORY = "InoS3Helper"
     INPUT_NODE = True
     OUTPUT_NODE = True
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("local_path",)
-    FUNCTION = "download_file_s3"
+    FUNCTION = "function"
 
-    def download_file_s3(self, s3_path, local_path):
+    def function(self, s3_path, local_path):
         local_path = S3_INSTANCE.download_file(s3_path=s3_path, local_path=local_path)
         print(f"Downloaded file from S3 to {local_path}")
         return local_path
