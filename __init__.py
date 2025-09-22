@@ -29,6 +29,8 @@ from .src.comfyui_ino_nodes.utils.sampler_helper import InoLoadSamplerModels, In
 
 from .src.comfyui_ino_nodes.node_cloudreve import CloudreveInit, CloudreveSignin, CloudreveUploadFile
 
+from .src.comfyui_ino_nodes.utils.s3_helper import InoS3UploadFile, InoS3UploadImage
+
 NODE_CLASS_MAPPINGS = {
     "InoParseFilePath": InoParseFilePath,
     "InoCountFiles": InoCountFiles,
@@ -63,6 +65,9 @@ NODE_CLASS_MAPPINGS = {
     "CloudreveInit": CloudreveInit,
     "CloudreveSignin": CloudreveSignin,
     "CloudreveUploadFile": CloudreveUploadFile,
+
+    "InoS3UploadFile": InoS3UploadFile,
+    "InoS3UploadImage": InoS3UploadImage,
 }
 
 
@@ -100,6 +105,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "CloudreveInit": "Cloudreve Init",
     "CloudreveSignin": "Cloudreve Signin",
     "CloudreveUploadFile": "Cloudreve Upload File",
+
+    "InoS3UploadFile": "Ino S3 Upload File",
+    "InoS3UploadImage": "Ino S3 Upload Image",
 }
 
 
