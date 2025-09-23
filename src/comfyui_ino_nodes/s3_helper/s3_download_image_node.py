@@ -10,24 +10,27 @@ S3_INSTANCE = get_s3_instance()
 class InoS3DownloadImage:
     @classmethod
     def INPUT_TYPES(s):
-        input_dir = os.getenv("S3_INPUT_DIR")
-        try:
-            files = S3_INSTANCE.get_files(prefix=input_dir)
-        except Exception as e:
-            files = []
-        return {"required":
-                    {"image": (sorted(files), {"image_upload": False})},
-                }
+        return {
+            "required": {
+                "s3_key": ("STRING", {"default": "input/example.png"}),
+                "save_locally": ("BOOLEAN", {"default": True}),
+                "local_path": ("STRING", {"default": "input/example.png"})
+            }
+        }
 
     CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("IMAGE", "MASK")
+    RETURN_TYPES = ("IMAGE", "MASK", )
     FUNCTION = "function"
 
-    def function(self, image):
-        s3_path = os.path.join(os.getenv("S3_INPUT_DIR"), image)
-        image_path = S3_INSTANCE.download_file(s3_path=s3_path, local_path=f"input/{image}")
+    async def function(self, s3_key, save_locally, local_path):
+        downloaded = await S3_INSTANCE.download_file(
+            s3_key=s3_key,
+            local_file_path=local_path
+        )
+        if not downloaded:
+            return (None, None, )
 
-        img = Image.open(image_path)
+        img = Image.open(local_path)
         output_images = []
         output_masks = []
         for i in ImageSequence.Iterator(img):
@@ -52,4 +55,7 @@ class InoS3DownloadImage:
             output_image = output_images[0]
             output_mask = output_masks[0]
 
-        return (output_image, output_mask)
+        if not save_locally:
+            os.remove(local_path)
+        
+        return (output_image, output_mask, )

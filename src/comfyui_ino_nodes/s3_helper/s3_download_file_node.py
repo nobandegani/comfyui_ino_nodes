@@ -6,7 +6,7 @@ class InoS3DownloadFile:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "s3_path": ("STRING", {"default": "input/example.png"}),
+                "s3_key": ("STRING", {"default": "input/example.png"}),
                 "local_path": ("STRING", {"default": "input/example.png"}),
             }
         }
@@ -16,9 +16,9 @@ class InoS3DownloadFile:
     RETURN_NAMES = ("result", )
     FUNCTION = "function"
 
-    async def function(self, s3_path, local_path):
+    async def function(self, s3_key, local_path):
         downloaded = await S3_INSTANCE.download_file(
-            s3_key=s3_path,
+            s3_key=s3_key,
             local_file_path=local_path
         )
         print(f"B2 download success: {downloaded}")
