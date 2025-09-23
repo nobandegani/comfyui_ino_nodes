@@ -12,13 +12,14 @@ class InoS3DownloadFile:
         }
 
     CATEGORY = "InoS3Helper"
-    INPUT_NODE = True
-    OUTPUT_NODE = True
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("local_path",)
+    RETURN_TYPES = ("BOOLEAN", )
+    RETURN_NAMES = ("result", )
     FUNCTION = "function"
 
-    def function(self, s3_path, local_path):
-        local_path = S3_INSTANCE.download_file(s3_path=s3_path, local_path=local_path)
-        print(f"Downloaded file from S3 to {local_path}")
-        return local_path
+    async def function(self, s3_path, local_path):
+        downloaded = await S3_INSTANCE.download_file(
+            s3_key=s3_path,
+            local_file_path=local_path
+        )
+        print(f"B2 download success: {downloaded}")
+        return (downloaded, )

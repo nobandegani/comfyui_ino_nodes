@@ -1,4 +1,3 @@
 inocloudreve
 inopyutils
 python-dotenv
-boto3
