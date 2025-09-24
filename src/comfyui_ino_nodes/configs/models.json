@@ -70,7 +70,7 @@
       "lora_compatible": ""
     },
     {
-      "name": "Flux1DevUnlocked",
+      "name": "Flux1DevUnlockedV30",
       "type": "flux",
       "unet": "flux1dev/flux1DevNSFWUNLOCKEDFp16_v30FP16.safetensors",
       "weight_type": "default",
@@ -89,7 +89,7 @@
       "steps": 35,
       "denoise": 1,
       "tags": "",
-      "description": "unlocked flux1 dev",
+      "description": "unlocked flux1 dev, same as flux1 dev but with unlocked nsfw",
       "lora_compatible": ""
     },
     {
@@ -112,7 +112,7 @@
       "steps": 35,
       "denoise": 1,
       "tags": "vaginal sex, cowgirl, breasts, man, pov, spread legs, male pubic haie, penis, girl on top, straddling, from below, solo focus, vaginal sex, reverse cowgirl, ass, pussy, anus, male pov, man, penis, male pubic hair, from behind, male pov, paizuri, breasts squeezed together, nipples, penis, solo focus, Anime woman, anime style, nude woman performing fellatio to a man view from side, male pubic hair, testicles, solo focus, deepthroat, penis, tongue out, fellatio, close-up, open mouth, tongue, facial, penis, cum, solo focus, cum on tongue, missionary, vaginal sex, male POV, spread legs, lying, pussy, penis, hetero, solo focus, doggystyle, vaginal sex, male pov, pussy, anus, penis, male pubic hair, solo focus, hetero, woman, looking at viewer, man, hetero, nude, penis, solo focus, lips, pov, erection, oral, fellatio, male pubic hair, realistic, pov crotch, male pov, ",
-      "description": "getphat FLUX Reality NSFW",
+      "description": "getphat FLUX Reality NSFW, good for nsfw",
       "lora_compatible": "Loras trained on Flux Reality will work, flux1dev loras will not work"
     },
     {
@@ -135,7 +135,7 @@
       "steps": 35,
       "denoise": 1,
       "tags": "",
-      "description": ", Guidance scale = 2.5-3.5, Scheduler = Sgm_uniform, Beta or Custom Stigmas.",
+      "description": "its sdxl combined too, good for anything, nsfw unlocked, Guidance scale = 2.5-3.5, Scheduler = Sgm_uniform, Beta or Custom Stigmas.",
       "lora_compatible": "NOW WITH CONTROLNET AND NATIVE LORA SUPPORT!"
     },
     {
@@ -158,7 +158,7 @@
       "steps": 35,
       "denoise": 1,
       "tags": "",
-      "description": ", Guidance scale = 2.5-3.5, Scheduler = Sgm_uniform, Beta or Custom Stigmas.",
+      "description": "its sdxl combined too, good for anything, nsfw unlocked, Guidance scale = 2.5-3.5, Scheduler = Sgm_uniform, Beta or Custom Stigmas.",
       "lora_compatible": "NOW WITH CONTROLNET AND NATIVE LORA SUPPORT!"
     },
     {
@@ -181,7 +181,7 @@
       "steps": 30,
       "denoise": 1,
       "tags": "",
-      "description": ", ",
+      "description": "good for nsfw only, ",
       "lora_compatible": ""
     },
     {
@@ -204,7 +204,7 @@
       "steps": 50,
       "denoise": 1,
       "tags": "",
-      "description": ", ",
+      "description": "good for realisim, cant do nsfw",
       "lora_compatible": ""
     },
     {
@@ -227,7 +227,7 @@
       "steps": 40,
       "denoise": 1,
       "tags": "",
-      "description": ", ",
+      "description": "good for nsfw only, ",
       "lora_compatible": ""
     },
     {
