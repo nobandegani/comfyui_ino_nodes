@@ -7,7 +7,6 @@ from typing import List, Dict, Tuple
 import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
 
-
 def _as_int(v, default):
     try: return int(v)
     except (TypeError, ValueError): return default
@@ -283,6 +282,80 @@ class InoShowModelConfig:
             model_cfg["lora_compatible"],
 
         )
+
+class InoUpdateModelConfig:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "config": ("STRING", {
+                    "multiline": True,
+                }),
+            },
+            "optional": {
+                "use_dual_clip": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
+                "use_flux_encoder": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
+                "use_flux_guidance": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
+                "guidance": ("FLOAT", {"default": -1, "label": "Guidance"}),
+                "use_negative_prompt": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
+                "use_cfg": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
+                "cfg": ("FLOAT", {"default": -1, "label": "CFG"}),
+                "sampler_name": ("STRING", {"default": "unset", "label": "Sampler"}),
+                "scheduler_name": ("STRING", {"default": "unset", "label": "Scheduler"}),
+                "steps": ("INT", {"default": -1, "label": "Steps"}),
+                "denoise": ("FLOAT", {"default": -1, "label_off": "OFF", "label_on": "ON"}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", )
+    RETURN_NAMES = ("OldConfig", "NewConfig", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self, enabled, config, use_dual_clip, use_flux_encoder, use_flux_guidance, guidance, use_negative_prompt, use_cfg, cfg, sampler_name, scheduler_name, steps, denoise):
+        if not enabled:
+            return None
+        old_config = deepcopy(config)
+        if isinstance(config, str):
+            config_str = config.strip()
+            if not config_str:
+                model_cfg = {}
+            else:
+                try:
+                    model_cfg = json.loads(config_str)
+                except json.JSONDecodeError as e:
+                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
+        elif isinstance(config, dict):
+            model_cfg = config
+        else:
+            raise TypeError("`config` must be a JSON string or a dict.")
+
+        if guidance != -1:
+            model_cfg["guidance"] = guidance
+
+        if cfg != -1:
+            model_cfg["cfg"] = cfg
+
+        if sampler_name != "unset":
+            model_cfg["sampler_name"] = sampler_name
+
+        if scheduler_name != "unset":
+            model_cfg["scheduler_name"] = scheduler_name
+
+        if steps != -1:
+            model_cfg["steps"] = steps
+
+        if denoise != -1:
+            model_cfg["denoise"] = denoise
+
+        return (old_config, model_cfg, )
 
 class InoShowLoraConfig:
     """
