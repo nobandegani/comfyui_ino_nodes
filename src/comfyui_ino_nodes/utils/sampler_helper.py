@@ -7,6 +7,11 @@ from typing import List, Dict, Tuple
 import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
 
+import comfy
+default_bool = ["unset", "true", "false"]
+sampler_names = ["unset"] + comfy.samplers.SAMPLER_NAMES
+scheduler_names = ["unset"] + comfy.samplers.SCHEDULER_NAMES
+
 def _as_int(v, default):
     try: return int(v)
     except (TypeError, ValueError): return default
@@ -290,6 +295,7 @@ class InoUpdateModelConfig:
 
     @classmethod
     def INPUT_TYPES(s):
+
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
@@ -298,17 +304,17 @@ class InoUpdateModelConfig:
                 }),
             },
             "optional": {
-                "use_dual_clip": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
-                "use_flux_encoder": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
-                "use_flux_guidance": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
-                "guidance": ("FLOAT", {"default": -1, "label": "Guidance"}),
-                "use_negative_prompt": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
-                "use_cfg": ("BOOLEAN", {"default": False, "label_off": "OFF", "label_on": "ON"}),
-                "cfg": ("FLOAT", {"default": -1, "label": "CFG"}),
-                "sampler_name": ("STRING", {"default": "unset", "label": "Sampler"}),
-                "scheduler_name": ("STRING", {"default": "unset", "label": "Scheduler"}),
-                "steps": ("INT", {"default": -1, "label": "Steps"}),
-                "denoise": ("FLOAT", {"default": -1, "label_off": "OFF", "label_on": "ON"}),
+                "use_dual_clip": (default_bool, ),
+                "use_flux_encoder": (default_bool, ),
+                "use_flux_guidance": (default_bool, ),
+                "guidance": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 100.0}),
+                "use_negative_prompt": (default_bool, ),
+                "use_cfg": (default_bool, ),
+                "cfg": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 100.0}),
+                "sampler_name": (sampler_names, ),
+                "scheduler_name": (scheduler_names, ),
+                "steps": ("INT", {"default": -1, "min": -1, "max": 100}),
+                "denoise": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 1.0, "step": 0.01}),
             }
         }
 
@@ -319,7 +325,15 @@ class InoUpdateModelConfig:
 
     CATEGORY = "InoSamplerHelper"
 
-    def function(self, enabled, config, use_dual_clip, use_flux_encoder, use_flux_guidance, guidance, use_negative_prompt, use_cfg, cfg, sampler_name, scheduler_name, steps, denoise):
+    def function(
+        self, enabled, config,
+        use_dual_clip = "unset", use_flux_encoder = "unset", use_flux_guidance = "unset",
+        guidance  = -1.0,
+        use_negative_prompt = "unset", use_cfg = "unset",
+        cfg = -1.0,
+        sampler_name = "unset", scheduler_name = "unset",
+        steps = -1, denoise = -1.0
+    ):
         if not enabled:
             return None
         old_config = deepcopy(config)
@@ -337,8 +351,23 @@ class InoUpdateModelConfig:
         else:
             raise TypeError("`config` must be a JSON string or a dict.")
 
+        if use_dual_clip != "unset":
+            model_cfg["use_dual_clip"] = use_dual_clip
+
+        if use_flux_encoder != "unset":
+            model_cfg["use_flux_encoder"] = use_flux_encoder
+
+        if use_flux_guidance != "unset":
+            model_cfg["use_flux_guidance"] = use_flux_guidance
+
         if guidance != -1:
             model_cfg["guidance"] = guidance
+
+        if use_negative_prompt != "unset":
+            model_cfg["use_negative_prompt"] = use_negative_prompt
+
+        if use_cfg != "unset":
+            model_cfg["use_cfg"] = use_cfg
 
         if cfg != -1:
             model_cfg["cfg"] = cfg
@@ -584,10 +613,18 @@ class InoGetSamplerConfig:
                     "label": "Negative"
                 }),
             },
+            "optional": {
+                "use_cfg": (default_bool, ),
+                "cfg": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 100.0}),
+                "sampler_name": (sampler_names, ),
+                "scheduler_name": (scheduler_names, ),
+                "steps": ("INT", {"default": -1, "min": -1, "max": 100}),
+                "denoise": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 1.0, "step": 0.01}),
+            }
         }
 
-    RETURN_TYPES = ("GUIDER", "SAMPLER", "SIGMAS", )
-    RETURN_NAMES = ("GUIDER", "SAMPLER", "SIGMAS", )
+    RETURN_TYPES = ("GUIDER", "SAMPLER", "SIGMAS", "STRING", "STRING", )
+    RETURN_NAMES = ("GUIDER", "SAMPLER", "SIGMAS", "OldConfig", "NewConfig", )
     FUNCTION = "function"
 
     CATEGORY = "InoSamplerHelper"
@@ -595,9 +632,25 @@ class InoGetSamplerConfig:
     def function(self, enabled,
                  config,
                  model, positive, negative,
+                 use_cfg, cfg, sampler_name, scheduler_name, steps, denoise
         ):
         if not enabled:
             return None, None, None,
+
+        old_config = deepcopy(config)
+
+        update_config = InoUpdateModelConfig()
+        updated_config = update_config.function(
+            enabled=True,
+            config=config,
+            use_cfg=use_cfg,
+            cfg=cfg,
+            sampler_name=sampler_name,
+            scheduler_name=scheduler_name,
+            steps=steps,
+            denoise=denoise
+        )
+        config = updated_config[1]
 
         if isinstance(config, str):
             config_str = config.strip()
@@ -645,9 +698,7 @@ class InoGetSamplerConfig:
             denoise=model_cfg.get("denoise", -1),
         )
 
-        return (get_guider[0], get_sampler[0], get_sigmas[0], )
-
-
+        return (get_guider[0], get_sampler[0], get_sigmas[0], old_config, config, )
 
 class InoGetConditioning:
     """
