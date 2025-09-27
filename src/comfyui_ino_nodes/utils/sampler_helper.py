@@ -324,7 +324,7 @@ class InoUpdateModelConfig:
             return None
         old_config = deepcopy(config)
         if isinstance(config, str):
-            config_str = config.strip()
+            config_str = deepcopy(config).strip()
             if not config_str:
                 model_cfg = {}
             else:
@@ -333,7 +333,7 @@ class InoUpdateModelConfig:
                 except json.JSONDecodeError as e:
                     raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
         elif isinstance(config, dict):
-            model_cfg = config
+            model_cfg = deepcopy(config)
         else:
             raise TypeError("`config` must be a JSON string or a dict.")
 
