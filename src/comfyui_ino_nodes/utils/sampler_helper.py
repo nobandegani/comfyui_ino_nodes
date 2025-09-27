@@ -492,6 +492,7 @@ class InoLoadSamplerModels:
             },
             "optional": {
                 "clip_device": (["default", "cpu"], {"advanced": True}),
+                "use_dual_clip": (default_bool,),
             }
         }
 
@@ -502,11 +503,13 @@ class InoLoadSamplerModels:
 
     CATEGORY = "InoSamplerHelper"
 
-    def function(self,
-                 enabled,
-                 model_config,
-                 lora_1_config, lora_2_config, lora_3_config, lora_4_config,
-                 clip_device):
+    def function(
+        self,enabled,
+        model_config,
+        lora_1_config, lora_2_config, lora_3_config, lora_4_config,
+        clip_device,
+        use_dual_clip,
+    ):
         if not enabled:
             return (None, None, None, )
 
@@ -732,19 +735,41 @@ class InoGetConditioning:
                     "label": "Negative"
                 }),
             },
+            "optional": {
+                "use_flux_encoder": (default_bool,),
+                "use_flux_guidance": (default_bool,),
+                "guidance": ("FLOAT", {"default": -1.0, "min": -1.0, "max": 100.0}),
+                "use_negative_prompt": (default_bool,)
+            }
         }
 
-    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", )
-    RETURN_NAMES = ("POSITIVE", "NEGATIVE", )
+    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", "STRING", "STRING", )
+    RETURN_NAMES = ("POSITIVE", "NEGATIVE", "OldConfig", "NewConfig", )
     FUNCTION = "function"
 
     CATEGORY = "InoSamplerHelper"
 
-    def function(self, enabled,
-                 config,
-                 clip, positive1, positive2, negative):
+    def function(
+        self, enabled,
+        config,
+        clip, positive1, positive2, negative,
+        use_flux_encoder, use_flux_guidance, guidance, use_negative_prompt
+    ):
         if not enabled:
             return config,
+
+        old_config = deepcopy(config)
+
+        update_config = InoUpdateModelConfig()
+        updated_config = update_config.function(
+            enabled=True,
+            config=config,
+            use_flux_encoder=use_flux_encoder,
+            use_flux_guidance=use_flux_guidance,
+            guidance=guidance,
+            use_negative_prompt=use_negative_prompt
+        )
+        config = updated_config[1]
 
         if isinstance(config, str):
             config_str = config.strip()
@@ -803,4 +828,4 @@ class InoGetConditioning:
                 conditioning=positive_condition[0]
             )
 
-        return (positive_condition[0], negative_condition[0], )
+        return (positive_condition[0], negative_condition[0], old_config, config, )
