@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from PIL import Image, ImageOps, ImageSequence
 
-from .s3_client import get_s3_instance
+from .s3_client import get_s3_instance, get_save_path
 S3_INSTANCE = get_s3_instance()
 
 
@@ -14,7 +14,7 @@ class InoS3DownloadImage:
             "required": {
                 "s3_key": ("STRING", {"default": "input/example.png"}),
                 "save_locally": ("BOOLEAN", {"default": True}),
-                "local_path": ("STRING", {"default": "input/example.png"})
+                "save_path": ("STRING", {"default": "input/example.png"})
             }
         }
 
@@ -23,15 +23,17 @@ class InoS3DownloadImage:
     RETURN_NAMES = ("success", "msg", "result", "image", "mask", )
     FUNCTION = "function"
 
-    async def function(self, s3_key, save_locally, local_path):
+    async def function(self, s3_key, save_locally, save_path):
+        rel_path = get_save_path(s3_key, save_path)
+        abs_path = rel_path.resolve()
         downloaded = await S3_INSTANCE.download_file(
             s3_key=s3_key,
-            local_file_path=local_path
+            local_file_path=str(rel_path)
         )
         if not downloaded["success"]:
             return (downloaded["success"], downloaded["msg"], downloaded, None, None, )
 
-        img = Image.open(local_path)
+        img = Image.open(rel_path)
         output_images = []
         output_masks = []
         for i in ImageSequence.Iterator(img):
@@ -57,6 +59,6 @@ class InoS3DownloadImage:
             output_mask = output_masks[0]
 
         if not save_locally:
-            os.remove(local_path)
+            os.remove(rel_path)
 
         return (downloaded["success"], downloaded["msg"], downloaded, output_image, output_mask, )
