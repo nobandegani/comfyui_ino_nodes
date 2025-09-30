@@ -1,8 +1,25 @@
 import os
+from pathlib import Path
 from inopyutils import InoS3Helper
 
 from dotenv import load_dotenv
 load_dotenv()
+
+def get_save_path(s3_key: str, save_path: str):
+    save_path_obj = Path(save_path)
+    s3_key_obj = Path(s3_key)
+
+    if save_path.endswith('/') or save_path.endswith('\\'):
+        local_file_path = save_path_obj / s3_key_obj.name
+    elif save_path_obj.suffix:
+        filename_without_ext = save_path_obj.stem
+        s3_extension = s3_key_obj.suffix
+        local_file_path = save_path_obj.parent / (filename_without_ext + s3_extension)
+    else:
+        s3_extension = s3_key_obj.suffix
+        local_file_path = Path(save_path + s3_extension)
+
+    return local_file_path
 
 def get_s3_instance():
     try:
