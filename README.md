@@ -1,67 +1,55 @@
 # Ino Custom Nodes
 
-A collection of custom nodes for ComfyUI
-
-> [!NOTE]
-> This projected was created with a [cookiecutter](https://github.com/Comfy-Org/cookiecutter-comfy-extension) template. It helps you start writing custom nodes without worrying about the Python setup.
+A comprehensive collection of custom nodes for ComfyUI that provides advanced file handling, S3 cloud storage integration, LoRA configuration management, and various utility functions.
 
 ## Quickstart
 
 1. Install [ComfyUI](https://docs.comfy.org/get_started).
-1. Install [ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager)
-1. Look up this extension in ComfyUI-Manager. If you are installing manually, clone this repository under `ComfyUI/custom_nodes`.
-1. Restart ComfyUI.
+2. Install [ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager)
+3. Look up this extension in ComfyUI-Manager. If you are installing manually, clone this repository under `ComfyUI/custom_nodes`.
+4. Install dependencies: `pip install -r requirements.txt`
+5. Restart ComfyUI.
 
-# Features
+## Features
 
-- A list of features
+### 🗂️ File & Path Utilities
+- **Parse File Path**: Extract components from file paths
+- **Count Files**: Count files in directories
+- **Branch Image**: Conditional image routing
+- **DateTime As String**: Generate datetime strings
+- **Get Folder Batch ID**: Generate batch identifiers for folders
 
-## Develop
+### ☁️ Cloud Storage Integration
 
-To install the dev dependencies and pre-commit (will run the ruff hook), do:
+#### S3 Helper Nodes
+- **S3 Upload Image**: Upload images to S3 with metadata preservation
+- **S3 Upload File**: Upload any file to S3 storage
+- **S3 Upload Video**: Upload video files to S3
+- **S3 Download Image**: Download images from S3
+- **S3 Download File**: Download any file from S3
 
-```bash
-cd comfyui_ino_nodes
-pip install -e .[dev]
-pre-commit install
-```
+#### Cloudreve Integration
+- **Cloudreve Init**: Initialize Cloudreve client
+- **Cloudreve Signin**: Authenticate with Cloudreve
+- **Cloudreve Upload File**: Upload files to Cloudreve storage
 
-The `-e` flag above will result in a "live" install, in the sense that any changes you make to your node extension will automatically be picked up the next time you run ComfyUI.
+### 🎛️ LoRA & Model Management
+- **Calculate LoRA Config**: Compute LoRA configurations
+- **Get/Show/Update Model Config**: Manage model configurations
+- **Get/Show LoRA Config**: Handle LoRA settings
+- **Load Sampler Models**: Load and manage sampling models
+- **Get Conditioning**: Extract conditioning data
+- **Get Sampler Config**: Retrieve sampler configurations
 
-## Publish to Github
+### 🔧 Utility Nodes
+- **Random Character Prompt**: Generate random character prompts
+- **Bool To Switch**: Convert boolean to switch values
+- **Int Equal**: Integer equality comparison
+- **Not Boolean**: Boolean negation
+- **String Toggle Case**: Toggle string case
+- **String To Combo**: Convert string to combo selection
 
-Install Github Desktop or follow these [instructions](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) for ssh.
-
-1. Create a Github repository that matches the directory name. 
-2. Push the files to Git
-```
-git add .
-git commit -m "project scaffolding"
-git push
-``` 
-
-## Writing custom nodes
-
-An example custom node is located in [node.py](src/comfyui_ino_nodes/nodes.py). To learn more, read the [docs](https://docs.comfy.org/essentials/custom_node_overview).
-
-
-## Tests
-
-This repo contains unit tests written in Pytest in the `tests/` directory. It is recommended to unit test your custom node.
-
-- [build-pipeline.yml](.github/workflows/build-pipeline.yml) will run pytest and linter on any open PRs
-- [validate.yml](.github/workflows/validate.yml) will run [node-diff](https://github.com/Comfy-Org/node-diff) to check for breaking changes
-
-## Publishing to Registry
-
-If you wish to share this custom node with others in the community, you can publish it to the registry. We've already auto-populated some fields in `pyproject.toml` under `tool.comfy`, but please double-check that they are correct.
-
-You need to make an account on https://registry.comfy.org and create an API key token.
-
-- [ ] Go to the [registry](https://registry.comfy.org). Login and create a publisher id (everything after the `@` sign on your registry profile). 
-- [ ] Add the publisher id into the pyproject.toml file.
-- [ ] Create an api key on the Registry for publishing from Github. [Instructions](https://docs.comfy.org/registry/publishing#create-an-api-key-for-publishing).
-- [ ] Add it to your Github Repository Secrets as `REGISTRY_ACCESS_TOKEN`.
-
-A Github action will run on every git push. You can also run the Github action manually. Full instructions [here](https://docs.comfy.org/registry/publishing). Join our [discord](https://discord.com/invite/comfyorg) if you have any questions!
-
+### 📁 File Operations
+- **Zip/Unzip**: Archive and extract files
+- **Remove File/Folder**: Delete files and directories
+- **Increment Batch Name**: Auto-increment batch naming

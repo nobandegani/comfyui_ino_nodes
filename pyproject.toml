@@ -2,7 +2,7 @@
 name = "comfyui_ino_nodes"
 description = "A collection of custom nodes for ComfyUI"
 version = "1.0.1"
-license = { file = "LICENSE.txt" }
+license = { file = "LICENSE" }
 dependencies = ["inocloudreve", "inopyutils", "python-dotenv"]
 
 [project.urls]
