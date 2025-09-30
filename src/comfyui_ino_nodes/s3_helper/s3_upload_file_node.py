@@ -8,31 +8,22 @@ class InoS3UploadFile:
     def INPUT_TYPES(s):
         return {
             "required":{
-                "s3_filename": ("STRING", {"default": ""}),
+                "s3_key": ("STRING", {"default": ""}),
                 "local_path": ("STRING", {"default": "input/example.png"}),
-                "s3_folder": ("STRING", {"default": "output"}),
-                "delete_local": (["false", "true"],),
+                "delete_local": ("BOOLEAN", {"default": True}),
             }
         }
 
     CATEGORY = "InoS3Helper"
-    INPUT_NODE = True
-    OUTPUT_NODE = True
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("s3_paths",)
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", )
+    RETURN_NAMES = ("success", "msg", "result", )
     FUNCTION = "function"
 
-    def function(self, local_path, s3_folder, delete_local, s3_filename):
-        if isinstance(local_path, str):
-            local_path = [local_path]
-        s3_paths = []
-        for path in local_path:
-            f_name = s3_filename if s3_filename else os.path.basename(path)
-            s3_path = os.path.join(s3_folder, f_name)
-            file_path = S3_INSTANCE.upload_file(path, s3_path)
-            s3_paths.append(file_path)
-            if delete_local == "true":
-                os.remove(path)
-                print(f"Deleted file at {path}")
-        print(f"Uploaded file to S3 at {s3_path}")
-        return { "ui": { "s3_paths": s3_paths },  "result": (s3_paths,) }
+    async def function(self, s3_key, local_path, delete_local):
+        uploaded = await S3_INSTANCE.upload_file(
+            s3_key=s3_key,
+            local_file_path=local_path
+        )
+        if uploaded["success"] and delete_local:
+            os.remove(local_path)
+        return (uploaded["success"], uploaded["msg"], uploaded, )
