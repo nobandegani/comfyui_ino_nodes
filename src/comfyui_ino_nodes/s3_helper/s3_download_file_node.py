@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from .s3_client import get_s3_instance
 S3_INSTANCE = get_s3_instance()
 
@@ -7,19 +9,26 @@ class InoS3DownloadFile:
         return {
             "required": {
                 "s3_key": ("STRING", {"default": "input/example.png"}),
-                "local_path": ("STRING", {"default": "input/example.png"}),
+                "input_path": ("STRING", {"default": "input/example.png"}),
+                "save_in": ("BOOLEAN", {"default": True, "label_off": "input", "label_on": "output"})
             }
         }
 
     CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("BOOLEAN", )
-    RETURN_NAMES = ("result", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", )
+    RETURN_NAMES = ("success", "msg", "result", "rel_path", "abs_path", )
     FUNCTION = "function"
 
-    async def function(self, s3_key, local_path):
+    async def function(self, s3_key, input_path, save_in):
+        rel_path: Path
+        if save_in:
+            rel_path = Path("output") / input_path
+        else:
+            rel_path = Path("input") / input_path
+
+        abs_path = rel_path.resolve()
         downloaded = await S3_INSTANCE.download_file(
             s3_key=s3_key,
-            local_file_path=local_path
+            local_file_path=rel_path
         )
-        print(f"B2 download success: {downloaded}")
-        return (downloaded, )
+        return (downloaded["success"], downloaded["msg"], downloaded, rel_path, abs_path, )
