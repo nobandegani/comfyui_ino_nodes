@@ -10,7 +10,6 @@ class InoS3DownloadFile:
             "required": {
                 "s3_key": ("STRING", {"default": "input/example.png"}),
                 "input_path": ("STRING", {"default": "input/example.png"}),
-                "save_in": ("BOOLEAN", {"default": True, "label_off": "input", "label_on": "output"})
             }
         }
 
@@ -19,16 +18,10 @@ class InoS3DownloadFile:
     RETURN_NAMES = ("success", "msg", "result", "rel_path", "abs_path", )
     FUNCTION = "function"
 
-    async def function(self, s3_key, input_path, save_in):
-        rel_path: Path
-        if save_in:
-            rel_path = Path("output") / input_path
-        else:
-            rel_path = Path("input") / input_path
-
-        abs_path = rel_path.resolve()
+    async def function(self, s3_key, input_path):
+        abs_path = Path(input_path).resolve()
         downloaded = await S3_INSTANCE.download_file(
             s3_key=s3_key,
-            local_file_path=rel_path
+            local_file_path=input_path
         )
-        return (downloaded["success"], downloaded["msg"], downloaded, rel_path, abs_path, )
+        return (downloaded["success"], downloaded["msg"], downloaded, input_path, abs_path, )

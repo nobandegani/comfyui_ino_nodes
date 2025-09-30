@@ -19,7 +19,8 @@ class InoS3DownloadImage:
         }
 
     CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("IMAGE", "MASK", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "IMAGE", "MASK", )
+    RETURN_NAMES = ("success", "msg", "result", "image", "mask", )
     FUNCTION = "function"
 
     async def function(self, s3_key, save_locally, local_path):
@@ -27,8 +28,8 @@ class InoS3DownloadImage:
             s3_key=s3_key,
             local_file_path=local_path
         )
-        if not downloaded:
-            return (None, None, )
+        if not downloaded["success"]:
+            return (downloaded["success"], downloaded["msg"], downloaded, None, None, )
 
         img = Image.open(local_path)
         output_images = []
@@ -57,5 +58,5 @@ class InoS3DownloadImage:
 
         if not save_locally:
             os.remove(local_path)
-        
-        return (output_image, output_mask, )
+
+        return (downloaded["success"], downloaded["msg"], downloaded, output_image, output_mask, )
