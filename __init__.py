@@ -29,9 +29,9 @@ from .src.comfyui_ino_nodes.utils.sampler_helper import InoLoadSamplerModels, In
 
 from .src.comfyui_ino_nodes.node_cloudreve import CloudreveInit, CloudreveSignin, CloudreveUploadFile
 
+from .src.comfyui_ino_nodes.s3_helper.s3_helper import InoS3Config
 from .src.comfyui_ino_nodes.s3_helper.s3_upload_file_node import InoS3UploadFile
 from .src.comfyui_ino_nodes.s3_helper.s3_upload_image_node import InoS3UploadImage
-from .src.comfyui_ino_nodes.s3_helper.s3_upload_video_node import InoS3UploadVideo
 from .src.comfyui_ino_nodes.s3_helper.s3_download_file_node import InoS3DownloadFile
 from .src.comfyui_ino_nodes.s3_helper.s3_download_image_node import InoS3DownloadImage
 
@@ -71,9 +71,9 @@ NODE_CLASS_MAPPINGS = {
     "CloudreveSignin": CloudreveSignin,
     "CloudreveUploadFile": CloudreveUploadFile,
 
+    "InoS3Config": InoS3Config,
     "InoS3UploadFile": InoS3UploadFile,
     "InoS3UploadImage": InoS3UploadImage,
-    "InoS3UploadVideo": InoS3UploadVideo,
     "InoS3DownloadFile": InoS3DownloadFile,
     "InoS3DownloadImage": InoS3DownloadImage,
 }
@@ -115,9 +115,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "CloudreveSignin": "Cloudreve Signin",
     "CloudreveUploadFile": "Cloudreve Upload File",
 
+    "InoS3Config": "Ino S3 Config",
     "InoS3UploadFile": "Ino S3 Upload File",
     "InoS3UploadImage": "Ino S3 Upload Image",
-    "InoS3UploadVideo": "Ino S3 Upload Video",
     "InoS3DownloadFile": "Ino S3 Download File",
     "InoS3DownloadImage": "Ino S3 Download Image",
 }

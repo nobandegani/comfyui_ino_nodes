@@ -1,13 +1,13 @@
 from pathlib import Path
 
-from .s3_client import get_s3_instance, get_save_path
-S3_INSTANCE = get_s3_instance()
+from .s3_helper import get_s3_instance, get_save_path
 
 class InoS3DownloadFile:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
+                "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": "input/example.png"}),
                 "save_path": ("STRING", {"default": "input/"}),
             }
@@ -18,11 +18,12 @@ class InoS3DownloadFile:
     RETURN_NAMES = ("success", "msg", "result", "rel_path", "abs_path", )
     FUNCTION = "function"
 
-    async def function(self, s3_key, save_path):
+    async def function(self, s3_key, save_path, s3_config):
         rel_path = get_save_path(s3_key, save_path)
         abs_path = rel_path.resolve()
 
-        downloaded = await S3_INSTANCE.download_file(
+        s3_instance = get_s3_instance(s3_config)
+        downloaded = await s3_instance.download_file(
             s3_key=s3_key,
             local_file_path=str(rel_path)
         )
