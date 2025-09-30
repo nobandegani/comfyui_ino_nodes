@@ -1,25 +1,13 @@
-[build-system]
-requires = ["setuptools>=70.0"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "comfyui_ino_nodes"
-version = "0.0.1"
 description = "A collection of custom nodes for ComfyUI"
-authors = [
-  {name = "InoNodes", email = "contact@inoland.net"}
-]
-readme = "README.md"
-license = {text = "MIT license"}
-classifiers = []
-dependencies = [
-
-]
+version = "1.0.1"
+license = { file = "LICENSE.txt" }
+dependencies = ["inocloudreve", "inopyutils", "python-dotenv"]
 
 [project.urls]
-bugs = "https://github.com/nobandegani/comfyui_ino_nodes/issues"
-homepage = "https://github.com/nobandegani/comfyui_ino_nodes"
-
+Repository = "https://github.com/nobandegani/comfyui_ino_nodes"
+#  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
 PublisherId = "nobandegani"
