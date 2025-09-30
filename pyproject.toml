@@ -1,6 +1,6 @@
 [project]
 name = "comfyui_ino_nodes"
-description = "A collection of custom nodes for ComfyUI"
+description = "A comprehensive collection of custom nodes for ComfyUI that provides advanced file handling, S3 cloud storage integration, LoRA configuration management, and various utility functions."
 version = "1.0.1"
 license = { file = "LICENSE" }
 dependencies = ["inocloudreve", "inopyutils", "python-dotenv"]
@@ -10,6 +10,6 @@ Repository = "https://github.com/nobandegani/comfyui_ino_nodes"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
-PublisherId = "nobandegani"
-DisplayName = "Ino Custom Nodes"
+PublisherId = "inoland"
+DisplayName = "ComfyUI Ino Nodes"
 Icon = ""
