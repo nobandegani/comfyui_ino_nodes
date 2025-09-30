@@ -44,14 +44,14 @@ class InoS3UploadImage:
             try:
                 img.save(temp_file, pnginfo=metadata)
 
-                s3_path:Path = Path(s3_key) / Path(file)
+                s3_path:str = f"{s3_key}/{file}"
 
                 uploaded = await S3_INSTANCE.upload_file(
                     s3_key=str(s3_path),
-                    local_file_path=temp_file
+                    local_file_path=str(temp_file)
                 )
                 if not uploaded["success"]:
-                    return (uploaded["success"], uploaded["msg"], results, s3_image_paths,  )
+                    return (uploaded["success"], uploaded["msg"], results, s3_image_paths,)
 
                 s3_image_paths.append(s3_path)
 
