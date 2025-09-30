@@ -119,6 +119,30 @@ def load_lora(config_str, model, clip):
     else:
         return False, model, clip, ""
 
+from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
+
+class InoRandomNoise:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "noise_seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                    "control_after_generate": True,
+                }),
+            }
+        }
+
+    RETURN_TYPES = ("NOISE", "INT", )
+    FUNCTION = "function"
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self, noise_seed):
+        random_seed = Noise_RandomNoise(noise_seed)
+        return (random_seed, noise_seed, )
+
 class InoGetModelConfig:
     """
 
