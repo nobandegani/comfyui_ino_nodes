@@ -16,7 +16,7 @@ from .src.comfyui_ino_nodes.utils.lora_helper import InoCalculateLoraConfig
 
 from .src.comfyui_ino_nodes.utils.prompt_helper import InoRandomCharacterPrompt
 
-from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToCombo, InoDateTimeAsString, InoRandomIntInRange
+from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToCombo, InoDateTimeAsString, InoRandomIntInRange, InoIntToString
 
 from .src.comfyui_ino_nodes.utils.file_helper import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
 
@@ -64,6 +64,7 @@ NODE_CLASS_MAPPINGS = {
     "InoLoadSamplerModels": InoLoadSamplerModels,
     "InoGetConditioning": InoGetConditioning,
     "InoGetSamplerConfig": InoGetSamplerConfig,
+    "InoIntToString": InoIntToString,
 
     "CloudreveInit": CloudreveInit,
     "CloudreveSignin": CloudreveSignin,
@@ -110,6 +111,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InoLoadSamplerModels": "Ino Load Sampler Models",
     "InoGetConditioning": "Ino Get Conditioning",
     "InoGetSamplerConfig": "Ino Get Sampler Config",
+    "InoIntToString": "Ino Int To String",
 
     "CloudreveInit": "Cloudreve Init",
     "CloudreveSignin": "Cloudreve Signin",

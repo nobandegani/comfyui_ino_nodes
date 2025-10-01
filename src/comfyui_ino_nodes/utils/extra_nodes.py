@@ -254,3 +254,25 @@ class InoRandomIntInRange:
         random_int = random.randint(int_min, int_max)
         formatted_int = str(random_int).zfill(length)
         return (random_int, formatted_int, )
+
+class InoIntToString:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_int": ("INT", {"default": 0}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("ReturnString", )
+
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, input_int):
+        return (str(input_int), )
