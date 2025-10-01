@@ -1,5 +1,6 @@
 import random
 import json
+from copy import deepcopy
 from datetime import datetime, timezone
 from ..node_helper import any_typ
 
@@ -302,7 +303,9 @@ class InoJson:
     CATEGORY = "InoNodes"
 
     def function(self, base_json, field_name, field_value):
-        if isinstance(base_json, str):
-            base_json = json.loads(base_json)
-        base_json[field_name] = field_value
-        return (base_json, )
+        json_object = deepcopy(base_json)
+        if isinstance(json_object, str):
+            json_object = json.loads(json_object)
+        json_object[field_name] = field_value
+        json_string = json.dumps(json_object)
+        return (json_string, )
