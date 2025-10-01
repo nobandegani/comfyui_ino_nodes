@@ -10,17 +10,13 @@ __author__ = """InoNodes"""
 __email__ = "contact@inoland.net"
 __version__ = "0.0.1"
 
-from .src.comfyui_ino_nodes.node_utils import InoParseFilePath
-from .src.comfyui_ino_nodes.node_utils import InoCountFiles
-from .src.comfyui_ino_nodes.node_utils import InoBranchImage
-from .src.comfyui_ino_nodes.node_utils import InoDateTimeAsString
-from .src.comfyui_ino_nodes.node_utils import InoGetFolderBatchID
+from .src.comfyui_ino_nodes.node_utils import InoParseFilePath, InoCountFiles, InoBranchImage, InoGetFolderBatchID
 
 from .src.comfyui_ino_nodes.utils.lora_helper import InoCalculateLoraConfig
 
 from .src.comfyui_ino_nodes.utils.prompt_helper import InoRandomCharacterPrompt
 
-from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToCombo
+from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToCombo, InoDateTimeAsString, InoRandomIntInRange
 
 from .src.comfyui_ino_nodes.utils.file_helper import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
 
@@ -38,7 +34,7 @@ NODE_CLASS_MAPPINGS = {
     "InoParseFilePath": InoParseFilePath,
     "InoCountFiles": InoCountFiles,
     "InoBranchImage": InoBranchImage,
-    "InoDateTimeAsString": InoDateTimeAsString,
+
     "InoGetFolderBatchID": InoGetFolderBatchID,
 
     "InoCalculateLoraConfig": InoCalculateLoraConfig,
@@ -50,6 +46,8 @@ NODE_CLASS_MAPPINGS = {
     "InoStringToggleCase": InoStringToggleCase,
     "InoBoolToSwitch": InoBoolToSwitch,
     "InoStringToCombo": InoStringToCombo,
+    "InoDateTimeAsString": InoDateTimeAsString,
+    "InoRandomIntInRange": InoRandomIntInRange,
 
     "Zip": Zip,
     "Unzip": Unzip,
@@ -83,7 +81,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InoParseFilePath": "Ino Parse File Path",
     "InoCountFiles": "Ino Count Files",
     "InoBranchImage": "Ino Branch Image",
-    "InoDateTimeAsString": "Ino DateTime As String",
     "InoGetFolderBatchID": "Ino Get Folder Batch ID",
 
     "InoCalculateLoraConfig": "Ino Calculate Lora Config",
@@ -95,6 +92,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InoStringToggleCase": "Ino String Toggle Case",
     "InoBoolToSwitch": "Ino Bool To Switch",
     "InoStringToCombo": "Ino String To Combo",
+    "InoDateTimeAsString": "Ino DateTime As String",
+    "InoRandomIntInRange": "Ino Random Int In Range",
 
     "Zip": "Zip",
     "Unzip": "Unzip",

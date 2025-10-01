@@ -6,7 +6,6 @@ import random
 import hashlib
 
 from pathlib import Path
-from datetime import datetime
 
 #---------------------------------InoParseFilePath
 class InoParseFilePath:
@@ -149,83 +148,6 @@ class InoBranchImage:
         else:
             return (input_image, )
 
-
-
-#---------------------------------InoImageBranch
-class InoDateTimeAsString:
-    """
-        Date Time As String
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "include_year": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_month": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_day": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_hour": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_minute": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_second": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "date_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-                "datetime_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-                "time_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("output_date_time", )
-    DESCRIPTION = cleandoc(__doc__)
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def __init__(self):
-        pass
-
-
-    def function(self, include_year, include_month, include_day,
-                      include_hour, include_minute, include_second,
-                      date_sep="-", datetime_sep=" ", time_sep=":"):
-        now = datetime.now()
-
-        date_parts = []
-        time_parts = []
-
-        if include_year:
-            date_parts.append(str(now.year))
-        if include_month:
-            date_parts.append(f"{now.month:02d}")
-        if include_day:
-            date_parts.append(f"{now.day:02d}")
-
-        if include_hour:
-            time_parts.append(f"{now.hour:02d}")
-        if include_minute:
-            time_parts.append(f"{now.minute:02d}")
-        if include_second:
-            time_parts.append(f"{now.second:02d}")
-
-        date_str = date_sep.join(date_parts) if date_parts else ""
-        time_str = time_sep.join(time_parts) if time_parts else ""
-
-        if date_str and time_str:
-            return (f"{date_str}{datetime_sep}{time_str}", )
-        elif date_str:
-            return (date_str, )
-        elif time_str:
-            return (time_str, )
-        else:
-            return ("", )
 
 class InoGetFolderBatchID:
     """

@@ -1,3 +1,6 @@
+import random
+from datetime import datetime
+
 #---------------------------------InoNotBoolean
 class InoNotBoolean:
     """
@@ -148,3 +151,106 @@ class InoStringToCombo:
             return (input_string, )
 
         return (input_string, )
+
+class InoDateTimeAsString:
+    """
+        Date Time As String
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "include_year": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_month": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_day": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_hour": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_minute": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_second": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "date_sep": ("STRING", {
+                    "multiline": False,
+                    "default": "-"
+                }),
+                "datetime_sep": ("STRING", {
+                    "multiline": False,
+                    "default": "-"
+                }),
+                "time_sep": ("STRING", {
+                    "multiline": False,
+                    "default": "-"
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("output_date_time", )
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def __init__(self):
+        pass
+
+
+    def function(self, include_year, include_month, include_day,
+                      include_hour, include_minute, include_second,
+                      date_sep="-", datetime_sep=" ", time_sep=":"):
+        now = datetime.now()
+
+        date_parts = []
+        time_parts = []
+
+        if include_year:
+            date_parts.append(str(now.year))
+        if include_month:
+            date_parts.append(f"{now.month:02d}")
+        if include_day:
+            date_parts.append(f"{now.day:02d}")
+
+        if include_hour:
+            time_parts.append(f"{now.hour:02d}")
+        if include_minute:
+            time_parts.append(f"{now.minute:02d}")
+        if include_second:
+            time_parts.append(f"{now.second:02d}")
+
+        date_str = date_sep.join(date_parts) if date_parts else ""
+        time_str = time_sep.join(time_parts) if time_parts else ""
+
+        if date_str and time_str:
+            return (f"{date_str}{datetime_sep}{time_str}", )
+        elif date_str:
+            return (date_str, )
+        elif time_str:
+            return (time_str, )
+        else:
+            return ("", )
+
+class InoRandomIntInRange:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "int_min": ("INT", {"default": 0}),
+                "int_max": ("INT", {"default": 100}),
+                "length": ("INT", {"default": 1, "min": 0, "max": 10}),
+            }
+        }
+
+    RETURN_TYPES = ("INT", "INT", )
+    RETURN_NAMES = ("RandomInt", "FormattedInt", )
+
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, enabled, int_min, int_max, length):
+        if not enabled:
+            return (-1, )
+        random_int = random.randint(int_min, int_max)
+        formatted_int = str(random_int).zfill(length)
+        return (random_int, formatted_int, )
