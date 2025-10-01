@@ -1,5 +1,5 @@
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 
 #---------------------------------InoNotBoolean
 class InoNotBoolean:
@@ -276,3 +276,60 @@ class InoIntToString:
 
     def function(self, input_int):
         return (str(input_int), )
+
+class InoDateTimeAsRandomInt:
+    """
+        Date Time As Int
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "include_year": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_month": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_day": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_hour": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_minute": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "include_second": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
+                "int_min": ("INT", {"default": 0}),
+                "int_max": ("INT", {"default": 100}),
+            },
+        }
+
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("DateTime", )
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def __init__(self):
+        pass
+
+
+    def function(self, include_year, include_month, include_day,
+                      include_hour, include_minute, include_second,
+                      int_min, int_max):
+        now = datetime.now(tz=timezone.utc)
+
+
+        datetime_parts = []
+
+        def get_random():
+            return random.randint(int_min, int_max)
+
+        if include_hour:
+            datetime_parts.append(int(f"{get_random()}{now.hour:02d}"))
+        if include_minute:
+            datetime_parts.append(int(f"{get_random()}{now.minute:02d}"))
+        if include_second:
+            datetime_parts.append(int(f"{get_random()}{now.second:02d}"))
+
+        if include_year:
+            datetime_parts.append(int(f"{get_random()}{now.year:04d}"))
+        if include_month:
+            datetime_parts.append(int(f"{get_random()}{now.month:02d}"))
+        if include_day:
+            datetime_parts.append(int(f"{get_random()}{now.day:02d}"))
+
+        return (tuple(datetime_parts), )
