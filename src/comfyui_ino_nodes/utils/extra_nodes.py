@@ -1,5 +1,6 @@
 import random
 import json
+import hashlib
 from copy import deepcopy
 from datetime import datetime, timezone
 from ..node_helper import any_typ
@@ -164,6 +165,13 @@ class InoDateTimeAsString:
     def INPUT_TYPES(s):
         return {
             "required": {
+                "seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                    "step": 1,
+                    "label": "Seed (0 = random)"
+                }),
                 "include_year": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
                 "include_month": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
                 "include_day": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
@@ -194,10 +202,18 @@ class InoDateTimeAsString:
     def __init__(self):
         pass
 
+    @classmethod
+    def IS_CHANGED(cls, seed, **kwargs):
+        m = hashlib.sha256()
+        m.update(seed)
+        return m.digest().hex()
 
-    def function(self, include_year, include_month, include_day,
-                      include_hour, include_minute, include_second,
-                      date_sep="-", datetime_sep=" ", time_sep=":"):
+    def function(
+        self, seed,
+        include_year, include_month, include_day,
+        include_hour, include_minute, include_second,
+        date_sep="-", datetime_sep=" ", time_sep=":"
+    ):
         now = datetime.now()
 
         date_parts = []
