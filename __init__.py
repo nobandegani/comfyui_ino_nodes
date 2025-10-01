@@ -16,7 +16,7 @@ from .src.comfyui_ino_nodes.utils.lora_helper import InoCalculateLoraConfig
 
 from .src.comfyui_ino_nodes.utils.prompt_helper import InoRandomCharacterPrompt
 
-from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToCombo, InoDateTimeAsString, InoRandomIntInRange, InoIntToString, InoDateTimeAsRandomInt
+from .src.comfyui_ino_nodes.utils.extra_nodes import InoBoolToSwitch, InoIntEqual, InoNotBoolean, InoStringToggleCase, InoStringToCombo, InoDateTimeAsString, InoRandomIntInRange, InoIntToString, InoJson
 
 from .src.comfyui_ino_nodes.utils.file_helper import Zip, Unzip, RemoveFile, RemoveFolder, IncrementBatchName
 
@@ -49,7 +49,7 @@ NODE_CLASS_MAPPINGS = {
     "InoDateTimeAsString": InoDateTimeAsString,
     "InoRandomIntInRange": InoRandomIntInRange,
     "InoIntToString": InoIntToString,
-    "InoDateTimeAsRandomInt": InoDateTimeAsRandomInt,
+    "InoJson": InoJson,
 
     "Zip": Zip,
     "Unzip": Unzip,
@@ -87,7 +87,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
 
     "InoCalculateLoraConfig": "Ino Calculate Lora Config",
 
-    "Ino_RandomCharacterPrompt": "Ino Random Character Prompt",
+    "InoRandomCharacterPrompt": "Ino Random Character Prompt",
 
     "InoNotBoolean": "Ino Not Boolean",
     "InoIntEqual": "Ino Int Equal",
@@ -97,7 +97,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InoDateTimeAsString": "Ino DateTime As String",
     "InoRandomIntInRange": "Ino Random Int In Range",
     "InoIntToString": "Ino Int To String",
-    "InoDateTimeAsRandomInt": "Ino DateTime As Random Int",
+    "InoJson": "Ino Json",
 
     "Zip": "Zip",
     "Unzip": "Unzip",
