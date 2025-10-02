@@ -256,7 +256,7 @@ class InoRandomIntInRange:
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "int_min": ("INT", {"default": 0}),
-                "int_max": ("INT", {"default": 100}),
+                "int_max": ("INT", {"default": 999999}),
                 "length": ("INT", {"default": 1, "min": 0, "max": 10}),
             }
         }
