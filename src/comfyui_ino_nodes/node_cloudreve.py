@@ -3,7 +3,6 @@ import hashlib
 from inspect import cleandoc
 
 from inocloudreve import CloudreveClient
-from inopyutils import SparkHelper
 
 _cloudreve_client = CloudreveClient()
 
@@ -138,6 +137,10 @@ class CloudreveUploadFile:
                 "cloud_path": ("STRING", {
                     "multiline": False,
                     "default": "Ino/test"
+                }),
+                "storage_policy": ("STRING", {
+                    "multiline": False,
+                    "default": "Ino/test"
                 })
             },
             "optional": {
@@ -160,13 +163,13 @@ class CloudreveUploadFile:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, local_path, cloud_path, dummy_string):
+    async def function(self, enabled, seed, local_path, cloud_path, dummy_string, storage_policy):
         if not enabled:
             return "Disabled", "Node is disabled", ""
 
         res = await _cloudreve_client.upload_file(
             local_path=local_path,
             remote_path=cloud_path,
-            storage_policy=SparkHelper.get_default_storage_policy()["id"]
+            storage_policy=storage_policy
         )
         return res['success'], res['msg'], res
