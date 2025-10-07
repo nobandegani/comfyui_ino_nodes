@@ -2,6 +2,42 @@ from pathlib import Path
 from inopyutils import InoS3Helper
 
 def get_save_path(s3_key: str, save_path: str):
+    """
+        Generate a local file path for saving an S3 object, handling various path formats.
+
+        This function intelligently determines the appropriate local file path based on the
+        provided save_path format and the S3 key. It handles three scenarios:
+        1. Directory path - saves file with original name from S3 key
+        2. Full file path with extension - replaces extension with S3 object's extension
+        3. File path without extension - appends S3 object's extension
+
+        Args:
+            s3_key (str): The S3 object key (path) from which to extract the filename and extension.
+                         Example: "folder/subfolder/document.pdf"
+            save_path (str): The desired local save path. Can be:
+                            - Directory path ending with '/' or '\\': "/local/dir/"
+                            - Full file path with extension: "/local/dir/myfile.txt"
+                            - File path without extension: "/local/dir/myfile"
+
+        Returns:
+            Path: A pathlib.Path object representing the complete local file path where
+                  the S3 object should be saved, including the appropriate file extension.
+
+        Examples:
+            >>> get_save_path("docs/report.pdf", "/downloads/")
+            PosixPath('/downloads/report.pdf')
+
+            >>> get_save_path("images/photo.jpg", "/local/myimage.png")
+            PosixPath('/local/myimage.jpg')
+
+            >>> get_save_path("data/file.csv", "/backup/newfile")
+            PosixPath('/backup/newfile.csv')
+
+        Note:
+            - The function preserves the file extension from the S3 key in all cases
+            - Both forward slashes (/) and backslashes (\\) are recognized as directory indicators
+            - If save_path has an extension, it will be replaced with the S3 object's extension
+        """
     save_path_obj = Path(save_path)
     s3_key_obj = Path(s3_key)
 
