@@ -19,8 +19,8 @@ class InoS3UploadFolder:
         }
 
     CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", )
-    RETURN_NAMES = ("success", "msg", "result", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "INT", "INT", "INT", "STRING", )
+    RETURN_NAMES = ("success", "msg", "result", "total_files", "uploaded_successfully", "failed_uploads", "errors", )
     FUNCTION = "function"
 
     async def function(self, s3_key, local_path, delete_local, s3_config, bucket_name, max_concurrent):
@@ -46,4 +46,4 @@ class InoS3UploadFolder:
         if s3_result["success"] and delete_local:
             shutil.rmtree(local_path)
 
-        return (s3_result["success"], s3_result["msg"], s3_result, )
+        return (s3_result["success"], s3_result["msg"], s3_result, s3_result["total_files"], s3_result["uploaded_successfully"], s3_result["failed_uploads"], s3_result["errors"], )
