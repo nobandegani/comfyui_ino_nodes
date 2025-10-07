@@ -1,12 +1,14 @@
 import os
 import shutil
 from .s3_helper import S3Helper
+from ..node_helper import any_typ
 
 class InoS3UploadFolder:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required":{
+                "execute": (any_typ,),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": ""}),
                 "local_path": ("STRING", {"default": "input/example.png"}),
@@ -23,7 +25,10 @@ class InoS3UploadFolder:
     RETURN_NAMES = ("success", "msg", "result", "total_files", "uploaded_successfully", "failed_uploads", "errors", )
     FUNCTION = "function"
 
-    async def function(self, s3_key, local_path, delete_local, s3_config, bucket_name, max_concurrent):
+    async def function(self, execute, s3_key, local_path, delete_local, s3_config, bucket_name, max_concurrent):
+        if not execute:
+            return (False, "", None,)
+
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
             return (False, validate_s3_config["msg"], None, )
