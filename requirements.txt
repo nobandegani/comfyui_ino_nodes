@@ -1,3 +1,5 @@
 inocloudreve
 inopyutils
-python-dotenv
+numpy
+Pillow
+torch

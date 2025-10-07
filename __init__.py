@@ -8,7 +8,7 @@ __all__ = [
 
 __author__ = """InoNodes"""
 __email__ = "contact@inoland.net"
-__version__ = "0.0.1"
+__version__ = "1.0.5"
 
 from .src.comfyui_ino_nodes.node_utils import InoParseFilePath, InoCountFiles, InoBranchImage, InoGetFolderBatchID
 

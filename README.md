@@ -2,13 +2,30 @@
 
 A comprehensive collection of custom nodes for ComfyUI that provides advanced file handling, S3 cloud storage integration, LoRA configuration management, and various utility functions.
 
-## Quickstart
+## Installation
 
-1. Install [ComfyUI](https://docs.comfy.org/get_started).
+### Option 1: Using ComfyUI-Manager (Recommended)
+1. Install [ComfyUI](https://docs.comfy.org/get_started)
 2. Install [ComfyUI-Manager](https://github.com/ltdrdata/ComfyUI-Manager)
-3. Look up this extension in ComfyUI-Manager. If you are installing manually, clone this repository under `ComfyUI/custom_nodes`.
-4. Install dependencies: `pip install -r requirements.txt`
-5. Restart ComfyUI.
+3. Search for "ComfyUI Ino Nodes" in ComfyUI-Manager and install
+4. Restart ComfyUI
+
+### Option 2: Manual Installation
+1. Clone this repository into your ComfyUI custom_nodes directory:
+   ```bash
+   cd ComfyUI/custom_nodes
+   git clone https://github.com/nobandegani/comfyui_ino_nodes.git
+   ```
+2. Install dependencies:
+   ```bash
+   cd comfyui_ino_nodes
+   pip install -r requirements.txt
+   ```
+3. Restart ComfyUI
+
+### Dependencies
+- `inocloudreve` - Cloudreve cloud storage integration
+- `inopyutils` - Utility functions
 
 ## Features
 
@@ -53,3 +70,32 @@ A comprehensive collection of custom nodes for ComfyUI that provides advanced fi
 - **Zip/Unzip**: Archive and extract files
 - **Remove File/Folder**: Delete files and directories
 - **Increment Batch Name**: Auto-increment batch naming
+
+## Usage
+
+After installation, the nodes will appear in your ComfyUI node menu under the following categories:
+- **InoNodes** - File utilities and basic operations
+- **InoS3Helper** - S3 cloud storage operations
+- **InoCloudreve** - Cloudreve cloud storage integration
+
+Simply drag and drop the nodes into your ComfyUI workflow and configure them according to your needs.
+
+## Requirements
+
+- ComfyUI (latest version recommended)
+- Python 3.8+
+- Dependencies listed in `requirements.txt`
+
+## License
+
+This project is licensed under the terms specified in the LICENSE file.
+
+## Support
+
+For issues and questions, please visit the [GitHub repository](https://github.com/nobandegani/comfyui_ino_nodes).
+
+---
+
+**Version:** 1.0.5
+**Publisher:** Inoland
+**Contact:** contact@inoland.net
