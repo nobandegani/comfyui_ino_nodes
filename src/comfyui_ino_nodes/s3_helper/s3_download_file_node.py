@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .s3_helper import get_s3_instance, get_save_path
+from .s3_helper import S3Helper
 
 class InoS3DownloadFile:
     @classmethod
@@ -22,10 +22,10 @@ class InoS3DownloadFile:
     FUNCTION = "function"
 
     async def function(self, s3_key, save_path, s3_config, bucket_name):
-        rel_path = get_save_path(s3_key, save_path)
+        rel_path = S3Helper.get_save_path(s3_key, save_path)
         abs_path = rel_path.resolve()
 
-        s3_instance = get_s3_instance(s3_config)
+        s3_instance = S3Helper.get_instance(s3_config)
         s3_result = await s3_instance.download_file(
             s3_key=s3_key,
             local_file_path=str(rel_path)

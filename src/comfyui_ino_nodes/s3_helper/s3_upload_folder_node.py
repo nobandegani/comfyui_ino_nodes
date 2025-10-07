@@ -1,6 +1,6 @@
 import os
 import shutil
-from .s3_helper import get_s3_instance, get_save_path
+from .s3_helper import S3Helper
 
 class InoS3UploadFolder:
     @classmethod
@@ -24,7 +24,19 @@ class InoS3UploadFolder:
     FUNCTION = "function"
 
     async def function(self, s3_key, local_path, delete_local, s3_config, bucket_name, max_concurrent):
-        s3_instance = get_s3_instance(s3_config)
+        validate_s3_config = S3Helper.validate_s3_config(s3_config)
+        if not validate_s3_config["success"]:
+            return (False, validate_s3_config["msg"], None, )
+
+        validate_s3_key = S3Helper.validate_s3_key(s3_key)
+        if not validate_s3_key["success"]:
+            return (False, validate_s3_key["msg"], None,)
+
+        validate_local_path = S3Helper.validate_local_path(local_path)
+        if not validate_local_path["success"]:
+            return (False, validate_local_path["msg"], None,)
+
+        s3_instance = S3Helper.get_instance(s3_config)
         s3_result = await s3_instance.upload_folder(
             s3_folder_key=s3_key,
             local_folder_path=local_path,

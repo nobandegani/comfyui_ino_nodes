@@ -1,70 +1,120 @@
 from pathlib import Path
 from inopyutils import InoS3Helper
 
-def get_save_path(s3_key: str, save_path: str):
-    """
-        Generate a local file path for saving an S3 object, handling various path formats.
+class S3Helper:
+    @staticmethod
+    def get_instance(s3_config):
+        try:
+            s3_instance = InoS3Helper(
+                aws_access_key_id=s3_config["access_key_id"],
+                aws_secret_access_key=s3_config["secret_access_key"],
+                endpoint_url=s3_config["endpoint_url"],
+                region_name = s3_config["region_name"],
+                bucket_name=s3_config["bucket_name"],
+            )
+            return s3_instance
+        except Exception as e:
+            print(f"Failed to create S3 instance: {e} Please check your environment variables.")
 
-        This function intelligently determines the appropriate local file path based on the
-        provided save_path format and the S3 key. It handles three scenarios:
-        1. Directory path - saves file with original name from S3 key
-        2. Full file path with extension - replaces extension with S3 object's extension
-        3. File path without extension - appends S3 object's extension
+    @staticmethod
+    def validate_s3_config(s3_config) -> dict:
+        if not s3_config:
+            return {
+                "success": False,
+                "msg": "S3 configuration is required and cannot be empty"
+            }
 
-        Args:
-            s3_key (str): The S3 object key (path) from which to extract the filename and extension.
-                         Example: "folder/subfolder/document.pdf"
-            save_path (str): The desired local save path. Can be:
-                            - Directory path ending with '/' or '\\': "/local/dir/"
-                            - Full file path with extension: "/local/dir/myfile.txt"
-                            - File path without extension: "/local/dir/myfile"
+        if not isinstance(s3_config, dict):
+            return {
+                "success": False,
+                "msg": "S3 configuration must be a dictionary"
+            }
 
-        Returns:
-            Path: A pathlib.Path object representing the complete local file path where
-                  the S3 object should be saved, including the appropriate file extension.
+        required_keys = ["access_key_id", "secret_access_key", "endpoint_url", "region_name", "bucket_name"]
+        missing_keys = [key for key in required_keys if key not in s3_config or not s3_config[key]]
+        if missing_keys:
+            return {
+                "success": False,
+                "msg": f"S3 configuration missing required keys: {', '.join(missing_keys)}"
+            }
 
-        Examples:
-            >>> get_save_path("docs/report.pdf", "/downloads/")
-            PosixPath('/downloads/report.pdf')
+        return {
+            "success": True,
+            "msg": "S3 configuration is valid"
+        }
 
-            >>> get_save_path("images/photo.jpg", "/local/myimage.png")
-            PosixPath('/local/myimage.jpg')
+    @staticmethod
+    def validate_s3_key(s3_key) -> dict:
+        if not s3_key or not s3_key.strip():
+            return {
+                "success": False,
+                "msg": "S3 key is required and cannot be empty"
+            }
+        return {
+            "success": True,
+            "msg": "S3 key is valid"
+        }
 
-            >>> get_save_path("data/file.csv", "/backup/newfile")
-            PosixPath('/backup/newfile.csv')
+    @staticmethod
+    def validate_local_path(local_path) -> dict:
+        if not local_path or not local_path.strip():
+            return {
+                "success": False,
+                "msg": "Local path is required and cannot be empty"
+            }
 
-        Note:
-            - The function preserves the file extension from the S3 key in all cases
-            - Both forward slashes (/) and backslashes (\\) are recognized as directory indicators
-            - If save_path has an extension, it will be replaced with the S3 object's extension
+        if not Path(local_path).is_file() and not Path(local_path).is_dir():
+            return {
+                "success": False,
+                "msg": "Local path does not exist"
+            }
+        return {
+            "success": True,
+            "msg": "Local path is valid"
+        }
+
+    @staticmethod
+    def get_save_path(s3_key: str, save_path: str):
         """
-    save_path_obj = Path(save_path)
-    s3_key_obj = Path(s3_key)
+            Generate a local file path for saving an S3 object, handling various path formats.
 
-    if save_path.endswith('/') or save_path.endswith('\\'):
-        local_file_path = save_path_obj / s3_key_obj.name
-    elif save_path_obj.suffix:
-        filename_without_ext = save_path_obj.stem
-        s3_extension = s3_key_obj.suffix
-        local_file_path = save_path_obj.parent / (filename_without_ext + s3_extension)
-    else:
-        s3_extension = s3_key_obj.suffix
-        local_file_path = Path(save_path + s3_extension)
+            This function intelligently determines the appropriate local file path based on the
+            provided save_path format and the S3 key. It handles three scenarios:
+            1. Directory path - saves file with original name from S3 key
+            2. Full file path with extension - replaces extension with S3 object's extension
+            3. File path without extension - appends S3 object's extension
 
-    return local_file_path
+            Args:
+                s3_key (str): The S3 object key (path) from which to extract the filename and extension.
+                             Example: "folder/subfolder/document.pdf"
+                save_path (str): The desired local save path. Can be:
+                                - Directory path ending with '/' or '\\': "/local/dir/"
+                                - Full file path with extension: "/local/dir/myfile.txt"
+                                - File path without extension: "/local/dir/myfile"
 
-def get_s3_instance(s3_config):
-    try:
-        s3_instance = InoS3Helper(
-            aws_access_key_id=s3_config["access_key_id"],
-            aws_secret_access_key=s3_config["secret_access_key"],
-            endpoint_url=s3_config["endpoint_url"],
-            region_name = s3_config["region_name"],
-            bucket_name=s3_config["bucket_name"],
-        )
-        return s3_instance
-    except Exception as e:
-        print(f"Failed to create S3 instance: {e} Please check your environment variables.")
+            Returns:
+                Path: A pathlib.Path object representing the complete local file path where
+                      the S3 object should be saved, including the appropriate file extension.
+
+            Note:
+                - The function preserves the file extension from the S3 key in all cases
+                - Both forward slashes (/) and backslashes (\\) are recognized as directory indicators
+                - If save_path has an extension, it will be replaced with the S3 object's extension
+            """
+        save_path_obj = Path(save_path)
+        s3_key_obj = Path(s3_key)
+
+        if save_path.endswith('/') or save_path.endswith('\\'):
+            local_file_path = save_path_obj / s3_key_obj.name
+        elif save_path_obj.suffix:
+            filename_without_ext = save_path_obj.stem
+            s3_extension = s3_key_obj.suffix
+            local_file_path = save_path_obj.parent / (filename_without_ext + s3_extension)
+        else:
+            s3_extension = s3_key_obj.suffix
+            local_file_path = Path(save_path + s3_extension)
+
+        return local_file_path
 
 class InoS3Config:
     @classmethod

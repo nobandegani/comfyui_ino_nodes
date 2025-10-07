@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from PIL import Image, ImageOps, ImageSequence
 
-from .s3_helper import get_s3_instance, get_save_path
+from .s3_helper import S3Helper
 
 class InoS3DownloadImage:
     @classmethod
@@ -23,10 +23,10 @@ class InoS3DownloadImage:
     FUNCTION = "function"
 
     async def function(self, s3_key, save_locally, save_path, s3_config):
-        rel_path = get_save_path(s3_key, save_path)
+        rel_path = S3Helper.get_save_path(s3_key, save_path)
         abs_path = rel_path.resolve()
 
-        s3_instance = get_s3_instance(s3_config)
+        s3_instance = S3Helper.get_instance(s3_config)
         downloaded = await s3_instance.download_file(
             s3_key=s3_key,
             local_file_path=str(rel_path)

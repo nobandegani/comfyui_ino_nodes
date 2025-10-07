@@ -1,5 +1,5 @@
 import os
-from .s3_helper import get_s3_instance, get_save_path
+from .s3_helper import S3Helper
 
 class InoS3UploadFile:
     @classmethod
@@ -19,7 +19,7 @@ class InoS3UploadFile:
     FUNCTION = "function"
 
     async def function(self, s3_key, local_path, delete_local, s3_config):
-        s3_instance = get_s3_instance(s3_config)
+        s3_instance = S3Helper.get_instance(s3_config)
         s3_result = await s3_instance.upload_file(
             s3_key=s3_key,
             local_file_path=local_path

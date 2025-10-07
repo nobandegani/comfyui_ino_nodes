@@ -7,7 +7,7 @@ from PIL import Image
 from PIL.PngImagePlugin import PngInfo
 from comfy.cli_args import args
 
-from .s3_helper import get_s3_instance, get_save_path
+from .s3_helper import S3Helper
 
 
 class InoS3UploadImage:
@@ -47,7 +47,7 @@ class InoS3UploadImage:
 
                 s3_path:str = f"{s3_key}/{file}"
 
-                s3_instance = get_s3_instance(s3_config)
+                s3_instance = S3Helper.get_instance(s3_config)
                 uploaded = await s3_instance.upload_file(
                     s3_key=str(s3_path),
                     local_file_path=str(temp_file)
