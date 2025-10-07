@@ -24,7 +24,7 @@ class InoS3UploadFolder:
 
     async def function(self, s3_key, local_path, delete_local, s3_config, bucket_name, max_concurrent):
         s3_instance = get_s3_instance(s3_config)
-        s3_result = await s3_instance.upload_file(
+        s3_result = await s3_instance.upload_folder(
             s3_key=s3_key,
             local_file_path=local_path,
             #bucket_name=bucket_name,
