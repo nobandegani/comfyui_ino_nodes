@@ -1,7 +1,7 @@
 [project]
 name = "comfyui_ino_nodes"
 description = "A comprehensive collection of custom nodes for ComfyUI that provides advanced file handling, S3 cloud storage integration, LoRA configuration management, and various utility functions."
-version = "1.0.6"
+version = "1.1.2"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.8"

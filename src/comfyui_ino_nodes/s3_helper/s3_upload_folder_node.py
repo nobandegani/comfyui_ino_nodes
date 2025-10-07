@@ -1,4 +1,5 @@
 import os
+import shutil
 from .s3_helper import get_s3_instance, get_save_path
 
 class InoS3UploadFolder:
@@ -25,12 +26,12 @@ class InoS3UploadFolder:
     async def function(self, s3_key, local_path, delete_local, s3_config, bucket_name, max_concurrent):
         s3_instance = get_s3_instance(s3_config)
         s3_result = await s3_instance.upload_folder(
-            s3_key=s3_key,
-            local_file_path=local_path,
+            s3_folder_key=s3_key,
+            local_folder_path=local_path,
             #bucket_name=bucket_name,
             max_concurrent=max_concurrent
         )
         if s3_result["success"] and delete_local:
-            os.remove(local_path)
+            shutil.rmtree(local_path)
 
         return (s3_result["success"], s3_result["msg"], s3_result, )

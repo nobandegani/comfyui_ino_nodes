@@ -28,8 +28,8 @@ class InoS3DownloadFolder:
 
         s3_instance = get_s3_instance(s3_config)
         s3_result = await s3_instance.download_folder(
-            s3_key=s3_key,
-            local_file_path=str(rel_path),
+            s3_folder_key=s3_key,
+            local_folder_path=str(rel_path),
             #bucket_name=bucket_name,
             max_concurrent=max_concurrent
         )
