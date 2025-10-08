@@ -32,6 +32,8 @@ from .src.comfyui_ino_nodes.s3_helper.s3_download_file_node import InoS3Download
 from .src.comfyui_ino_nodes.s3_helper.s3_download_folder_node import InoS3DownloadFolder
 from .src.comfyui_ino_nodes.s3_helper.s3_download_image_node import InoS3DownloadImage
 
+from .src.comfyui_ino_nodes.utils.http_helper import InoHttpCall
+
 NODE_CLASS_MAPPINGS = {
     "InoParseFilePath": InoParseFilePath,
     "InoCountFiles": InoCountFiles,
@@ -80,6 +82,8 @@ NODE_CLASS_MAPPINGS = {
     "InoS3DownloadFile": InoS3DownloadFile,
     "InoS3DownloadFolder": InoS3DownloadFolder,
     "InoS3DownloadImage": InoS3DownloadImage,
+
+    "InoHttpCall": InoHttpCall,
 }
 
 
@@ -130,6 +134,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "InoS3DownloadFile": "Ino S3 Download File",
     "InoS3DownloadFolder": "Ino S3 Download Folder",
     "InoS3DownloadImage": "Ino S3 Download Image",
+
+    "InoHttpCall": "Ino Http Call",
 }
 
 
