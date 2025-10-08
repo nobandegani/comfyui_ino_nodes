@@ -1,11 +1,11 @@
 [project]
 name = "comfyui_ino_nodes"
 description = "A comprehensive collection of custom nodes for ComfyUI that provides advanced file handling, S3 cloud storage integration, LoRA configuration management, and various utility functions."
-version = "1.1.4"
+version = "1.1.5"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = ["inocloudreve", "inopyutils", "numpy", "Pillow", "torch"]
+dependencies = ["inocloudreve", "inopyutils", "numpy", "Pillow", "torch", "httpx", "httpx-retry"]
 keywords = ["comfyui", "custom-nodes", "s3", "cloudreve", "lora", "file-handling", "utilities"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
