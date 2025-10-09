@@ -422,3 +422,4 @@ LOCAL_NODE_CLASS = {
 LOCAL_NODE_NAME = {
     "InoRandomCharacterPrompt": "Ino Random Character Prompt",
 }
+

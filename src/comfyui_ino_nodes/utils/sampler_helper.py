@@ -1,8 +1,11 @@
 import hashlib
 from pathlib import Path
 import json
+import asyncio
 from copy import deepcopy
 from typing import List, Dict, Tuple
+
+from inopyutils import InoJsonHelper
 
 import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
@@ -12,85 +15,52 @@ default_bool = ["unset", "true", "false"]
 sampler_names = ["unset"] + SAMPLER_NAMES
 scheduler_names = ["unset"] + SCHEDULER_NAMES
 
-def _as_int(v, default):
-    try: return int(v)
-    except (TypeError, ValueError): return default
-
-def _as_float(v, default):
-    try: return float(v)
-    except (TypeError, ValueError): return default
-
-def _resolve_models_path(config: str = "default", model_type: str = "models") -> Path:
-    """Resolve models .json path. 'default' => ../configs/models.json (relative to this file)."""
-
+def _load_models(config: str = "default", model_type: str = "models") -> Dict:
+    """Load models"""
     if config == "default":
         base_dir = Path(__file__).resolve().parent.parent  # comfyui_ino_nodes/
-        return (base_dir / "configs" / f"{model_type}.json").resolve()
-    return Path(config).expanduser().resolve()
+        json_path:Path = base_dir / "configs" / f"{model_type}.json"
+        read_json =InoJsonHelper.read_json_from_file_sync(
+            file_path=str(json_path.resolve())
+        )
+        if not read_json["success"]:
+            return read_json
+        else:
+            json_data = read_json["data"]
+    else:
+        json_data = InoJsonHelper.string_to_dict(
+            json_string=config,
+        )
+        if not json_data["success"]:
+            return json_data
+        else:
+            json_data = json_data["data"]
 
-def _load_models_list(config: str = "default", model_type: str = "models") -> List[Dict]:
-    """Load models list with file-mtime cache."""
-    path = _resolve_models_path(config, model_type)
-    if not path.exists():
-        raise FileNotFoundError(f"models.json not found at: {path}")
+    json_data = json_data[model_type]
+    names = [m["name"] for m in json_data]
+    ids = [m["id"] for m in json_data]
 
-    cache = _load_models_list.__dict__
-    mtime = path.stat().st_mtime
+    return {
+        "success": True,
+        "msg": "success",
+        "names": names,
+        "ids": ids,
+        "fields": json_data,
+    }
 
-    if cache.get("_path") != str(path) or cache.get("_mtime") != mtime:
-        with path.open("r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        models = data.get("models", [])
-        if not isinstance(models, list):
-            raise ValueError("Invalid models.json: 'models' must be a list")
-
-        cache["_path"] = str(path)
-        cache["_mtime"] = mtime
-        cache["_models"] = models
-
-    return cache["_models"]
-
-def get_models(config: str = "default", model_type: str = "models") -> Tuple[List[str], List[Dict]]:
-    """
-    Return (names, models):
-      - names: list of model names (strings)
-      - models: list of model dicts
-    """
-    models = deepcopy(_load_models_list(config, model_type))
-    names = [m.get("name", "") for m in models if isinstance(m, dict)]
-    return names, models
-
-def get_model_by_name(name: str, models: List[Dict]) -> Dict:
-    """Find a model by name (case-insensitive) from a models list."""
-    key = (name or "").strip().lower()
+def get_model_by_field(models: Dict, field_name: str, field_match: str) -> Dict:
     for m in models:
-        if isinstance(m, dict) and m.get("name", "").strip().lower() == key:
+        if m[field_name] == field_match:
             return deepcopy(m)
-    raise KeyError(f"Model '{name}' not found.")
-
+    return {}
 
 def prepare_lora_config(lora_config: str) -> Dict:
     """Prepare LoRA config"""
 
-    if not lora_config or lora_config == "" or lora_config == "none":
-        return {
-            "use_lora": False,
-            "lora_config": None
-        }
-
-    if isinstance(lora_config, str):
-        config_str = lora_config.strip()
-        try:
-            model_cfg = json.loads(config_str)
-        except json.JSONDecodeError as e:
-            return {
-                "use_lora": False,
-                "lora_config": None
-            }
-    elif isinstance(lora_config, dict):
-        model_cfg = lora_config
-    else:
+    load_json = InoJsonHelper.string_to_dict(
+        json_string=lora_config
+    )
+    if not load_json["success"]:
         return {
             "use_lora": False,
             "lora_config": None
@@ -98,7 +68,7 @@ def prepare_lora_config(lora_config: str) -> Dict:
 
     return {
         "use_lora": True,
-        "lora_config": model_cfg
+        "lora_config": load_json["data"]
     }
 
 def load_lora(config_str, model, clip):
@@ -147,18 +117,28 @@ class InoGetModelConfig:
     """
 
     """
+    @staticmethod
+    def load_models():
+        load = _load_models()
+        if load["success"]:
+            names = ["unset"]
+            names.extend(load["names"])
+            return {"success": load["msg"], "msg": "", "names": names, "ids": load["ids"], "fields": load["fields"]}
+        else:
+            return None
 
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model": (list(get_models()[0]), {"tooltip": "The name of the LoRA."}),
+                "model_name": (s.load_models()["names"], {"tooltip": "The name of the Model."}),
+                "model_id": (s.load_models()["ids"], {"tooltip": "The id of the Model."}),
             }
         }
 
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("ModelName", "ModelConfig")
+    RETURN_TYPES = ("INT", "STRING", "STRING", )
+    RETURN_NAMES = ("ModelID", "ModelName", "ModelConfig", )
 
     FUNCTION = "function"
 
@@ -166,42 +146,62 @@ class InoGetModelConfig:
 
     def function(self,
                  enabled,
-                 model,
+                 model_name, model_id
         ):
         if not enabled:
-            return (model, "", )
-        model_cfg = get_model_by_name(model, get_models()[1])
-        return (model, model_cfg, )
+            return (-1, "", "", )
+
+        models = self.load_models()["fields"]
+        if model_name == "unset":
+            model_cfg = get_model_by_field(models, "id", model_id)
+        else:
+            model_cfg = get_model_by_field(models, "name", model_name)
+
+        return (model_cfg["id"], model_cfg["name"], model_cfg, )
 
 class InoGetLoraConfig:
     """
 
     """
 
+    @staticmethod
+    def load_models():
+        load = _load_models("default", "loras")
+        if load["success"]:
+            names = ["unset"]
+            names.extend(load["names"])
+            return {"success": load["msg"], "msg": "", "names": names, "ids": load["ids"], "fields": load["fields"]}
+        else:
+            return None
+
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "lora": (list(get_models(config="default", model_type="loras")[0]), {"tooltip": "The name of the LoRA."}),
+                "lora_name": (s.load_models()["names"], {"tooltip": "The name of the Model."}),
+                "lora_id": (s.load_models()["ids"], {"tooltip": "The id of the Model."}),
             }
         }
 
-    RETURN_TYPES = ("STRING", "STRING")
-    RETURN_NAMES = ("LoraName", "LoraConfig")
+    RETURN_TYPES = ("INT", "STRING", "STRING",)
+    RETURN_NAMES = ("LoraID", "LoraName", "LoraConfig",)
 
     FUNCTION = "function"
 
     CATEGORY = "InoSamplerHelper"
 
-    def function(self,
-                 enabled,
-                 lora,
-        ):
+    def function(self, enabled, lora_name, lora_id ):
         if not enabled:
-            return (lora, "", )
-        model_cfg = get_model_by_name(lora, get_models(config="default", model_type="loras")[1])
-        return (lora, model_cfg, )
+            return (-1, "", "", )
+
+        models = self.load_models()["fields"]
+        if lora_name == "unset":
+            lora_cfg = get_model_by_field(models, "id", lora_id)
+        else:
+            lora_cfg = get_model_by_field(models, "name", lora_name)
+
+        return (lora_cfg["id"], lora_cfg["name"], lora_cfg, )
 
 class InoShowModelConfig:
     """
@@ -809,7 +809,7 @@ class InoGetConditioning:
         else:
             raise TypeError("`config` must be a JSON string or a dict.")
 
-        final_guidance = _as_float(model_cfg.get("guidance", -1), -1)
+        final_guidance = float(model_cfg.get("guidance", -1))
 
         use_negative_prompt = bool(model_cfg.get("use_negative_prompt", False))
         use_flux_clip_encoder = bool(model_cfg.get("use_flux_encoder", False))
@@ -877,3 +877,4 @@ LOCAL_NODE_NAME = {
     "InoGetConditioning": "Ino Get Conditioning",
     "InoGetSamplerConfig": "Ino Get Sampler Config",
 }
+

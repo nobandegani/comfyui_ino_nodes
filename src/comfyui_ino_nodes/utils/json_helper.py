@@ -61,7 +61,7 @@ class InoSaveJson:
     async def function(self, json_string, local_path):
         output_path = folder_paths.get_output_directory()
         save_path :Path = Path(output_path) / Path(local_path)
-        save_json = await InoJsonHelper.save_string_as_json(
+        save_json = await InoJsonHelper.save_string_as_json_async(
             json_string=json_string,
             file_path=str(save_path.resolve())
         )
