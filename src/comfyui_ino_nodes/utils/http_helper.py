@@ -91,7 +91,12 @@ class InoHttpCall:
         except httpx.RequestError as exc:
             return (False, 0, f"Request error: {exc}", "", )
         except httpx.HTTPStatusError as exc:
-            return (False, exc.response.status_code, f"HTTP error: {exc.response}", "", )
+            response_text = ""
+            try:
+                response_text = exc.response.text
+            except:
+                response_text = "None"
+            return (False, exc.response.status_code, f"HTTP error: {exc.response}, Response: {response_text}", "", )
 
         content_type = resp.headers.get('content-type', '').lower()
         if 'application/json' in content_type:
