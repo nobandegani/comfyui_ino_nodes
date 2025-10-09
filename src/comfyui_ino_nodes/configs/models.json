@@ -1,6 +1,7 @@
 {
   "models": [
     {
+      "id": 0,
       "name": "Flux1Dev",
       "type": "flux",
       "unet": "flux1dev/flux1-dev.safetensors",
@@ -24,6 +25,7 @@
       "lora_compatible": ""
     },
     {
+      "id": 1,
       "name": "Flux1Kontext",
       "type": "flux",
       "unet": "flux1kontext/flux1-kontext-dev.safetensors",
@@ -47,6 +49,7 @@
       "lora_compatible": ""
     },
     {
+      "id": 2,
       "name": "Flux1Krea",
       "type": "flux",
       "unet": "flux1krea/flux1-krea-dev.safetensors",
@@ -70,6 +73,7 @@
       "lora_compatible": ""
     },
     {
+      "id": 3,
       "name": "Flux1DevUnlockedV30",
       "type": "flux",
       "unet": "flux1dev/flux1DevNSFWUNLOCKEDFp16_v30FP16.safetensors",
@@ -93,6 +97,7 @@
       "lora_compatible": ""
     },
     {
+      "id": 4,
       "name": "GetPhatV11",
       "type": "flux",
       "unet": "flux1dev/getphatFLUXReality_v11Softcore.safetensors",
@@ -116,6 +121,7 @@
       "lora_compatible": "Loras trained on Flux Reality will work, flux1dev loras will not work"
     },
     {
+      "id": 5,
       "name": "JibMixFluxV10",
       "type": "flux",
       "unet": "flux1dev/jibMixFlux_v10AnalogAgain.safetensors",
@@ -139,6 +145,7 @@
       "lora_compatible": "NOW WITH CONTROLNET AND NATIVE LORA SUPPORT!"
     },
     {
+      "id": 6,
       "name": "JibMixFluxV11",
       "type": "flux",
       "unet": "flux1dev/jibMixFlux_v11KreaNSFW.safetensors",
@@ -162,6 +169,7 @@
       "lora_compatible": "NOW WITH CONTROLNET AND NATIVE LORA SUPPORT!"
     },
     {
+      "id": 7,
       "name": "FuxCapacityV31",
       "type": "flux",
       "unet": "flux1dev/fuxCapacityNSFWPornFlux_31FP16.safetensors",
@@ -185,6 +193,7 @@
       "lora_compatible": ""
     },
     {
+      "id": 8,
       "name": "UltraFineTuneV4",
       "type": "flux",
       "unet": "flux1dev/ultrarealFineTune_v4.safetensors",
@@ -208,6 +217,7 @@
       "lora_compatible": ""
     },
     {
+      "id": 9,
       "name": "FluxedUpV51",
       "type": "flux",
       "unet": "flux1dev/fluxedUpFluxNSFW_51FP16.safetensors",
@@ -231,6 +241,7 @@
       "lora_compatible": ""
     },
     {
+      "id": 10,
       "name": "ChromaV50",
       "type": "chroma",
       "unet": "flux1dev/chroma-unlocked-v50.safetensors",

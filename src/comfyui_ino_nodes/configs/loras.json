@@ -1,6 +1,7 @@
 {
-  "models": [
+  "loras": [
     {
+      "id": 0,
       "name": "KarlaKushV5",
       "base_model": "flux1dev",
       "type": "person",
@@ -14,6 +15,7 @@
       "Tags": ""
     },
     {
+      "id": 1,
       "name": "AlyTayV1",
       "base_model": "flux1dev",
       "type": "person",
@@ -27,6 +29,7 @@
       "Tags": ""
     },
     {
+      "id": 2,
       "name": "TanaRainV1",
       "base_model": "flux1dev",
       "type": "person",
@@ -40,6 +43,7 @@
       "Tags": ""
     },
     {
+      "id": 3,
       "name": "RealisticAmplifier",
       "base_model": "flux1dev",
       "type": "finetune",
