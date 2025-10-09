@@ -96,6 +96,6 @@ For issues and questions, please visit the [GitHub repository](https://github.co
 
 ---
 
-**Version:** 1.0.5
+**Version:** 1.1.5
 **Publisher:** Inoland
 **Contact:** contact@inoland.net

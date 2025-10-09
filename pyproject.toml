@@ -8,15 +8,10 @@ requires-python = ">=3.8"
 dependencies = ["inocloudreve", "inopyutils", "numpy", "Pillow", "torch", "httpx", "httpx-retry"]
 keywords = ["comfyui", "custom-nodes", "s3", "cloudreve", "lora", "file-handling", "utilities"]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Topic :: Multimedia :: Graphics",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 

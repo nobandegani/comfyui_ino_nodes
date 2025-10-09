@@ -49,4 +49,4 @@ __all__ = [
 
 __author__ = """InoNodes"""
 __email__ = "contact@inoland.net"
-__version__ = "1.0.5"
+__version__ = "1.1.5"
