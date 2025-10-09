@@ -97,3 +97,10 @@ class InoCalculateLoraConfig:
         save_every = steps / max_lora_parts
         sample_every = steps / 10
         return int(dim), int(alpha), int(steps), int(save_every), int(batch_size), int(grad_accum), float(lr), float(0.0001), float(0.99), int(1), "DDPM", ema, int(1), float(0.05), True, int(sample_every)
+
+LOCAL_NODE_CLASS = {
+    "InoCalculateLoraConfig": InoCalculateLoraConfig,
+}
+LOCAL_NODE_NAME = {
+    "InoCalculateLoraConfig": "Ino Calculate Lora Config",
+}

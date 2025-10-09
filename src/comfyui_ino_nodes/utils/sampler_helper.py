@@ -7,10 +7,10 @@ from typing import List, Dict, Tuple
 import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
 
-import comfy
+from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
 default_bool = ["unset", "true", "false"]
-sampler_names = ["unset"] + comfy.samplers.SAMPLER_NAMES
-scheduler_names = ["unset"] + comfy.samplers.SCHEDULER_NAMES
+sampler_names = ["unset"] + SAMPLER_NAMES
+scheduler_names = ["unset"] + SCHEDULER_NAMES
 
 def _as_int(v, default):
     try: return int(v)
@@ -853,3 +853,27 @@ class InoGetConditioning:
             )
 
         return (positive_condition[0], negative_condition[0], old_config, config, )
+
+
+LOCAL_NODE_CLASS = {
+    "InoRandomNoise": InoRandomNoise,
+    "InoGetModelConfig": InoGetModelConfig,
+    "InoShowModelConfig": InoShowModelConfig,
+    "InoUpdateModelConfig": InoUpdateModelConfig,
+    "InoGetLoraConfig": InoGetLoraConfig,
+    "InoShowLoraConfig": InoShowLoraConfig,
+    "InoLoadSamplerModels": InoLoadSamplerModels,
+    "InoGetConditioning": InoGetConditioning,
+    "InoGetSamplerConfig": InoGetSamplerConfig,
+}
+LOCAL_NODE_NAME = {
+    "InoRandomNoise": "Ino Random Noise",
+    "InoGetModelConfig": "Ino Get Model Config",
+    "InoShowModelConfig": "Ino Show Model Config",
+    "InoUpdateModelConfig": "Ino Update Model Config",
+    "InoGetLoraConfig": "Ino Get Lora Config",
+    "InoShowLoraConfig": "Ino Show Lora Config",
+    "InoLoadSamplerModels": "Ino Load Sampler Models",
+    "InoGetConditioning": "Ino Get Conditioning",
+    "InoGetSamplerConfig": "Ino Get Sampler Config",
+}

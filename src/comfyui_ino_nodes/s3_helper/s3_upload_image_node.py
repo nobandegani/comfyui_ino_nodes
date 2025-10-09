@@ -5,7 +5,6 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from PIL.PngImagePlugin import PngInfo
-from comfy.cli_args import args
 
 from .s3_helper import S3Helper
 
@@ -37,8 +36,8 @@ class InoS3UploadImage:
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
 
             metadata = None
-            if not args.disable_metadata:
-                metadata = PngInfo()
+            #if not args.disable_metadata:
+            metadata = PngInfo()
 
             file = f"{file_name}_{counter:05}.png"
             temp_file: Path = Path("input/temp_file.png")

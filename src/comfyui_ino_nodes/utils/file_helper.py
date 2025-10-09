@@ -271,3 +271,18 @@ class RemoveFolder:
             folder_path=folder_path
         )
         return res["success"], res["msg"], res
+
+LOCAL_NODE_CLASS = {
+    "IncrementBatchName": IncrementBatchName,
+    "Zip": Zip,
+    "Unzip": Unzip,
+    "RemoveFile": RemoveFile,
+    "RemoveFolder": RemoveFolder,
+}
+LOCAL_NODE_NAME = {
+    "IncrementBatchName": "Increment Batch Name",
+    "Zip": "Zip",
+    "Unzip": "Unzip",
+    "RemoveFile": "Remove File",
+    "RemoveFolder": "Remove Folder",
+}

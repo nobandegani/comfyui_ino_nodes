@@ -173,3 +173,14 @@ class CloudreveUploadFile:
             storage_policy=storage_policy
         )
         return res['success'], res['msg'], res
+
+LOCAL_NODE_CLASS = {
+    "CloudreveInit": CloudreveInit,
+    "CloudreveSignin": CloudreveSignin,
+    "CloudreveUploadFile": CloudreveUploadFile,
+}
+LOCAL_NODE_NAME = {
+    "CloudreveInit": "Cloudreve Init",
+    "CloudreveSignin": "Cloudreve Signin",
+    "CloudreveUploadFile": "Cloudreve Upload File",
+}

@@ -1,7 +1,6 @@
 import random
 import json
 import hashlib
-from copy import deepcopy
 from datetime import datetime, timezone
 from ..node_helper import any_typ
 
@@ -297,31 +296,24 @@ class InoIntToString:
         return (str(input_int), )
 
 
-class InoJson:
-    """
 
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "base_json": ("STRING", {"default": "{}"}),
-                "field_name": ("STRING", {"default": ""}),
-                "field_value": (any_typ,)
-            }
-        }
-
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("Json", )
-
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(self, base_json, field_name, field_value):
-        json_object = deepcopy(base_json)
-        if isinstance(json_object, str):
-            json_object = json.loads(json_object)
-        json_object[field_name] = field_value
-        json_string = json.dumps(json_object)
-        return (json_string, )
+LOCAL_NODE_CLASS = {
+    "InoNotBoolean": InoNotBoolean,
+    "InoIntEqual": InoIntEqual,
+    "InoStringToggleCase": InoStringToggleCase,
+    "InoBoolToSwitch": InoBoolToSwitch,
+    "InoStringToCombo": InoStringToCombo,
+    "InoDateTimeAsString": InoDateTimeAsString,
+    "InoRandomIntInRange": InoRandomIntInRange,
+    "InoIntToString": InoIntToString,
+}
+LOCAL_NODE_NAME = {
+    "InoNotBoolean": "Ino Not Boolean",
+    "InoIntEqual": "Ino Int Equal",
+    "InoStringToggleCase": "Ino String Toggle Case",
+    "InoBoolToSwitch": "Ino Bool To Switch",
+    "InoStringToCombo": "Ino String To Combo",
+    "InoDateTimeAsString": "Ino DateTime As String",
+    "InoRandomIntInRange": "Ino Random Int In Range",
+    "InoIntToString": "Ino Int To String",
+}

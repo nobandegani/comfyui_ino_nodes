@@ -414,3 +414,11 @@ class InoRandomCharacterPrompt:
 
         final_prompt = ", ".join(filter(None, parts))
         return (final_prompt, seed, )
+
+
+LOCAL_NODE_CLASS = {
+    "InoRandomCharacterPrompt": InoRandomCharacterPrompt,
+}
+LOCAL_NODE_NAME = {
+    "InoRandomCharacterPrompt": "Ino Random Character Prompt",
+}

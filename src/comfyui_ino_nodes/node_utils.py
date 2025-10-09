@@ -231,3 +231,17 @@ class InoGetFolderBatchID:
         final_batch_rel_path = final_batch_abs_path.relative_to(Path(Path(parent_path).parent).resolve())
 
         return final_batch_num, final_batch_str, str(final_batch_rel_path), str(final_batch_abs_path)
+
+
+LOCAL_NODE_CLASS = {
+    "InoParseFilePath": InoParseFilePath,
+    "InoCountFiles": InoCountFiles,
+    "InoBranchImage": InoBranchImage,
+    "InoGetFolderBatchID": InoGetFolderBatchID,
+}
+LOCAL_NODE_NAME = {
+    "InoParseFilePath": "Ino Parse File Path",
+    "InoCountFiles": "Ino Count Files",
+    "InoBranchImage": "Ino Branch Image",
+    "InoGetFolderBatchID": "Ino Get Folder Batch ID",
+}

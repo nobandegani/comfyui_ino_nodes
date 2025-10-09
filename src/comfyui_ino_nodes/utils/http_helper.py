@@ -99,3 +99,10 @@ class InoHttpCall:
             response = resp.text
 
         return (True, resp.status_code, f"Http call successfull", response, )
+
+LOCAL_NODE_CLASS = {
+    "InoHttpCall": InoHttpCall,
+}
+LOCAL_NODE_NAME = {
+    "InoHttpCall": "Ino Http Call",
+}
