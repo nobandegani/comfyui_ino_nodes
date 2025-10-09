@@ -157,7 +157,11 @@ class InoGetModelConfig:
         else:
             model_cfg = get_model_by_field(models, "name", model_name)
 
-        return (model_cfg["id"], model_cfg["name"], model_cfg, )
+        model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
+        if not model_cfg_str["success"]:
+            return (-1, "", "",)
+
+        return (model_cfg["id"], model_cfg["name"], model_cfg_str["data"], )
 
 class InoGetLoraConfig:
     """
@@ -201,7 +205,11 @@ class InoGetLoraConfig:
         else:
             lora_cfg = get_model_by_field(models, "name", lora_name)
 
-        return (lora_cfg["id"], lora_cfg["name"], lora_cfg, )
+        lora_cfg_str = InoJsonHelper.dict_to_string(lora_cfg)
+        if not lora_cfg_str["success"]:
+            return (-1, "", "",)
+
+        return (lora_cfg["id"], lora_cfg["name"], lora_cfg_str["data"], )
 
 class InoShowModelConfig:
     """
@@ -273,19 +281,11 @@ class InoShowModelConfig:
     def function(self, enabled, config):
         if not enabled:
             return None
-        if isinstance(config, str):
-            config_str = config.strip()
-            if not config_str:
-                model_cfg = {}
-            else:
-                try:
-                    model_cfg = json.loads(config_str)
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
-        elif isinstance(config, dict):
-            model_cfg = config
-        else:
-            raise TypeError("`config` must be a JSON string or a dict.")
+
+        load_json = InoJsonHelper.string_to_dict(config)
+        if not load_json["success"]:
+            return None
+        model_cfg = load_json["data"]
 
         return (
             model_cfg["name"],
@@ -360,20 +360,11 @@ class InoUpdateModelConfig:
     ):
         if not enabled:
             return None
-        old_config = deepcopy(config)
-        if isinstance(config, str):
-            config_str = deepcopy(config).strip()
-            if not config_str:
-                model_cfg = {}
-            else:
-                try:
-                    model_cfg = json.loads(config_str)
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
-        elif isinstance(config, dict):
-            model_cfg = deepcopy(config)
-        else:
-            raise TypeError("`config` must be a JSON string or a dict.")
+
+        load_json = InoJsonHelper.string_to_dict(config)
+        if not load_json["success"]:
+            return None
+        model_cfg = load_json["data"]
 
         if use_dual_clip != "unset":
             model_cfg["use_dual_clip"] = use_dual_clip
@@ -408,7 +399,11 @@ class InoUpdateModelConfig:
         if denoise != -1:
             model_cfg["denoise"] = denoise
 
-        return (old_config, model_cfg, )
+        model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
+        if not model_cfg_str["success"]:
+            return (-1, "", "",)
+
+        return (config, model_cfg_str["data"], )
 
 class InoShowLoraConfig:
     """
@@ -460,19 +455,10 @@ class InoShowLoraConfig:
     def function(self, enabled, config):
         if not enabled:
             return None
-        if isinstance(config, str):
-            config_str = config.strip()
-            if not config_str:
-                model_cfg = {}
-            else:
-                try:
-                    model_cfg = json.loads(config_str)
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
-        elif isinstance(config, dict):
-            model_cfg = config
-        else:
-            raise TypeError("`config` must be a JSON string or a dict.")
+        load_json = InoJsonHelper.string_to_dict(config)
+        if not load_json["success"]:
+            return None
+        model_cfg = load_json["data"]
 
         return (
             model_cfg["name"],
@@ -535,21 +521,12 @@ class InoLoadSamplerModels:
         use_dual_clip,
     ):
         if not enabled:
-            return (None, None, None, )
+            return (None, None, None, None, None, )
 
-        if isinstance(model_config, str):
-            config_str = model_config.strip()
-            if not config_str:
-                model_cfg = {}
-            else:
-                try:
-                    model_cfg = json.loads(config_str)
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
-        elif isinstance(model_config, dict):
-            model_cfg = model_config
-        else:
-            raise TypeError("`config` must be a JSON string or a dict.")
+        load_json = InoJsonHelper.string_to_dict(model_config)
+        if not load_json["success"]:
+            return (None, None, None, None, None,)
+        model_cfg = load_json["data"]
 
         from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
 
@@ -662,9 +639,7 @@ class InoGetSamplerConfig:
                  use_cfg, cfg, sampler_name, scheduler_name, steps, denoise
         ):
         if not enabled:
-            return None, None, None,
-
-        old_config = deepcopy(config)
+            return (None, None, None, None, None, None,)
 
         update_config = InoUpdateModelConfig()
         updated_config = update_config.function(
@@ -677,21 +652,12 @@ class InoGetSamplerConfig:
             steps=steps,
             denoise=denoise
         )
-        config = updated_config[1]
 
-        if isinstance(config, str):
-            config_str = config.strip()
-            if not config_str:
-                model_cfg = {}
-            else:
-                try:
-                    model_cfg = json.loads(config_str)
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
-        elif isinstance(config, dict):
-            model_cfg = config
-        else:
-            raise TypeError("`config` must be a JSON string or a dict.")
+        load_json = InoJsonHelper.string_to_dict(updated_config[1])
+        if not load_json["success"]:
+            return (None, None, None, None, None, None,)
+
+        model_cfg = load_json["data"]
 
         use_cfg = bool(model_cfg.get("use_cfg", False))
 
@@ -725,7 +691,11 @@ class InoGetSamplerConfig:
             denoise=model_cfg.get("denoise", -1),
         )
 
-        return (get_guider[0], get_sampler[0], get_sigmas[0], old_config, config, )
+        model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
+        if not model_cfg_str["success"]:
+            return (-1, "", "",)
+
+        return (get_guider[0], get_sampler[0], get_sigmas[0], config, model_cfg_str["data"], )
 
 class InoGetConditioning:
     """
@@ -780,9 +750,7 @@ class InoGetConditioning:
         use_flux_encoder, use_flux_guidance, guidance, use_negative_prompt
     ):
         if not enabled:
-            return config,
-
-        old_config = deepcopy(config)
+            return (None, None, None, None, )
 
         update_config = InoUpdateModelConfig()
         updated_config = update_config.function(
@@ -793,21 +761,12 @@ class InoGetConditioning:
             guidance=guidance,
             use_negative_prompt=use_negative_prompt
         )
-        config = updated_config[1]
 
-        if isinstance(config, str):
-            config_str = config.strip()
-            if not config_str:
-                model_cfg = {}
-            else:
-                try:
-                    model_cfg = json.loads(config_str)
-                except json.JSONDecodeError as e:
-                    raise ValueError(f"Invalid JSON in 'config': {e.msg} at line {e.lineno} col {e.colno}")
-        elif isinstance(config, dict):
-            model_cfg = config
-        else:
-            raise TypeError("`config` must be a JSON string or a dict.")
+        load_json = InoJsonHelper.string_to_dict(updated_config[1])
+        if not load_json["success"]:
+            return (None, None, None, None, None, None,)
+
+        model_cfg = load_json["data"]
 
         final_guidance = float(model_cfg.get("guidance", -1))
 
@@ -852,7 +811,11 @@ class InoGetConditioning:
                 conditioning=positive_condition[0]
             )
 
-        return (positive_condition[0], negative_condition[0], old_config, config, )
+        model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
+        if not model_cfg_str["success"]:
+            return (-1, "", "",)
+
+        return (positive_condition[0], negative_condition[0], config, model_cfg_str["data"], )
 
 
 LOCAL_NODE_CLASS = {
