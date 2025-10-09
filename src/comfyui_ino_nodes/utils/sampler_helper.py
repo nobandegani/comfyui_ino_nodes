@@ -185,6 +185,10 @@ class InoGetLoraConfig:
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "lora_name": (s.load_models()["names"], {"tooltip": "The name of the Model."}),
                 "lora_id": (s.load_models()["ids"], {"tooltip": "The id of the Model."}),
+            },
+            "optional": {
+                "strength_model": ("FLOAT", {"default": -1, "min": -1, "max": 1, "step": 0.01}),
+                "strength_clip": ("FLOAT", {"default": -1, "min": -1, "max": 1, "step": 0.01}),
             }
         }
 
@@ -195,7 +199,7 @@ class InoGetLoraConfig:
 
     CATEGORY = "InoSamplerHelper"
 
-    def function(self, enabled, lora_name, lora_id ):
+    def function(self, enabled, lora_name, lora_id, strength_model, strength_clip ):
         if not enabled:
             return (-1, "", "", )
 
@@ -204,6 +208,12 @@ class InoGetLoraConfig:
             lora_cfg = get_model_by_field(models, "id", lora_id)
         else:
             lora_cfg = get_model_by_field(models, "name", lora_name)
+
+        if strength_model != -1:
+            lora_cfg["strength_model"] = strength_model
+
+        if strength_clip != -1:
+            lora_cfg["strength_clip"] = strength_clip
 
         lora_cfg_str = InoJsonHelper.dict_to_string(lora_cfg)
         if not lora_cfg_str["success"]:
