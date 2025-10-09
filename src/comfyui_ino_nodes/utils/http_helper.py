@@ -55,12 +55,12 @@ class InoHttpCall:
             exponential_retry = None
 
         if InoJsonHelper.is_valid(headers):
-            headers = InoJsonHelper.string_to_dict(headers)
+            headers = InoJsonHelper.string_to_dict(headers)["data"]
         else:
             headers = {}
 
         if InoJsonHelper.is_valid(json_payload):
-            json_payload = InoJsonHelper.string_to_dict(json_payload)
+            json_payload = InoJsonHelper.string_to_dict(json_payload)["data"]
         else:
             json_payload = {}
 
@@ -93,9 +93,13 @@ class InoHttpCall:
         except httpx.HTTPStatusError as exc:
             return (False, exc.response.status_code, f"HTTP error: {exc.response}", "", )
 
-        try:
-            response = resp.json()
-        except ValueError:
+        content_type = resp.headers.get('content-type', '').lower()
+        if 'application/json' in content_type:
+            try:
+                response = resp.json()
+            except Exception:
+                response = resp.text
+        else:
             response = resp.text
 
         return (True, resp.status_code, f"Http call successfull", response, )
