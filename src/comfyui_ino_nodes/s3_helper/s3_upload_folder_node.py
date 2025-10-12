@@ -27,7 +27,7 @@ class InoS3UploadFolder:
 
     async def function(self, execute, s3_key, local_path, delete_local, s3_config, bucket_name, max_concurrent):
         if not execute:
-            return (False, "", None,)
+            return (False, "", "", 0, 0, 0, "", )
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
