@@ -1,5 +1,9 @@
 import os
 import shutil
+from pathlib import Path
+
+import folder_paths
+
 from .s3_helper import S3Helper
 from ..node_helper import any_typ
 
@@ -11,6 +15,7 @@ class InoS3UploadFolder:
                 "execute": (any_typ,),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": ""}),
+                "parent_folder": (["input", "output", "temp"], ),
                 "local_path": ("STRING", {"default": "input/example.png"}),
                 "delete_local": ("BOOLEAN", {"default": True}),
             },
@@ -25,7 +30,7 @@ class InoS3UploadFolder:
     RETURN_NAMES = ("success", "msg", "result", "total_files", "uploaded_successfully", "failed_uploads", "errors", )
     FUNCTION = "function"
 
-    async def function(self, execute, s3_key, local_path, delete_local, s3_config, bucket_name, max_concurrent):
+    async def function(self, execute, s3_config, s3_key, parent_folder, local_path, delete_local, bucket_name, max_concurrent):
         if not execute:
             return (False, "", "", 0, 0, 0, "", )
 
@@ -37,18 +42,28 @@ class InoS3UploadFolder:
         if not validate_s3_key["success"]:
             return (False, validate_s3_key["msg"], None,)
 
-        validate_local_path = S3Helper.validate_local_path(local_path)
+        if parent_folder == "input":
+            parent_path = folder_paths.get_input_directory()
+        elif parent_folder == "output":
+            parent_path = folder_paths.get_output_directory()
+        else:
+            parent_path = folder_paths.get_temp_directory()
+
+        local_upload_path: Path = Path(parent_path) / Path(local_path)
+        abs_path = str(local_upload_path.resolve())
+
+        validate_local_path = S3Helper.validate_local_path(local_upload_path)
         if not validate_local_path["success"]:
             return (False, validate_local_path["msg"], None,)
 
         s3_instance = S3Helper.get_instance(s3_config)
         s3_result = await s3_instance.upload_folder(
             s3_folder_key=s3_key,
-            local_folder_path=local_path,
+            local_folder_path=abs_path,
             #bucket_name=bucket_name,
             max_concurrent=max_concurrent
         )
         if s3_result["success"] and delete_local:
-            shutil.rmtree(local_path)
+            shutil.rmtree(local_upload_path)
 
         return (s3_result["success"], s3_result["msg"], s3_result, s3_result["total_files"], s3_result["uploaded_successfully"], s3_result["failed_uploads"], s3_result["errors"], )

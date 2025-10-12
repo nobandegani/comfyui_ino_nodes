@@ -57,7 +57,7 @@ class S3Helper:
 
     @staticmethod
     def validate_local_path(local_path) -> dict:
-        if not local_path or not local_path.strip():
+        if not local_path:
             return {
                 "success": False,
                 "msg": "Local path is required and cannot be empty"

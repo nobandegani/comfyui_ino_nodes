@@ -40,14 +40,13 @@ class InoS3DownloadFolder:
 
         output_path = folder_paths.get_output_directory()
         local_save_path :Path = Path(output_path) / Path(save_path)
+        abs_path = str(local_save_path.resolve())
 
         if Path(local_save_path).is_file():
             return (False, "Save path is a file", "", 0, 0, 0, "", )
 
         if not Path(local_save_path).is_dir():
             Path(local_save_path).mkdir(parents=True, exist_ok=True)
-
-        abs_path = str(local_save_path.resolve())
 
         s3_instance = S3Helper.get_instance(s3_config)
         s3_result = await s3_instance.download_folder(
