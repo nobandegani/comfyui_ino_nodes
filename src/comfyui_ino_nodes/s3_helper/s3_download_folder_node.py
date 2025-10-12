@@ -47,14 +47,13 @@ class InoS3DownloadFolder:
         if not Path(local_save_path).is_dir():
             Path(local_save_path).mkdir(parents=True, exist_ok=True)
 
-        rel_path = local_save_path
-        abs_path = local_save_path.resolve()
-
+        abs_path = str(local_save_path.resolve())
         s3_instance = S3Helper.get_instance(s3_config)
         s3_result = await s3_instance.download_folder(
             s3_folder_key=s3_key,
-            local_folder_path=str(local_save_path.resolve()),
+            local_folder_path=abs_path,
             #bucket_name=bucket_name,
             max_concurrent=max_concurrent
         )
-        return (s3_result["success"], s3_result["msg"], s3_result, str(rel_path), str(abs_path), )
+
+        return (s3_result["success"], s3_result["msg"], s3_result, save_path, abs_path, )
