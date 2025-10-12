@@ -48,6 +48,7 @@ class InoS3DownloadFolder:
             Path(local_save_path).mkdir(parents=True, exist_ok=True)
 
         abs_path = str(local_save_path.resolve())
+
         s3_instance = S3Helper.get_instance(s3_config)
         s3_result = await s3_instance.download_folder(
             s3_folder_key=s3_key,
