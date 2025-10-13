@@ -254,8 +254,8 @@ class InoRandomIntInRange:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "int_min": ("INT", {"default": 0}),
-                "int_max": ("INT", {"default": 999999}),
+                "int_min": ("INT", {"default": 0, "min": 0, "max": 999999}),
+                "int_max": ("INT", {"default": 999999, "min": 0, "max": 999999}),
                 "length": ("INT", {"default": 1, "min": 0, "max": 10}),
             }
         }
@@ -295,6 +295,39 @@ class InoIntToString:
     def function(self, input_int):
         return (str(input_int), )
 
+class InoSaveImages:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "images": ("IMAGE", {"tooltip": "The images to save."}),
+                "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "The prefix for the file to save. This may include formatting information such as %date:yyyy-MM-dd% or %Empty Latent Image.width% to include values from nodes."})
+            }
+        }
+
+    RETURN_TYPES = ("STRING" , "INT", )
+    RETURN_NAMES = ("Result", "NumberOfImages", )
+
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, images, filename_prefix):
+        from nodes import SaveImage
+        save_image = SaveImage()
+        save_image_res = save_image.save_images(
+            images=images,
+            filename_prefix=filename_prefix
+        )
+        results = save_image_res["ui"]["images"]
+        results_string = ""
+        for result in results:
+            results_string += f"File: {result['filename']}, Subfolder: {result['subfolder']}, Type: {result['type']}\n"
+        return (results_string, len(results), )
+
 
 
 LOCAL_NODE_CLASS = {
@@ -306,6 +339,7 @@ LOCAL_NODE_CLASS = {
     "InoDateTimeAsString": InoDateTimeAsString,
     "InoRandomIntInRange": InoRandomIntInRange,
     "InoIntToString": InoIntToString,
+    "InoSaveImages": InoSaveImages,
 }
 LOCAL_NODE_NAME = {
     "InoNotBoolean": "Ino Not Boolean",
@@ -316,4 +350,5 @@ LOCAL_NODE_NAME = {
     "InoDateTimeAsString": "Ino DateTime As String",
     "InoRandomIntInRange": "Ino Random Int In Range",
     "InoIntToString": "Ino Int To String",
+    "InoSaveImages": "Ino Save Images",
 }
