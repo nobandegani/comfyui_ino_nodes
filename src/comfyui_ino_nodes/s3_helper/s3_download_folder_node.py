@@ -3,16 +3,15 @@ from pathlib import Path
 import folder_paths
 
 from .s3_helper import S3Helper
-from ..node_helper import any_typ
 
 class InoS3DownloadFolder:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
-                "execute": (any_typ,),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": "input/example.png"}),
+                "parent_folder": (["input", "output", "temp"],),
                 "save_path": ("STRING", {"default": "input/"}),
             },
             "optional": {
@@ -26,10 +25,7 @@ class InoS3DownloadFolder:
     RETURN_NAMES = ("success", "msg", "result", "rel_path", "abs_path", )
     FUNCTION = "function"
 
-    async def function(self, execute, s3_key, save_path, s3_config, bucket_name, max_concurrent):
-        if not execute:
-            return (False, "", "", 0, 0, 0, "", )
-
+    async def function(self, s3_config, s3_key, save_path, parent_folder, bucket_name, max_concurrent):
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
             return (False, validate_s3_config["msg"], "", 0, 0, 0, "", )
@@ -38,8 +34,14 @@ class InoS3DownloadFolder:
         if not validate_s3_key["success"]:
             return (False, validate_s3_key["msg"], "", 0, 0, 0, "", )
 
-        output_path = folder_paths.get_output_directory()
-        local_save_path :Path = Path(output_path) / Path(save_path)
+        if parent_folder == "input":
+            parent_path = folder_paths.get_input_directory()
+        elif parent_folder == "output":
+            parent_path = folder_paths.get_output_directory()
+        else:
+            parent_path = folder_paths.get_temp_directory()
+
+        local_save_path :Path = Path(parent_path) / Path(save_path)
         abs_path = str(local_save_path.resolve())
 
         if Path(local_save_path).is_file():
