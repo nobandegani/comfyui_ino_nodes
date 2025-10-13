@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from datetime import datetime
 
 from PIL import Image, ImageOps, ImageSequence
 from PIL.PngImagePlugin import PngInfo
@@ -25,25 +26,29 @@ class InoS3UploadImage:
             },
             "optional": {
                 "compress_level": ("INT", {"default": 4, "min": 1, "max": 9}),
+                "date_time_as_name": ("BOOLEAN", {"default": False}),
             },
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "msg", "result", "s3_image_paths",)
+    RETURN_TYPES = ("IMAGE", "BOOLEAN", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("images", "success", "msg", "result", "s3_image_paths",)
     FUNCTION = "function"
     CATEGORY = "InoS3Helper"
 
-    async def function(self, execute, images, s3_config, s3_key, file_name, compress_level):
+    async def function(self, execute, images, s3_config, s3_key, file_name, compress_level, date_time_as_name):
         if not execute:
-            return (False, "", "", "", )
+            return (images, False, "", "", "", )
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
-            return (False, "", "", "", )
+            return (images,False, "", "", "", )
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, "", "", "", )
+            return (images,False, "", "", "", )
+
+        if date_time_as_name:
+            file_name = datetime.now().strftime("%Y%m%d%H%M%S")
 
         parent_path = folder_paths.get_temp_directory()
 
@@ -79,6 +84,23 @@ class InoS3UploadImage:
                 os.remove(results[index]["full_path"])
                 results[index]["s3_success"] = s3_result["success"]
                 results[index]["s3_msg"] = s3_result["msg"]
+                results[index]["s3_key"] = s3_full_key
 
         result_str = InoJsonHelper.dict_to_string(results)['data']
-        return (True, "Success", result_str, "", )
+
+        final_success = True
+        final_message = ""
+        for index in results:
+            if not results[index]["s3_success"]:
+                final_success = False
+                final_message = results[index]["s3_msg"]
+                break
+
+        if not final_success:
+            return (images, final_success, final_message, result_str, "", )
+
+        s3_paths = []
+        for index in results:
+            s3_paths.append(results[index]["s3_key"])
+
+        return (images, True, "Success", result_str, s3_paths, )
