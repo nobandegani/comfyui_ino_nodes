@@ -323,10 +323,12 @@ class InoSaveImages:
             filename_prefix=filename_prefix
         )
         results = save_image_res["ui"]["images"]
-        results_string = ""
+
+        names = []
         for result in results:
-            results_string += f"File: {result['filename']}, Subfolder: {result['subfolder']}, Type: {result['type']}\n"
-        return (results_string, len(results), )
+            names.append(result["filename"])
+
+        return (names, len(results), )
 
 
 
