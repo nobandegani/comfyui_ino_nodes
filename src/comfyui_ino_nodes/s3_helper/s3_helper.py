@@ -5,11 +5,12 @@ class S3Helper:
     @staticmethod
     def get_instance(s3_config):
         try:
-            s3_instance = InoS3Helper(
+            s3_instance = InoS3Helper()
+            s3_instance.init(
                 aws_access_key_id=s3_config["access_key_id"],
                 aws_secret_access_key=s3_config["secret_access_key"],
                 endpoint_url=s3_config["endpoint_url"],
-                region_name = s3_config["region_name"],
+                region_name=s3_config["region_name"],
                 bucket_name=s3_config["bucket_name"],
             )
             return s3_instance
