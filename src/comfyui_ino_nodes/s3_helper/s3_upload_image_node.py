@@ -30,8 +30,8 @@ class InoS3UploadImage:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "BOOLEAN", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("images", "success", "msg", "result", "s3_image_paths",)
+    RETURN_TYPES = ("IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("images", "success", "msg", "result", "file_names", "s3_image_paths",)
     FUNCTION = "function"
     CATEGORY = "InoS3Helper"
 
@@ -100,7 +100,9 @@ class InoS3UploadImage:
             return (images, final_success, final_message, result_str, "", )
 
         s3_paths = []
+        file_names = []
         for index in results:
             s3_paths.append(results[index]["s3_key"])
+            file_names.append(results[index]["filename"])
 
-        return (images, True, "Success", result_str, s3_paths, )
+        return (images, True, "Success", result_str, file_names, s3_paths, )
