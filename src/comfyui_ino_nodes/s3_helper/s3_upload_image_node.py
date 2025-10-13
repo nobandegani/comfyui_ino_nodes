@@ -1,24 +1,31 @@
 import os
-import json
-import tempfile
 from pathlib import Path
-import numpy as np
-from PIL import Image
+
+from PIL import Image, ImageOps, ImageSequence
 from PIL.PngImagePlugin import PngInfo
+import numpy as np
+from inopyutils import InoJsonHelper
+
+import folder_paths
+from comfy.cli_args import args
 
 from .s3_helper import S3Helper
-
+from ..node_helper import any_typ
 
 class InoS3UploadImage:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
+                "execute": (any_typ,),
                 "images": ("IMAGE",),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": ""}),
                 "file_name": ("STRING", {"default": ""})
-            }
+            },
+            "optional": {
+                "compress_level": ("INT", {"default": 4, "min": 1, "max": 9}),
+            },
         }
 
     RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING",)
@@ -26,40 +33,52 @@ class InoS3UploadImage:
     FUNCTION = "function"
     CATEGORY = "InoS3Helper"
 
-    async def function(self, images, s3_key, file_name, s3_config):
-        results = list()
-        s3_image_paths = list()
+    async def function(self, execute, images, s3_config, s3_key, file_name, compress_level):
+        if not execute:
+            return (False, "", "", "", )
 
-        counter = 0
-        for image in images:
+        validate_s3_config = S3Helper.validate_s3_config(s3_config)
+        if not validate_s3_config["success"]:
+            return (False, "", "", "", )
+
+        validate_s3_key = S3Helper.validate_s3_key(s3_key)
+        if not validate_s3_key["success"]:
+            return (False, "", "", "", )
+
+        parent_path = folder_paths.get_temp_directory()
+
+        full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(file_name, parent_path, images[0].shape[1], images[0].shape[0])
+        results:dict = {}
+        for (batch_number, image) in enumerate(images):
             i = 255. * image.cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-
             metadata = None
-            #if not args.disable_metadata:
-            metadata = PngInfo()
+            if not args.disable_metadata:
+                metadata = PngInfo()
 
-            file = f"{file_name}_{counter:05}.png"
-            temp_file: Path = Path("input/temp_file.png")
-            try:
-                img.save(temp_file, pnginfo=metadata)
+            filename_with_batch_num = filename.replace("%batch_num%", str(batch_number))
+            file = f"{filename_with_batch_num}_{counter:05}_.png"
+            full_path = os.path.join(full_output_folder, file)
+            img.save(full_path, pnginfo=metadata, compress_level=compress_level)
+            results[batch_number] = {
+                "filename": file,
+                "full_path": full_path,
+            }
+            counter += 1
 
-                s3_path:str = f"{s3_key}/{file}"
+        s3_instance = S3Helper.get_instance(s3_config)
 
-                s3_instance = S3Helper.get_instance(s3_config)
-                uploaded = await s3_instance.upload_file(
-                    s3_key=str(s3_path),
-                    local_file_path=str(temp_file)
-                )
-                if not uploaded["success"]:
-                    return (uploaded["success"], uploaded["msg"], results, s3_image_paths,)
+        for index in results:
+            s3_full_key = s3_key + "/" + results[index]["filename"]
+            s3_result = await s3_instance.upload_file(
+                s3_key=s3_full_key,
+                local_file_path=results[index]["full_path"],
+                # bucket_name=bucket_name,
+            )
+            if s3_result["success"]:
+                os.remove(results[index]["full_path"])
+                results[index]["s3_success"] = s3_result["success"]
+                results[index]["s3_msg"] = s3_result["msg"]
 
-                s3_image_paths.append(s3_path)
-
-                results.append(uploaded)
-                counter += 1
-            finally:
-                if temp_file.exists():
-                    os.remove(temp_file)
-
-        return (True, "sucess", results, s3_image_paths, )
+        result_str = InoJsonHelper.dict_to_string(results)['data']
+        return (True, "Success", result_str, "", )
