@@ -39,6 +39,16 @@ class InoS3UploadString:
         if not execute:
             return (string, False, "", "", "", )
 
+        if isinstance(file_name, list):
+            if len(file_name) == 1:
+                file_name = str(file_name[0])
+            else:
+                return (string, False, "", "", "", )
+        elif isinstance(file_name, str):
+            pass
+        else:
+            return (string, False, "", "", "", )
+
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
             return (string,False, "", "", "", )
@@ -53,9 +63,6 @@ class InoS3UploadString:
         parent_path = folder_paths.get_temp_directory()
 
         full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(file_name, parent_path, 0, 0)
-
-        if date_time_as_name:
-            file_name = datetime.now().strftime("%Y%m%d%H%M%S")
 
         filename_with_batch_num = filename.replace("%batch_num%", "0")
         file = f"{filename_with_batch_num}_{counter:05}_.{save_as}"
