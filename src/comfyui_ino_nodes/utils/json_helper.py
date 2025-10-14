@@ -36,8 +36,11 @@ class InoJson:
 
         json_object[field_name] = field_value
         json_string = InoJsonHelper.dict_to_string(json_object)
+        if not json_string["success"]:
+            return (False, json_string["msg"], "", )
 
-        return (json_string["success"], json_string["msg"], json_string["data"], )
+        base_json = json_string["data"]
+        return (True, "Success", base_json, )
 
 class InoSaveJson:
     """

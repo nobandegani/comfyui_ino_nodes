@@ -5,6 +5,7 @@ from .s3_upload_image_node import InoS3UploadImage
 from .s3_download_file_node import InoS3DownloadFile
 from .s3_download_folder_node import InoS3DownloadFolder
 from .s3_download_image_node import InoS3DownloadImage
+from .s3_upload_string_node import InoS3UploadString
 
 LOCAL_NODE_CLASS = {
     "InoS3Config": InoS3Config,
@@ -14,6 +15,7 @@ LOCAL_NODE_CLASS = {
     "InoS3DownloadFile": InoS3DownloadFile,
     "InoS3DownloadFolder": InoS3DownloadFolder,
     "InoS3DownloadImage": InoS3DownloadImage,
+    "InoS3UploadString": InoS3UploadString,
 }
 LOCAL_NODE_NAME = {
     "InoS3Config": "Ino S3 Config",
@@ -23,4 +25,5 @@ LOCAL_NODE_NAME = {
     "InoS3DownloadFile": "Ino S3 Download File",
     "InoS3DownloadFolder": "Ino S3 Download Folder",
     "InoS3DownloadImage": "Ino S3 Download Image",
+    "InoS3UploadString": "Ino S3 Upload String",
 }
