@@ -2,7 +2,7 @@ import httpx
 import json
 from httpx_retry import AsyncRetryTransport, RetryPolicy
 
-from inopyutils import InoJsonHelper
+from inopyutils import InoJsonHelper, InoHttpHelper
 
 class InoHttpCall:
     """
@@ -21,8 +21,7 @@ class InoHttpCall:
             },
             "optional": {
                 "trust_env": ("BOOLEAN", {"default": False}),
-                "follow_redirects": ("BOOLEAN", {"default": False}),
-                "enable_retries": ("BOOLEAN", {"default": True}),
+                "allow_redirects": ("BOOLEAN", {"default": False}),
                 "max_retries": ("INT", {"default": 10, "min": 1, "max": 50}),
             }
         }
@@ -35,24 +34,15 @@ class InoHttpCall:
 
     async def function(self, enabled,
                        url, request_type, headers, json_payload,
-                       trust_env, follow_redirects, enable_retries, max_retries
+                       trust_env, allow_redirects, max_retries
                        ):
         if not enabled:
             return (False, 0, "", "", )
 
-        timeout = httpx.Timeout(connect=10.0, read=60, write=60, pool=10.0)
-        limits = httpx.Limits(max_connections=8, max_keepalive_connections=8, keepalive_expiry=120.0)
-
-        if enable_retries:
-            exponential_retry = (
-                RetryPolicy()
-                .with_max_retries(max_retries)
-                .with_min_delay(0.1)
-                .with_multiplier(2)
-                .with_retry_on(lambda status_code: status_code >= 500)
-            )
-        else:
-            exponential_retry = None
+        http_client = InoHttpHelper(
+            retries=max_retries,
+            trust_env=trust_env
+        )
 
         if InoJsonHelper.is_valid(headers):
             headers = InoJsonHelper.string_to_dict(headers)["data"]
@@ -64,50 +54,20 @@ class InoHttpCall:
         else:
             json_payload = {}
 
-        http_conn = httpx.AsyncClient(
-            timeout=timeout,
-            limits=limits,
-            transport=AsyncRetryTransport(policy=exponential_retry),
-            headers=headers,
-            trust_env=trust_env,
-            follow_redirects=follow_redirects
-        )
-
-        try:
-            if request_type == "get":
-                resp = await http_conn.get(url)
-            elif request_type == "post":
-                resp = await http_conn.post(url, json=json_payload)
-            elif request_type == "put":
-                resp = await http_conn.put(url, json=json_payload)
-            elif request_type == "delete":
-                resp = await http_conn.delete(url)
-            elif request_type == "patch":
-                resp = await http_conn.patch(url, json=json_payload)
-            else:
-                resp = await http_conn.get(url)
-
-            resp.raise_for_status()
-        except httpx.RequestError as exc:
-            return (False, 0, f"Request error: {exc}", "", )
-        except httpx.HTTPStatusError as exc:
-            response_text = ""
-            try:
-                response_text = exc.response.text
-            except:
-                response_text = "None"
-            return (False, exc.response.status_code, f"HTTP error: {exc.response}, Response: {response_text}", "", )
-
-        content_type = resp.headers.get('content-type', '').lower()
-        if 'application/json' in content_type:
-            try:
-                response = resp.json()
-            except Exception:
-                response = resp.text
+        if request_type == "get":
+            resp = await http_client.get(url=url, headers=headers, allow_redirects=allow_redirects)
+        elif request_type == "post":
+            resp = await http_client.post(url=url, headers=headers, json=json_payload, allow_redirects=allow_redirects)
+        elif request_type == "put":
+            resp = await http_client.put(url, json=json_payload, allow_redirects=allow_redirects)
+        elif request_type == "delete":
+            resp = await http_client.delete(url, allow_redirects=allow_redirects)
+        elif request_type == "patch":
+            resp = await http_client.patch(url, json=json_payload, allow_redirects=allow_redirects)
         else:
-            response = resp.text
+            return (False, 0, "", "",)
 
-        return (True, resp.status_code, f"Http call successfull", response, )
+        return (resp["success"], resp["status_code"], resp["msg"], resp["data"], )
 
 LOCAL_NODE_CLASS = {
     "InoHttpCall": InoHttpCall,
