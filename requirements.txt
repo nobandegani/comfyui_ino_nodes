@@ -3,5 +3,3 @@ inopyutils
 numpy
 Pillow
 torch
-httpx
-httpx-retry

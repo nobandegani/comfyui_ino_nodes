@@ -5,7 +5,7 @@ version = "1.1.5"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = ["inocloudreve", "inopyutils", "numpy", "Pillow", "torch", "httpx", "httpx-retry"]
+dependencies = ["inocloudreve", "inopyutils", "numpy", "Pillow", "torch"]
 keywords = ["comfyui", "custom-nodes", "s3", "cloudreve", "lora", "file-handling", "utilities"]
 classifiers = [
     "Development Status :: 4 - Beta",
