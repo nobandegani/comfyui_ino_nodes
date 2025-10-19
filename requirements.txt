@@ -1,5 +1,3 @@
 inocloudreve
 inopyutils
-numpy
-Pillow
-torch
+openai
