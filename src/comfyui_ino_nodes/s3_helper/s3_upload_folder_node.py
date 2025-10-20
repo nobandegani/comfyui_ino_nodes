@@ -40,11 +40,11 @@ class InoS3UploadFolder:
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
-            return (False, validate_s3_config["msg"], None, )
+            return (False, validate_s3_config["msg"], "", 0, 0, 0, "", )
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, validate_s3_key["msg"], None,)
+            return (False, validate_s3_key["msg"], "", 0, 0, 0, "", )
 
         if parent_folder == "input":
             parent_path = folder_paths.get_input_directory()
@@ -58,7 +58,7 @@ class InoS3UploadFolder:
 
         validate_local_path = S3Helper.validate_local_path(local_upload_path)
         if not validate_local_path["success"]:
-            return (False, validate_local_path["msg"], None,)
+            return (False, validate_local_path["msg"], "", 0, 0, 0, "", )
 
         s3_instance = S3Helper.get_instance(s3_config)
         s3_result = await s3_instance.upload_folder(
