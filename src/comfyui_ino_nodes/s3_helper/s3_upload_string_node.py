@@ -19,6 +19,7 @@ class InoS3UploadString:
         return {
             "required": {
                 "execute": (any_typ,),
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "string": ("STRING",),
                 "save_as": (["txt", "json", "ini"], ),
                 "s3_config": ("STRING", {"default": ""}),
@@ -35,27 +36,30 @@ class InoS3UploadString:
     FUNCTION = "function"
     CATEGORY = "InoS3Helper"
 
-    async def function(self, execute, string, save_as, s3_config, s3_key, file_name, date_time_as_name):
+    async def function(self, execute, enabled, string, save_as, s3_config, s3_key, file_name, date_time_as_name):
+        if not enabled:
+            return (string, False, "", "", "", "",)
+
         if not execute:
-            return (string, False, "", "", "", )
+            return (string, False, "", "", "", "",)
 
         if isinstance(file_name, list):
             if len(file_name) == 1:
                 file_name = str(file_name[0])
             else:
-                return (string, False, "", "", "", )
+                return (string, False, "", "", "", "",)
         elif isinstance(file_name, str):
             pass
         else:
-            return (string, False, "", "", "", )
+            return (string, False, "", "", "", "",)
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
-            return (string,False, "", "", "", )
+            return (string,False, "", "", "", "",)
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (string,False, "", "", "", )
+            return (string,False, "", "", "", "",)
 
         if date_time_as_name:
             file_name = datetime.now().strftime("%Y%m%d%H%M%S")

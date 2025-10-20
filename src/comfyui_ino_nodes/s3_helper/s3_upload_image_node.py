@@ -19,6 +19,7 @@ class InoS3UploadImage:
         return {
             "required": {
                 "execute": (any_typ,),
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "images": ("IMAGE",),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": ""}),
@@ -35,7 +36,10 @@ class InoS3UploadImage:
     FUNCTION = "function"
     CATEGORY = "InoS3Helper"
 
-    async def function(self, execute, images, s3_config, s3_key, file_name, compress_level, date_time_as_name):
+    async def function(self, execute, enabled, images, s3_config, s3_key, file_name, compress_level, date_time_as_name):
+        if not enabled:
+            return (images, False, "", "", "", )
+
         if not execute:
             return (images, False, "", "", "", )
 

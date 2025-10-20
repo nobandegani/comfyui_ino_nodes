@@ -12,6 +12,7 @@ class InoS3UploadFile:
         return {
             "required":{
                 "execute": (any_typ,),
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": ""}),
                 "parent_folder": (["input", "output", "temp"],),
@@ -28,7 +29,10 @@ class InoS3UploadFile:
     RETURN_NAMES = ("success", "msg", "result", )
     FUNCTION = "function"
 
-    async def function(self, execute, s3_config, s3_key, parent_folder, local_path, delete_local, ):
+    async def function(self, execute, enabled, s3_config, s3_key, parent_folder, local_path, delete_local, ):
+        if not enabled:
+            return (False, "", "",)
+
         if not execute:
             return (False, "", "", )
 

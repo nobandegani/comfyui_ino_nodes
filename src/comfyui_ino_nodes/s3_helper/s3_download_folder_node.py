@@ -9,6 +9,7 @@ class InoS3DownloadFolder:
     def INPUT_TYPES(s):
         return {
             "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": "input/example.png"}),
                 "parent_folder": (["input", "output", "temp"],),
@@ -25,14 +26,17 @@ class InoS3DownloadFolder:
     RETURN_NAMES = ("success", "msg", "result", "rel_path", "abs_path", )
     FUNCTION = "function"
 
-    async def function(self, s3_config, s3_key, save_path, parent_folder, bucket_name, max_concurrent):
+    async def function(self, enabled, s3_config, s3_key, save_path, parent_folder, bucket_name, max_concurrent):
+        if not enabled:
+            return (False, "", "", "", "", )
+
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
-            return (False, validate_s3_config["msg"], "", 0, 0, 0, "", )
+            return (False, validate_s3_config["msg"], "", "", "",)
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, validate_s3_key["msg"], "", 0, 0, 0, "", )
+            return (False, validate_s3_key["msg"], "", "", "",)
 
         if parent_folder == "input":
             parent_path = folder_paths.get_input_directory()
@@ -45,7 +49,7 @@ class InoS3DownloadFolder:
         abs_path = str(local_save_path.resolve())
 
         if Path(local_save_path).is_file():
-            return (False, "Save path is a file", "", 0, 0, 0, "", )
+            return (False, "Save path is a file", "", "", "",)
 
         if not Path(local_save_path).is_dir():
             Path(local_save_path).mkdir(parents=True, exist_ok=True)

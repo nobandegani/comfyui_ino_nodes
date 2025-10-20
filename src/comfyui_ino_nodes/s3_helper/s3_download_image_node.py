@@ -16,6 +16,7 @@ class InoS3DownloadImage:
     def INPUT_TYPES(s):
         return {
             "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": "input/example.png"}),
             },
@@ -29,14 +30,17 @@ class InoS3DownloadImage:
     RETURN_NAMES = ("success", "msg", "result", "image", "mask", )
     FUNCTION = "function"
 
-    async def function(self, s3_config, s3_key, bucket_name):
+    async def function(self, enabled, s3_config, s3_key, bucket_name):
+        if not enabled:
+            return (False, "", "", None, None, )
+
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
-            return (False, validate_s3_config["msg"], "", 0, 0, 0, "",)
+            return (False, validate_s3_config["msg"], "", None, None,)
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, validate_s3_key["msg"], "", 0, 0, 0, "",)
+            return (False, validate_s3_key["msg"], "", None, None,)
 
         parent_path = folder_paths.get_temp_directory()
 
