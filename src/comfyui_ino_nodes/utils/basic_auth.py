@@ -56,7 +56,7 @@ class InoBasicAuthNode:
 
     RETURN_TYPES = ("BASIC_AUTH",)
     FUNCTION = "setup_auth"
-    CATEGORY = "utils"
+    CATEGORY = "InoBasicAuth"
     OUTPUT_NODE = True
 
     def setup_auth(self, enabled):
