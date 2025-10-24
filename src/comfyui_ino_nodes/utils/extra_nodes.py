@@ -557,15 +557,28 @@ class InoConditionBooleanMulti:
     CATEGORY = "InoNodes"
 
     def function(self, inputcount, condition, **kwargs):
-        bool_1 = kwargs["string_1"]
+        bool_1 = kwargs["bool_1"]
         bools = []
         for c in range(1, inputcount):
-            new_bool = bool(kwargs.get(f"bool_{c + 1}", None))
-            if new_bool is None:
+            val = kwargs.get(f"bool_{c + 1}", None)
+            if val is None:
                 continue
-            bools.append(new_bool)
+            bools.append(bool(val))
 
-        return (bools, )
+        if bool_1 is not None:
+            bools.insert(0, bool(bool_1))
+
+        if not bools:
+            return (False,)
+
+        if condition == "AND":
+            result = all(bools)
+        elif condition == "OR":
+            result = any(bools)
+        else:
+            return (False,)
+
+        return (result,)
 
 
 LOCAL_NODE_CLASS = {
