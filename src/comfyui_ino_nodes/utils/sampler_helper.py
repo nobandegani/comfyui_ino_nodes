@@ -828,6 +828,59 @@ class InoGetConditioning:
 
         return (positive_condition[0], negative_condition[0], config, model_cfg_str["data"], )
 
+class InoGetModelPath:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "config": ("STRING", {
+                    "multiline": True,
+                }),
+            }
+        }
+
+    RETURN_TYPES = (
+        "BOOLEAN",
+        "STRING",
+        "STRING",
+        "STRING",
+        "STRING",
+    )
+    RETURN_NAMES = (
+        "Success",
+        "Unet",
+        "Clip1",
+        "Clip2",
+        "Vae",
+    )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self, enabled, config):
+        if not enabled:
+            return (False, "", "", "", "", )
+
+        load_json = InoJsonHelper.string_to_dict(config)
+        if not load_json["success"]:
+            return (False, "", "", "", "", )
+
+        model_cfg = load_json["data"]
+
+        return (
+            True,
+            model_cfg["unet"],
+            model_cfg["clip1"],
+            model_cfg["clip2"],
+            model_cfg["vae"],
+        )
+
 
 LOCAL_NODE_CLASS = {
     "InoRandomNoise": InoRandomNoise,
@@ -839,6 +892,7 @@ LOCAL_NODE_CLASS = {
     "InoLoadSamplerModels": InoLoadSamplerModels,
     "InoGetConditioning": InoGetConditioning,
     "InoGetSamplerConfig": InoGetSamplerConfig,
+    "InoGetModelPath": InoGetModelPath,
 }
 LOCAL_NODE_NAME = {
     "InoRandomNoise": "Ino Random Noise",
@@ -850,5 +904,6 @@ LOCAL_NODE_NAME = {
     "InoLoadSamplerModels": "Ino Load Sampler Models",
     "InoGetConditioning": "Ino Get Conditioning",
     "InoGetSamplerConfig": "Ino Get Sampler Config",
+    "InoGetModelPath": "Ino Get Model Path",
 }
 
