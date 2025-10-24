@@ -496,7 +496,44 @@ class InoImageResizeByLongerSideAndCropV2:
             return (resized_image[0],)
 
         cropper = ImageCrop()
-        cropped_image = cropper.crop(resized_image[0], target_width, target_height, x, y)
+        # Compute crop origin based on position. If position is set, it overrides manual x/y.
+        canvas = resized_image[0]
+        # canvas shape: (batch, height, width, channels)
+        canvas_h = int(canvas.shape[1])
+        canvas_w = int(canvas.shape[2])
+
+        def clamp(val, lo, hi):
+            return max(lo, min(val, hi))
+
+        # Defaults to manual x/y, but overridden by position mapping below
+        crop_x = int(x)
+        crop_y = int(y)
+
+        # Horizontal positions
+        left_x = 0
+        center_x = max(0, (canvas_w - int(target_width)) // 2)
+        right_x = max(0, canvas_w - int(target_width))
+        # Vertical positions
+        top_y = 0
+        center_y = max(0, (canvas_h - int(target_height)) // 2)
+        bottom_y = max(0, canvas_h - int(target_height))
+
+        if position == "top-left":
+            crop_x, crop_y = left_x, top_y
+        elif position == "top-center":
+            crop_x, crop_y = center_x, top_y
+        elif position == "center":
+            crop_x, crop_y = center_x, center_y
+        elif position == "bottom-center":
+            crop_x, crop_y = center_x, bottom_y
+        elif position == "bottom-right":
+            crop_x, crop_y = right_x, bottom_y
+
+        # Ensure crop origin stays within canvas
+        crop_x = clamp(crop_x, 0, max(0, canvas_w - 1))
+        crop_y = clamp(crop_y, 0, max(0, canvas_h - 1))
+
+        cropped_image = cropper.crop(canvas, int(target_width), int(target_height), int(crop_x), int(crop_y))
 
         return (cropped_image[0],)
 
