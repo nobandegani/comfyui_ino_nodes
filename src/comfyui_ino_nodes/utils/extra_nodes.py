@@ -537,6 +537,36 @@ class InoImageResizeByLongerSideAndCropV2:
 
         return (cropped_image[0],)
 
+class InoConditionBooleanMulti:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "inputcount": ("INT", {"default": 2, "min": 2, "max": 1000, "step": 1}),
+                "condition": ( ["AND", "OR"], {}),
+                "bool_1": ("BOOLEAN", {"default": True, "forceInput": True}),
+            },
+            "optional": {
+                "bool_2": ("BOOLEAN", {"default": False, "forceInput": True}),
+            }
+    }
+
+    RETURN_TYPES = ("BOOLEAN",)
+    RETURN_NAMES = ("bool",)
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, inputcount, condition, **kwargs):
+        bool_1 = kwargs["string_1"]
+        bools = []
+        for c in range(1, inputcount):
+            new_bool = bool(kwargs.get(f"bool_{c + 1}", None))
+            if new_bool is None:
+                continue
+            bools.append(new_bool)
+
+        return (bools, )
+
 
 LOCAL_NODE_CLASS = {
     "InoNotBoolean": InoNotBoolean,
@@ -552,6 +582,7 @@ LOCAL_NODE_CLASS = {
     "InoSaveImages": InoSaveImages,
     "InoImageResizeByLongerSideV1": InoImageResizeByLongerSideV1,
     "InoImageResizeByLongerSideAndCropV2": InoImageResizeByLongerSideAndCropV2,
+    "InoConditionBooleanMulti": InoConditionBooleanMulti,
 }
 LOCAL_NODE_NAME = {
     "InoNotBoolean": "Ino Not Boolean",
@@ -567,4 +598,5 @@ LOCAL_NODE_NAME = {
     "InoSaveImages": "Ino Save Images",
     "InoImageResizeByLongerSideV1": "Ino Image Resize By Longer Side V1",
     "InoImageResizeByLongerSideAndCropV2": "Ino Image Resize By Longer Side And Crop V2",
+    "InoConditionBooleanMulti": "Ino Condition Boolean Multi",
 }
