@@ -39,7 +39,5 @@ app.registerExtension({
 
 	},
 	async setup() {
-		// to keep Set/Get node virtual connections visible when offscreen
-		alert("Setup complete!")
 	}
 });

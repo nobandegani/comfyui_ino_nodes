@@ -12,6 +12,8 @@ from comfy_extras.nodes_flux import FluxGuidance
 
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
 
+from ..node_helper import any_typ
+
 default_bool = ["unset", "true", "false"]
 sampler_names = ["unset"] + SAMPLER_NAMES
 scheduler_names = ["unset"] + SCHEDULER_NAMES
@@ -495,6 +497,7 @@ class InoLoadSamplerModels:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "execute": (any_typ,),
                 "model_config": ("STRING", {
                     "multiline": True,
                 }),
@@ -525,13 +528,19 @@ class InoLoadSamplerModels:
     CATEGORY = "InoSamplerHelper"
 
     def function(
-        self,enabled,
+        self, enabled, execute,
         model_config,
         lora_1_config, lora_2_config, lora_3_config, lora_4_config,
         clip_device,
         use_dual_clip,
     ):
         if not enabled:
+            return (None, None, None, None, None, )
+
+        if execute is None:
+            return (None, None, None, None, None, )
+
+        if not execute:
             return (None, None, None, None, None, )
 
         load_json = InoJsonHelper.string_to_dict(model_config)
