@@ -330,7 +330,7 @@ class InoFloatToInt:
         return {
             "required": {
                 "input_float": ("FLOAT", {"default": 0}),
-                "method": ( ("round", "floor", "ceil"), {})
+                "method": ( ["round", "floor", "ceil"], {})
             }
         }
 
