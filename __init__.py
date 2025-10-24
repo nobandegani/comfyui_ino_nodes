@@ -9,7 +9,8 @@ from .src.comfyui_ino_nodes.utils.prompt_helper import LOCAL_NODE_CLASS as PROMP
 from .src.comfyui_ino_nodes.utils.sampler_helper import LOCAL_NODE_CLASS as SAMPLER_CLASS, LOCAL_NODE_NAME as SAMPLER_NAME
 from .src.comfyui_ino_nodes.utils.file_helper import LOCAL_NODE_CLASS as FILE_CLASS, LOCAL_NODE_NAME as FILE_NAME
 from .src.comfyui_ino_nodes.utils.openai_helper import LOCAL_NODE_CLASS as OPENAPI_CLASS, LOCAL_NODE_NAME as OPENAPI_NAME
-from .src.comfyui_ino_nodes.utils.model_helper import LOCAL_NODE_CLASS as MODEL_HELPER_CLASS, LOCAL_NODE_NAME as MODEL_HELPER__NAME
+from .src.comfyui_ino_nodes.utils.model_helper import LOCAL_NODE_CLASS as MODEL_HELPER_CLASS, LOCAL_NODE_NAME as MODEL_HELPER_NAME
+from .src.comfyui_ino_nodes.utils.basic_auth import LOCAL_NODE_CLASS as BASIC_AUTH_CLASS, LOCAL_NODE_NAME as BASIC_AUTH_NAME
 
 _node_classes ={}
 _node_classes.update(S3_CLASS)
@@ -22,6 +23,7 @@ _node_classes.update(SAMPLER_CLASS)
 _node_classes.update(FILE_CLASS)
 _node_classes.update(OPENAPI_CLASS)
 _node_classes.update(MODEL_HELPER_CLASS)
+_node_classes.update(BASIC_AUTH_CLASS)
 
 _node_names = {}
 _node_names.update(S3_NAME)
@@ -33,7 +35,8 @@ _node_names.update(PROMPT_NAME)
 _node_names.update(SAMPLER_NAME)
 _node_names.update(FILE_NAME)
 _node_names.update(OPENAPI_NAME)
-_node_names.update(MODEL_HELPER__NAME)
+_node_names.update(MODEL_HELPER_NAME)
+_node_names.update(BASIC_AUTH_NAME)
 
 NODE_CLASS_MAPPINGS = _node_classes
 NODE_DISPLAY_NAME_MAPPINGS = _node_names
