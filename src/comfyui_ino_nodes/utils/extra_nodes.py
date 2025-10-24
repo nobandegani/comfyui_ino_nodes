@@ -295,6 +295,57 @@ class InoIntToString:
     def function(self, input_int):
         return (str(input_int), )
 
+class InoIntToFloat:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_int": ("INT", {"default": 0}),
+            }
+        }
+
+    RETURN_TYPES = ("FLOAT", )
+    RETURN_NAMES = ("ReturnFLOAT", )
+
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, input_int):
+        return (float(input_int), )
+
+class InoFloatToInt:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_float": ("FLOAT", {"default": 0}),
+                "method": ( ("round", "floor", "ceil"), {})
+            }
+        }
+
+    RETURN_TYPES = ("INT", )
+    RETURN_NAMES = ("ReturnINT", )
+
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, input_float, method):
+        import math
+        if method == "round":
+            return (round(input_float),)
+        elif method == "floor":
+            return (math.floor(input_float),)
+        elif method == "ceil":
+            return (math.ceil(input_float), )
+
 class InoSaveImages:
     """
 
@@ -341,6 +392,8 @@ LOCAL_NODE_CLASS = {
     "InoDateTimeAsString": InoDateTimeAsString,
     "InoRandomIntInRange": InoRandomIntInRange,
     "InoIntToString": InoIntToString,
+    "InoIntToFloat": InoIntToFloat,
+    "InoFloatToInt": InoFloatToInt,
     "InoSaveImages": InoSaveImages,
 }
 LOCAL_NODE_NAME = {
@@ -352,5 +405,7 @@ LOCAL_NODE_NAME = {
     "InoDateTimeAsString": "Ino DateTime As String",
     "InoRandomIntInRange": "Ino Random Int In Range",
     "InoIntToString": "Ino Int To String",
+    "InoIntToFloat": "Ino Int To Float",
+    "InoFloatToInt": "Ino Float To Int",
     "InoSaveImages": "Ino Save Images",
 }
