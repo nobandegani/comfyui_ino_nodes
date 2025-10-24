@@ -76,5 +76,6 @@ try:
     app = server.PromptServer.instance.app
     middleware = InoBasicAuthClass()
     app.middlewares.insert(0, middleware.handle)
+    print(f"Successfully registered basic auth middleware.")
 except Exception as e:
     print(f"Failed to register basic auth middleware: {e}")
