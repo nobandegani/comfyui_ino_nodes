@@ -1,6 +1,6 @@
 # Ino Custom Nodes for ComfyUI
 
-A comprehensive collection of custom nodes for ComfyUI that provides advanced file handling, S3 cloud storage integration, LoRA configuration management, and various utility functions.
+A comprehensive collection of custom nodes for ComfyUI that provides advanced file handling, S3 cloud storage integration, OpenAI-powered helpers, Basic Auth middleware, LoRA configuration management, and various utility functions.
 
 ## Installation
 
@@ -26,6 +26,9 @@ A comprehensive collection of custom nodes for ComfyUI that provides advanced fi
 ### Dependencies
 - `inocloudreve` - Cloudreve cloud storage integration
 - `inopyutils` - Utility functions
+- `openai` - OpenAI API client (used by OpenAI helper nodes)
+- `aiohttp` - Async HTTP and server middleware support
+- `numpy`, `Pillow`, `torch` - Core libraries required by ComfyUI and several nodes
 
 ## Node Categories & Documentation
 
@@ -55,7 +58,7 @@ Generates unique batch identifiers for folder-based workflows.
 - **Outputs**: Unique batch ID for organizing outputs
 - **Use Case**: Organize generated content into structured batches
 
-#### **Ino Date Time As String**
+#### **Ino DateTime As String**
 Generates formatted datetime strings with customizable components.
 - **Inputs**: `seed`, date/time component toggles, separators
 - **Outputs**: Formatted datetime string
@@ -104,6 +107,36 @@ Converts integer values to string format.
 - **Inputs**: `input_int` (integer value)
 - **Outputs**: String representation
 - **Use Case**: Data type conversion for text processing
+
+#### **Ino Int To Float**
+Converts integer values to float.
+- **Inputs**: `input_int`
+- **Outputs**: Float value
+- **Use Case**: Numeric conversions for downstream nodes
+
+#### **Ino Float To Int**
+Converts floating-point values to integer using a selected method.
+- **Inputs**: `input_float`, `method` (round/floor/ceil)
+- **Outputs**: Integer value
+- **Use Case**: Numeric conversions and clamping
+
+#### **Ino Save Images**
+Saves a batch of images with a given filename prefix.
+- **Inputs**: `images` (IMAGE), `filename_prefix` (string)
+- **Outputs**: Saved images with standardized filenames
+- **Use Case**: Persist generated outputs with consistent naming
+
+#### **Ino Image Resize By Longer Side V1**
+Resizes an image so that its longer side matches a target size, preserving aspect ratio.
+- **Inputs**: `image`, `size`, `interpolation_mode`
+- **Outputs**: Resized image
+- **Use Case**: Preprocess images to a standard maximum side length
+
+#### **Ino Image Resize By Longer Side And Crop V2**
+Resizes then optionally crops/pads to target dimensions with positioning control.
+- **Inputs**: `image`, `target_width`, `target_height`, `padding_color`, `interpolation`, `crop`, `position`, `x`, `y`
+- **Outputs**: Processed image
+- **Use Case**: Prepare images to exact sizes for models/pipelines while controlling crop position
 
 ### 📁 File Operations (InoFileHelper)
 
@@ -185,6 +218,12 @@ Uploads entire folders to S3 with structure preservation.
 - **Inputs**: Local folder path, S3 destination path
 - **Outputs**: Upload status and file count
 - **Use Case**: Batch upload of training datasets or output collections
+
+#### **Ino S3 Upload String**
+Uploads a text/string payload as an object to S3.
+- **Inputs**: String content, destination path, content type
+- **Outputs**: Upload status and S3 URL
+- **Use Case**: Save JSON, prompts, or logs directly to S3
 
 #### **Ino S3 Download Image**
 Downloads images from S3 storage.
@@ -295,6 +334,29 @@ Retrieves sampling configuration and parameters.
 - **Outputs**: Complete sampling configuration
 - **Use Case**: Load sampling settings for consistent generation results
 
+### 🧩 Model Utilities (InoModelHelper)
+
+#### **Ino Validate Model**
+Validates that a required model file exists locally; if missing, downloads it from S3 using the provided configuration.
+- **Inputs**: `enabled`, `s3_config` (STRING), `model_type` (e.g., checkpoints, vae, loras, etc.), `model_name` (e.g., flux1dev/ae.safetensors)
+- **Outputs**: `success` (BOOLEAN), `msg` (STRING)
+- **Use Case**: Ensure necessary models are present before running a workflow, fetching them automatically from S3 if needed
+
+### 🔐 Basic Auth Middleware (InoBasicAuth)
+
+Adds optional Basic Authentication to ComfyUI's HTTP endpoints using aiohttp middleware.
+- Enable by setting environment variables before starting ComfyUI:
+  - COMFYUI_USERNAME
+  - COMFYUI_PASSWORD
+- WebSocket path /ws is excluded to preserve UI connectivity.
+- Also provides a simple node: Ino Basic Auth Node that outputs a BASIC_AUTH token for wiring in workflows if needed.
+
+### 🤖 OpenAI Helpers (InoOpenaiHelper)
+
+Nodes to interact with OpenAI's Responses API.
+- Ino Openai Config: supply API key, timeout, and retry policy.
+- Ino Openai Text Generation: send a prompt to a selected model (e.g., gpt-5) and receive output text and metadata.
+
 ## Usage
 
 After installation, the nodes will appear in your ComfyUI node menu under the following categories:
@@ -303,14 +365,17 @@ After installation, the nodes will appear in your ComfyUI node menu under the fo
 - **InoCloudreve** - Cloudreve cloud storage integration
 - **InoFileHelper** - Advanced file operations
 - **InoSamplerHelper** - Model and sampling management
+- **InoModelHelper** - Model utilities (validation/download)
+- **InoOpenaiHelper** - OpenAI integration
+- **InoBasicAuth** - Basic authentication utilities
 
 Simply drag and drop the nodes into your ComfyUI workflow and configure them according to your needs. Most nodes include enable/disable toggles for conditional execution and detailed error handling.
 
 ## Requirements
 
 - ComfyUI (latest version recommended)
-- Python 3.12+
-- Dependencies listed in `requirements.txt`
+- Python 3.8+
+- Dependencies listed in `requirements.txt` (most are auto-installed when using pip or ComfyUI-Manager)
 
 ## License
 
@@ -322,6 +387,6 @@ For issues and questions, please visit the [GitHub repository](https://github.co
 
 ---
 
-**Version:** 1.1.5
+**Version:** 1.2.2
 **Publisher:** Inoland
 **Contact:** contact@inoland.net

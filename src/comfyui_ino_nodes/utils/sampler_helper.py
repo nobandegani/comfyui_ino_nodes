@@ -11,6 +11,7 @@ import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
 
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
+
 default_bool = ["unset", "true", "false"]
 sampler_names = ["unset"] + SAMPLER_NAMES
 scheduler_names = ["unset"] + SCHEDULER_NAMES
