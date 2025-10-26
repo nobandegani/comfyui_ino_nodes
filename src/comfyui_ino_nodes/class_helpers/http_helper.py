@@ -61,8 +61,10 @@ class InoHttpCall:
         elif request_type == "patch":
             resp = await http_client.patch(url, json=json_payload, allow_redirects=allow_redirects)
         else:
+            await http_client.close()
             return (False, 0, "", "",)
 
+        await http_client.close()
         return (resp["success"], resp["status_code"], resp["msg"], resp["data"], )
 
 LOCAL_NODE_CLASS = {
