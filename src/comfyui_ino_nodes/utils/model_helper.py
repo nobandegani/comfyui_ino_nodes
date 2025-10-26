@@ -1,7 +1,11 @@
 from pathlib import Path
+from huggingface_hub import hf_hub_download
+
 
 import folder_paths
 import node_helpers
+
+
 from ..s3_helper.s3_helper import S3Helper
 
 MODEL_TYPES = (
@@ -58,9 +62,66 @@ class InoValidateModel:
 
         return (s3_result["success"], s3_result["msg"], )
 
+class InoHuggingFaceDownloadFile:
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_type": (MODEL_TYPES, {}),
+                "model_subfolder": ("STRING", {"default": "flux1dev"}),
+                "repo_id": ("STRING", {"default": ""}),
+                "filename": ("STRING", {"default": ""}),
+                "subfolder": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "token": ("STRING", {"default": ""}),
+                "repo_type": ("STRING", {"default": ""}),
+                "revision": ("STRING", {"default": ""})
+            }
+        }
+
+    CATEGORY = "InoModelHelper"
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
+    FUNCTION = "function"
+
+    async def function(self, enabled, model_type, model_subfolder, repo_id, filename, subfolder, token, repo_type, revision,):
+        if not enabled:
+            return (False, "", "", )
+
+        parent_path = Path(folder_paths.get_input_directory()).parent
+        model_path: Path = parent_path / "models" / model_type / model_subfolder
+
+        if model_path.is_file():
+            model_path = model_path.parent
+
+        args = {}
+        if subfolder:
+            args["subfolder"] = subfolder
+        if token:
+            args["token"] = token
+        if repo_type:
+            args["repo_type"] = repo_type
+        if revision:
+            args["revision"] = revision
+
+        args["local_dir"] = model_path
+
+        try:
+            result = hf_hub_download(repo_id, filename, **args)
+            rel_path = Path(result).relative_to(model_path.parent)
+            return (True, "Successfull", model_type, result, rel_path)
+        except Exception as e:
+            return (False, f"Error: {e}", "", )
+
+
 LOCAL_NODE_CLASS = {
-    "InoValidateModel": InoValidateModel
+    "InoValidateModel": InoValidateModel,
+    "InoHuggingFaceDownloadFile": InoHuggingFaceDownloadFile,
 }
 LOCAL_NODE_NAME = {
-    "InoValidateModel": "Ino Validate Model"
+    "InoValidateModel": "Ino Validate Model",
+    "InoHuggingFaceDownloadFile": "Ino Hugging Face Download File",
 }
