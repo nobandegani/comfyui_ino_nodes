@@ -88,7 +88,7 @@ class InoHuggingFaceDownloadFile:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, dict_as_input, model_type, model_subfolder, repo_id, filename, subfolder, token, repo_type, revision,):
+    async def function(self, enabled, dict_as_input, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision=""):
         if not enabled:
             return (False, "", "", )
 

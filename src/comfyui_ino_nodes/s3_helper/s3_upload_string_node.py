@@ -11,14 +11,14 @@ import folder_paths
 from comfy.cli_args import args
 
 from .s3_helper import S3Helper
-from ..node_helper import any_typ
+from ..node_helper import any_type
 
 class InoS3UploadString:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
-                "execute": (any_typ,),
+                "execute": (any_type,),
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "string": ("STRING",),
                 "save_as": (["txt", "json", "ini"], ),

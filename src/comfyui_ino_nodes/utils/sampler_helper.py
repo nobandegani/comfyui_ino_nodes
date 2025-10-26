@@ -11,8 +11,9 @@ import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
 
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
+from .model_helper import InoHuggingFaceDownloadFile
 
-from ..node_helper import any_typ
+from ..node_helper import any_type
 
 default_bool = ["unset", "true", "false"]
 sampler_names = ["unset"] + SAMPLER_NAMES
@@ -140,8 +141,8 @@ class InoGetModelConfig:
             }
         }
 
-    RETURN_TYPES = ("INT", "STRING", "STRING", )
-    RETURN_NAMES = ("ModelID", "ModelName", "ModelConfig", )
+    RETURN_TYPES = ("BOOLEAN", "STRING" "INT", "STRING", "STRING", )
+    RETURN_NAMES = ("Success", "MSG", "Model_ID", "Model_Name", "Model_Config", )
 
     FUNCTION = "function"
 
@@ -152,7 +153,7 @@ class InoGetModelConfig:
                  model_name, model_id
         ):
         if not enabled:
-            return (-1, "", "", )
+            return (False, "not enabled", -1, "", "", )
 
         models = self.load_models()["fields"]
         if model_name == "unset":
@@ -162,9 +163,9 @@ class InoGetModelConfig:
 
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
-            return (-1, "", "",)
+            return (model_cfg_str["success"], model_cfg_str["msg"], -1, "", "", )
 
-        return (model_cfg["id"], model_cfg["name"], model_cfg_str["data"], )
+        return (True, "Success", model_cfg["id"], model_cfg["name"], model_cfg_str["data"], )
 
 class InoGetLoraConfig:
     """
@@ -497,7 +498,7 @@ class InoLoadSamplerModels:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "execute": (any_typ,),
+                "execute": (any_type,),
                 "model_config": ("STRING", {
                     "multiline": True,
                 }),
@@ -520,14 +521,14 @@ class InoLoadSamplerModels:
             }
         }
 
-    RETURN_TYPES = ("MODEL", "CLIP", "VAE", "BOOLEAN", "STRING", )
-    RETURN_NAMES = ("MODEL", "CLIP", "VAE", "LoraApplied", "TriggerWords", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "MODEL", "CLIP", "VAE", "BOOLEAN", "STRING", )
+    RETURN_NAMES = ("Success", "MSG", "MODEL", "CLIP", "VAE", "LoraApplied", "TriggerWords", )
 
     FUNCTION = "function"
 
     CATEGORY = "InoSamplerHelper"
 
-    def function(
+    async def function(
         self, enabled, execute,
         model_config,
         lora_1_config, lora_2_config, lora_3_config, lora_4_config,
@@ -535,24 +536,63 @@ class InoLoadSamplerModels:
         use_dual_clip,
     ):
         if not enabled:
-            return (None, None, None, None, None, )
+            return (False, "not enabled", None, None, None, None, None, )
 
         if execute is None:
-            return (None, None, None, None, None, )
+            return (False, "not enabled", None, None, None, None, None, )
 
         if not execute:
-            return (None, None, None, None, None, )
+            return (False, "not enabled", None, None, None, None, None, )
 
         load_json = InoJsonHelper.string_to_dict(model_config)
         if not load_json["success"]:
-            return (None, None, None, None, None,)
+            return (load_json["success"], load_json["msg"], None, None, None, None, None,)
         model_cfg = load_json["data"]
+
+        unet_config = model_cfg["unet"]
+        unet_file_loader = {}
+        clip1_config = model_cfg["clip1"]
+        clip1_file_loader = {}
+        clip2_config = model_cfg["clip2"]
+        clip2_file_loader = {}
+        vae_config = model_cfg["vae"]
+        vae_file_loader = {}
+
+        hf_loader= InoHuggingFaceDownloadFile()
+        civit_loader = None
+
+        if unet_config["host"] == "hf":
+             unet_file_loader = await hf_loader.function(
+                enabled=True,
+                dict_as_input=unet_config
+            )
+
+        if clip1_config["host"] == "hf":
+             clip1_file_loader = await hf_loader.function(
+                enabled=True,
+                dict_as_input=clip1_config
+            )
+
+        if clip2_config["host"] == "hf":
+            clip2_file_loader = await hf_loader.function(
+                enabled=True,
+                dict_as_input=clip2_config
+            )
+
+        if vae_config["host"] == "hf":
+             vae_file_loader = await hf_loader.function(
+                enabled=True,
+                dict_as_input=vae_config
+            )
+
+        if not (unet_file_loader[0] and clip1_file_loader[0] and clip2_file_loader[0] and vae_file_loader[0]):
+            return (False, "failed to download(load) the models", None, None, None, None, None,)
 
         from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
 
         unet_loader = UNETLoader()
         load_unet = unet_loader.load_unet(
-            unet_name=model_cfg["unet"],
+            unet_name=unet_file_loader[4],
             weight_dtype=model_cfg["weight_type"]
         )
 
@@ -560,22 +600,22 @@ class InoLoadSamplerModels:
         if dual_clip:
             clip_loader = DualCLIPLoader()
             load_clip = clip_loader.load_clip(
-                clip_name1=model_cfg["clip1"],
-                clip_name2=model_cfg["clip2"],
+                clip_name1=clip1_file_loader[4],
+                clip_name2=clip2_file_loader[4],
                 type=model_cfg["type"],
                 device=clip_device,
             )
         else:
             clip_loader = CLIPLoader()
             load_clip = clip_loader.load_clip(
-                clip_name=model_cfg["clip1"],
+                clip_name=clip1_file_loader[4],
                 type=model_cfg["type"],
                 device=clip_device,
             )
 
         vae_loader = VAELoader()
         load_vae = vae_loader.load_vae(
-            vae_name=model_cfg["vae"],
+            vae_name=vae_file_loader[4],
         )
 
         model_loaded = load_unet[0]
@@ -837,7 +877,7 @@ class InoGetConditioning:
 
         return (positive_condition[0], negative_condition[0], config, model_cfg_str["data"], )
 
-class InoGetModelPath:
+class InoGetModelDownloadConfig:
     """
 
     """
@@ -882,12 +922,17 @@ class InoGetModelPath:
 
         model_cfg = load_json["data"]
 
+        unet_config = InoJsonHelper.dict_to_string(model_cfg["unet"])["data"]
+        clip1_config = InoJsonHelper.dict_to_string(model_cfg["clip1"])["data"]
+        clip2_config = InoJsonHelper.dict_to_string(model_cfg["clip2"])["data"]
+        vae_config = InoJsonHelper.dict_to_string(model_cfg["vae"])["data"]
+
         return (
             True,
-            model_cfg["unet"],
-            model_cfg["clip1"],
-            model_cfg["clip2"],
-            model_cfg["vae"],
+            unet_config,
+            clip1_config,
+            clip2_config,
+            vae_config,
         )
 
 
@@ -901,7 +946,7 @@ LOCAL_NODE_CLASS = {
     "InoLoadSamplerModels": InoLoadSamplerModels,
     "InoGetConditioning": InoGetConditioning,
     "InoGetSamplerConfig": InoGetSamplerConfig,
-    "InoGetModelPath": InoGetModelPath,
+    "InoGetModelDownloadConfig": InoGetModelDownloadConfig,
 }
 LOCAL_NODE_NAME = {
     "InoRandomNoise": "Ino Random Noise",
@@ -913,6 +958,6 @@ LOCAL_NODE_NAME = {
     "InoLoadSamplerModels": "Ino Load Sampler Models",
     "InoGetConditioning": "Ino Get Conditioning",
     "InoGetSamplerConfig": "Ino Get Sampler Config",
-    "InoGetModelPath": "Ino Get Model Path",
+    "InoGetModelDownloadConfig": "Ino Get Model Download Config",
 }
 

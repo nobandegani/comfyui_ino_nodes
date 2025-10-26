@@ -5,7 +5,7 @@ from torchvision.transforms import InterpolationMode
 import torchvision.transforms.functional as TorchFunctional
 import hashlib
 from datetime import datetime, timezone
-from ..node_helper import any_typ
+from ..node_helper import any_type
 
 #---------------------------------InoNotBoolean
 class InoNotBoolean:

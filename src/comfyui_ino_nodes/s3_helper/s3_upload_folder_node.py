@@ -5,14 +5,14 @@ from pathlib import Path
 import folder_paths
 
 from .s3_helper import S3Helper
-from ..node_helper import any_typ
+from ..node_helper import any_type
 
 class InoS3UploadFolder:
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required":{
-                "execute": (any_typ,),
+                "execute": (any_type,),
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": ""}),

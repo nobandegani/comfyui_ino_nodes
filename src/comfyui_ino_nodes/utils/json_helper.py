@@ -6,9 +6,9 @@ import folder_paths
 
 from inopyutils import InoJsonHelper
 
-from ..node_helper import any_typ
+from ..node_helper import any_type
 
-class InoJson:
+class InoJsonSetField:
     """
     """
 
@@ -18,7 +18,7 @@ class InoJson:
             "required": {
                 "base_json": ("STRING", {"default": "{}"}),
                 "field_name": ("STRING", {"default": ""}),
-                "field_value": (any_typ,)
+                "field_value": (any_type,)
             }
         }
 
@@ -29,6 +29,39 @@ class InoJson:
     CATEGORY = "InoNodes"
 
     def function(self, base_json, field_name, field_value):
+        json_object = InoJsonHelper.string_to_dict(base_json)
+        if not json_object["success"]:
+            return (False, json_object["msg"], "", )
+        json_object = json_object["data"]
+
+        json_object[field_name] = field_value
+        json_string = InoJsonHelper.dict_to_string(json_object)
+        if not json_string["success"]:
+            return (False, json_string["msg"], "", )
+
+        base_json = json_string["data"]
+        return (True, "Success", base_json, )
+
+class InoJsonGetField:
+    """
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "base_json": ("STRING", {"default": "{}"}),
+                "field_name": ("STRING", {"default": ""}),
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "any_type", )
+    RETURN_NAMES = ("Success", "MSG", "Json", )
+
+    FUNCTION = "function"
+    CATEGORY = "InoNodes"
+
+    def function(self, base_json, field_name):
         json_object = InoJsonHelper.string_to_dict(base_json)
         if not json_object["success"]:
             return (False, json_object["msg"], "", )
@@ -71,10 +104,12 @@ class InoSaveJson:
         return (save_json["success"], save_json["msg"], )
 
 LOCAL_NODE_CLASS = {
-    "InoJson": InoJson,
+    "InoJsonSetField": InoJsonSetField,
+    "InoJsonGetField": InoJsonGetField,
     "InoSaveJson": InoSaveJson,
 }
 LOCAL_NODE_NAME = {
-    "InoJson": "Ino Json",
+    "InoJsonSetField": "Ino Json Set Field",
+    "InoJsonGetField": "Ino Json Get Field",
     "InoSaveJson": "Ino Save Json",
 }
