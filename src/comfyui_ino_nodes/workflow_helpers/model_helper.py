@@ -1,6 +1,8 @@
+import os
+
 from pathlib import Path
 from huggingface_hub import hf_hub_download
-from inopyutils import InoJsonHelper
+from inopyutils import InoJsonHelper, InoHttpHelper
 
 import folder_paths
 import node_helpers
@@ -109,7 +111,6 @@ class InoHuggingFaceDownloadFile:
 
         parent_path = Path(folder_paths.get_input_directory()).parent
         model_path: Path = parent_path / "models" / model_type / model_subfolder
-
         if model_path.is_file():
             model_path = model_path.parent
 
@@ -132,12 +133,109 @@ class InoHuggingFaceDownloadFile:
         except Exception as e:
             return (False, f"Error: {e}", "", )
 
+class InoCivitaiDownloadFile:
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "dict_as_input": ("STRING", {"default": "{}"}),
+                "model_type": (MODEL_TYPES, {}),
+                "model_subfolder": ("STRING", {"default": "flux1dev"}),
+                "model_version": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "token": ("STRING", {"default": ""}),
+                "model_id": ("STRING", {"default": ""}),
+            }
+        }
+
+    CATEGORY = "InoModelHelper"
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
+    FUNCTION = "function"
+
+    async def function(self, enabled, dict_as_input, model_type="", model_subfolder="", model_version="", token="", model_id=""):
+        if not enabled:
+            return (False, "", "", "", "", )
+
+        if isinstance(dict_as_input, str):
+            input_config = InoJsonHelper.string_to_dict(dict_as_input)
+            if input_config["success"]:
+                dict_as_input = input_config["data"]
+
+        if isinstance(dict_as_input, dict):
+            model_type = dict_as_input.get("model_type", model_type)
+            model_subfolder = dict_as_input.get("model_subfolder", model_subfolder)
+            model_version = dict_as_input.get("model_version", model_version)
+            model_id = dict_as_input.get("model_id", model_id)
+
+        parent_path = Path(folder_paths.get_input_directory()).parent
+        model_path: Path = parent_path / "models" / model_type / model_subfolder
+        if model_path.is_file():
+            model_path = model_path.parent
+
+        token = os.getenv("CIVITAI_TOKEN", token)
+
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+
+        http_client = InoHttpHelper(
+            timeout_total=None,
+            timeout_sock_read=None,
+            timeout_connect=30.0,
+            timeout_sock_connect=30.0,
+            retries=5,
+            backoff_factor=1.0,
+            default_headers=headers
+        )
+
+        if model_version:
+            url = f"https://civitai.com/api/v1/model-versions/{model_version}"
+        else:
+            return (False, "model_version is required", "", "", "",)
+
+        download_url = await http_client.get(
+            url=url
+        )
+        if not download_url["success"]:
+            return (False, download_url["msg"], "", "", "",)
+
+        try:
+            file_name = download_url["data"]["files"][0]["name"]
+        except:
+            return (False, "files is empty", "", "", "",)
+
+        full_model_path = model_path / file_name
+
+        if not download_url["data"]["downloadUrl"]:
+            return (False, "downloadUrl is empty", "", "", "",)
+
+        download_url = download_url["data"]["downloadUrl"]
+
+        download_file = http_client.download(
+            url=download_url,
+            dest_path=model_path,
+            chunk_size=8 * 1024 * 1024,
+            resume=True,
+            overwrite=False,
+            allow_redirects=True,
+            mkdirs=True,
+            verify_size=True,
+        )
+
+        return (download_file["success"], download_file["msg"], model_type, download_url["data"], "", )
+
 
 LOCAL_NODE_CLASS = {
     "InoValidateModel": InoValidateModel,
     "InoHuggingFaceDownloadFile": InoHuggingFaceDownloadFile,
+    "InoCivitaiDownloadFile": InoCivitaiDownloadFile,
 }
 LOCAL_NODE_NAME = {
     "InoValidateModel": "Ino Validate Model",
     "InoHuggingFaceDownloadFile": "Ino Hugging Face Download File",
+    "InoCivitaiDownloadFile": "Ino Civitai Download File",
 }
