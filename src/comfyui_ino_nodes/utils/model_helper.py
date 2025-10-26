@@ -92,15 +92,20 @@ class InoHuggingFaceDownloadFile:
         if not enabled:
             return (False, "", "", )
 
-        input_config = InoJsonHelper.string_to_dict(dict_as_input)
-        if input_config["success"]:
-            model_type = input_config["data"].get("model_type", model_type)
-            model_subfolder = input_config["data"].get("model_subfolder", model_subfolder)
-            repo_id = input_config["data"].get("repo_id", repo_id)
-            filename = input_config["data"].get("filename", filename)
-            subfolder = input_config["data"].get("subfolder", subfolder)
-            repo_type = input_config["data"].get("repo_type", repo_type)
-            revision = input_config["data"].get("revision", revision)
+        if isinstance(dict_as_input, str):
+            input_config = InoJsonHelper.string_to_dict(dict_as_input)
+            if input_config["success"]:
+                dict_as_input = input_config["data"]
+
+        if isinstance(dict_as_input, dict):
+            model_type = dict_as_input.get("model_type", model_type)
+            model_subfolder = dict_as_input.get("model_subfolder", model_subfolder)
+            repo_id = dict_as_input.get("repo_id", repo_id)
+            filename = dict_as_input.get("filename", filename)
+            subfolder = dict_as_input.get("subfolder", subfolder)
+            repo_type = dict_as_input.get("repo_type", repo_type)
+            revision = dict_as_input.get("revision", revision)
+
 
         parent_path = Path(folder_paths.get_input_directory()).parent
         model_path: Path = parent_path / "models" / model_type / model_subfolder

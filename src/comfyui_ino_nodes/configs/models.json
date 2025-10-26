@@ -31,7 +31,7 @@
       },
       "clip1": {
           "host": "hf",
-          "model_type": "diffusion_models",
+          "model_type": "text_encoders",
           "model_subfolder": "flux1dev",
           "repo_id": "comfyanonymous/flux_text_encoders",
           "filename": "clip_l.safetensors",
@@ -41,7 +41,7 @@
       },
       "clip2": {
           "host": "hf",
-          "model_type": "diffusion_models",
+          "model_type": "text_encoders",
           "model_subfolder": "flux1dev",
           "repo_id": "comfyanonymous/flux_text_encoders",
           "filename": "t5xxl_fp16.safetensors",
@@ -51,7 +51,7 @@
       },
       "vae": {
           "host": "hf",
-          "model_type": "diffusion_models",
+          "model_type": "vae",
           "model_subfolder": "flux1dev",
           "repo_id": "black-forest-labs/FLUX.1-dev",
           "filename": "ae.safetensors",
