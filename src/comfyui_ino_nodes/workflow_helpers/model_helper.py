@@ -148,6 +148,8 @@ class InoCivitaiDownloadFile:
             "optional": {
                 "token": ("STRING", {"default": ""}),
                 "model_id": ("STRING", {"default": ""}),
+                "file_id": ("INT", {"min": 0, "max": 100, "step": 1, "default": 0}),
+                "chunk_size": ([8, 16, 32, 64], {"default": 8})
             }
         }
 
@@ -156,7 +158,7 @@ class InoCivitaiDownloadFile:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, dict_as_input, model_type="", model_subfolder="", model_version="", token="", model_id=""):
+    async def function(self, enabled, dict_as_input, model_type="", model_subfolder="", model_version="", token="", model_id="", file_id=0, chunk_size=8):
         if not enabled:
             return (False, "", "", "", "", )
 
@@ -170,6 +172,7 @@ class InoCivitaiDownloadFile:
             model_subfolder = dict_as_input.get("model_subfolder", model_subfolder)
             model_version = dict_as_input.get("revision", model_version)
             model_id = dict_as_input.get("repo_id", model_id)
+            file_id = dict_as_input.get("filename", file_id)
 
         parent_path = Path(folder_paths.get_input_directory()).parent
         model_path: Path = parent_path / "models" / model_type / model_subfolder
@@ -195,37 +198,51 @@ class InoCivitaiDownloadFile:
         if model_version:
             url = f"https://civitai.com/api/v1/model-versions/{model_version}"
         else:
+            await http_client.close()
             return (False, "model_version is required, using model_id not implemented yet", "", "", "",)
 
         download_url = await http_client.get(
             url=url
         )
         if not download_url["success"]:
+            await http_client.close()
             return (False, download_url["msg"], "", "", "",)
 
         try:
-            file_name = download_url["data"]["files"][0]["name"]
-            file_sha = download_url["data"]["files"][0]["hashes"]["SHA256"]
+            file_name = download_url["data"]["files"][file_id]["name"]
+            file_sha = download_url["data"]["files"][file_id]["hashes"]["SHA256"]
         except:
+            await http_client.close()
             return (False, "files is empty", "", "", "",)
+
+        print(f"remote_file:{download_url["data"]["files"][file_id]}")
+
+        print(f"remote_file_name: {file_name}")
 
         full_model_path = model_path / file_name
 
         if full_model_path.is_file():
             sha_res = await InoFileHelper.get_file_hash_sha_256(full_model_path)
+            print(f"remote_sha: {file_sha}")
+            print(f"local_sha: {sha_res['sha']}")
             if sha_res["success"] and sha_res["sha"].lower() == file_sha.lower():
                 rel_path = full_model_path.relative_to(model_path.parent)
+                await http_client.close()
                 return (True, "File is valid", model_type, full_model_path, rel_path, )
+            else:
+                full_model_path.unlink()
 
         if not download_url["data"]["downloadUrl"]:
+            await http_client.close()
             return (False, "downloadUrl is empty", "", "", "",)
 
-        download_url = download_url["data"]["downloadUrl"]
+        download_url = download_url["data"]["files"][file_id]["downloadUrl"]
+        print(f"download_url: {download_url}")
 
         download_file = await http_client.download(
             url=download_url,
             dest_path=model_path,
-            chunk_size=8 * 1024 * 1024,
+            chunk_size=chunk_size * 1024 * 1024,
             resume=True,
             overwrite=False,
             allow_redirects=True,
@@ -234,9 +251,12 @@ class InoCivitaiDownloadFile:
         )
 
         if not download_file["success"] and download_file["success"] != "OK":
+            await http_client.close()
             return (download_file["success"], download_file["msg"], "", "", "",)
 
         rel_path = Path(download_file["path"]).relative_to(model_path.parent)
+
+        await http_client.close()
         return (download_file["success"], "File is downloaded", model_type, download_file["path"], rel_path, )
 
 
