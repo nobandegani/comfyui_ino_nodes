@@ -1,42 +1,119 @@
 """Top-level package for comfyui_ino_nodes."""
-from .src.comfyui_ino_nodes.s3_helper import LOCAL_NODE_CLASS as S3_CLASS, LOCAL_NODE_NAME as S3_NAME
 
-from .src.comfyui_ino_nodes.utils.extra_nodes import LOCAL_NODE_CLASS as EXTRA_CLASS, LOCAL_NODE_NAME as EXTRA_NAME
-from .src.comfyui_ino_nodes.utils.json_helper import LOCAL_NODE_CLASS as JSON_CLASS, LOCAL_NODE_NAME as JSON_NAME
-from .src.comfyui_ino_nodes.utils.http_helper import LOCAL_NODE_CLASS as HTTP_CLASS, LOCAL_NODE_NAME as HTTP_NAME
-from .src.comfyui_ino_nodes.utils.lora_helper import LOCAL_NODE_CLASS as LORA_CLASS, LOCAL_NODE_NAME as LORA_NAME
-from .src.comfyui_ino_nodes.utils.prompt_helper import LOCAL_NODE_CLASS as PROMPT_CLASS, LOCAL_NODE_NAME as PROMPT_NAME
-from .src.comfyui_ino_nodes.utils.sampler_helper import LOCAL_NODE_CLASS as SAMPLER_CLASS, LOCAL_NODE_NAME as SAMPLER_NAME
-from .src.comfyui_ino_nodes.utils.file_helper import LOCAL_NODE_CLASS as FILE_CLASS, LOCAL_NODE_NAME as FILE_NAME
-from .src.comfyui_ino_nodes.utils.openai_helper import LOCAL_NODE_CLASS as OPENAPI_CLASS, LOCAL_NODE_NAME as OPENAPI_NAME
-from .src.comfyui_ino_nodes.utils.model_helper import LOCAL_NODE_CLASS as MODEL_HELPER_CLASS, LOCAL_NODE_NAME as MODEL_HELPER_NAME
-from .src.comfyui_ino_nodes.utils.basic_auth import LOCAL_NODE_CLASS as BASIC_AUTH_CLASS, LOCAL_NODE_NAME as BASIC_AUTH_NAME
+
+#--------------------------------- Class helpers ---------------------------------
+from .src.comfyui_ino_nodes.class_helpers.file_helper import (
+    LOCAL_NODE_CLASS as FILE_HELPER_CLASS,
+    LOCAL_NODE_NAME as FILE_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.class_helpers.http_helper import (
+    LOCAL_NODE_CLASS as HTTP_HELPER_CLASS,
+    LOCAL_NODE_NAME as HTTP_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.class_helpers.json_helper import (
+    LOCAL_NODE_CLASS as JSON_HELPER_CLASS,
+    LOCAL_NODE_NAME as JSON_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.class_helpers.openai_helper import (
+    LOCAL_NODE_CLASS as OPENAPI_HELPER_CLASS,
+    LOCAL_NODE_NAME as OPENAPI_HELPER_NAME
+)
+
+#--------------------------------- Node helpers ---------------------------------
+from .src.comfyui_ino_nodes.node_helpers.bool_helper import (
+    LOCAL_NODE_CLASS as BOOL_HELPER_CLASS,
+    LOCAL_NODE_NAME as BOOL_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.node_helpers.float_helper import (
+    LOCAL_NODE_CLASS as FLOAT_HELPER_CLASS,
+    LOCAL_NODE_NAME as FLOAT_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.node_helpers.image_helper import (
+    LOCAL_NODE_CLASS as IMAGE_HELPER_CLASS,
+    LOCAL_NODE_NAME as IMAGE_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.node_helpers.int_helper import (
+    LOCAL_NODE_CLASS as INT_HELPER_CLASS,
+    LOCAL_NODE_NAME as INT_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.node_helpers.string_helper import (
+    LOCAL_NODE_CLASS as STRING_HELPER_CLASS,
+    LOCAL_NODE_NAME as STRING_HELPER_NAME
+)
+
+from .src.comfyui_ino_nodes.s3_helper import (
+    LOCAL_NODE_CLASS as S3_HELPER_CLASS,
+    LOCAL_NODE_NAME as S3_HELPER_NAME
+)
+
+from .src.comfyui_ino_nodes.utils.extra_nodes import (
+    LOCAL_NODE_CLASS as EXTRA_CLASS,
+    LOCAL_NODE_NAME as EXTRA_NAME
+)
+
+#--------------------------------- Workflow helpers ---------------------------------
+from .src.comfyui_ino_nodes.workflow_helpers.lora_helper import (
+    LOCAL_NODE_CLASS as LORA_HELPER_CLASS,
+    LOCAL_NODE_NAME as LORA_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.workflow_helpers.model_helper import (
+    LOCAL_NODE_CLASS as MODEL_HELPER_CLASS,
+    LOCAL_NODE_NAME as MODEL_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.workflow_helpers.prompt_helper import (
+    LOCAL_NODE_CLASS as PROMPT_HELPER_CLASS,
+    LOCAL_NODE_NAME as PROMPT_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.workflow_helpers.sampler_helper import (
+    LOCAL_NODE_CLASS as SAMPLER_HELPER_CLASS,
+    LOCAL_NODE_NAME as SAMPLER_HELPER_NAME
+)
+
+from .src.comfyui_ino_nodes.basic_auth import LOCAL_NODE_CLASS as BASIC_AUTH_CLASS, LOCAL_NODE_NAME as BASIC_AUTH_NAME
 
 _node_classes ={}
-_node_classes.update(S3_CLASS)
+_node_classes.update(FILE_HELPER_CLASS)
+_node_classes.update(HTTP_HELPER_CLASS)
+_node_classes.update(JSON_HELPER_CLASS)
+_node_classes.update(OPENAPI_HELPER_CLASS)
+
+_node_classes.update(BOOL_HELPER_CLASS)
+_node_classes.update(FLOAT_HELPER_CLASS)
+_node_classes.update(IMAGE_HELPER_CLASS)
+_node_classes.update(INT_HELPER_CLASS)
+_node_classes.update(STRING_HELPER_CLASS)
+
+_node_classes.update(S3_HELPER_CLASS)
+
 _node_classes.update(EXTRA_CLASS)
-_node_classes.update(JSON_CLASS)
-_node_classes.update(HTTP_CLASS)
-_node_classes.update(LORA_CLASS)
-_node_classes.update(PROMPT_CLASS)
-_node_classes.update(SAMPLER_CLASS)
-_node_classes.update(FILE_CLASS)
-_node_classes.update(OPENAPI_CLASS)
+
+_node_classes.update(LORA_HELPER_CLASS)
 _node_classes.update(MODEL_HELPER_CLASS)
-_node_classes.update(BASIC_AUTH_CLASS)
+_node_classes.update(PROMPT_HELPER_CLASS)
+_node_classes.update(SAMPLER_HELPER_CLASS)
+
+
 
 _node_names = {}
-_node_names.update(S3_NAME)
+_node_names.update(FILE_HELPER_NAME)
+_node_names.update(HTTP_HELPER_NAME)
+_node_names.update(JSON_HELPER_NAME)
+_node_names.update(OPENAPI_HELPER_NAME)
+
+_node_names.update(BOOL_HELPER_NAME)
+_node_names.update(FLOAT_HELPER_NAME)
+_node_names.update(IMAGE_HELPER_NAME)
+_node_names.update(INT_HELPER_NAME)
+_node_names.update(STRING_HELPER_NAME)
+
+_node_names.update(S3_HELPER_NAME)
+
 _node_names.update(EXTRA_NAME)
-_node_names.update(JSON_NAME)
-_node_names.update(HTTP_NAME)
-_node_names.update(LORA_NAME)
-_node_names.update(PROMPT_NAME)
-_node_names.update(SAMPLER_NAME)
-_node_names.update(FILE_NAME)
-_node_names.update(OPENAPI_NAME)
+
+_node_names.update(LORA_HELPER_NAME)
 _node_names.update(MODEL_HELPER_NAME)
-_node_names.update(BASIC_AUTH_NAME)
+_node_names.update(PROMPT_HELPER_NAME)
+_node_names.update(SAMPLER_HELPER_NAME)
 
 NODE_CLASS_MAPPINGS = _node_classes
 NODE_DISPLAY_NAME_MAPPINGS = _node_names

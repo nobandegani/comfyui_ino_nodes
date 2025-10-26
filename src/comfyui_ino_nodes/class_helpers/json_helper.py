@@ -55,8 +55,8 @@ class InoJsonGetField:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "any_type", )
-    RETURN_NAMES = ("Success", "MSG", "Json", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", any_type, )
+    RETURN_NAMES = ("Success", "MSG", "Field_Value", )
 
     FUNCTION = "function"
     CATEGORY = "InoNodes"
@@ -67,13 +67,7 @@ class InoJsonGetField:
             return (False, json_object["msg"], "", )
         json_object = json_object["data"]
 
-        json_object[field_name] = field_value
-        json_string = InoJsonHelper.dict_to_string(json_object)
-        if not json_string["success"]:
-            return (False, json_string["msg"], "", )
-
-        base_json = json_string["data"]
-        return (True, "Success", base_json, )
+        return (True, "Success", json_object[field_name], )
 
 class InoSaveJson:
     """

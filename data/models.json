@@ -32,7 +32,7 @@
       "clip1": {
           "host": "hf",
           "model_type": "text_encoders",
-          "model_subfolder": "flux1dev",
+          "model_subfolder": "clipl",
           "repo_id": "comfyanonymous/flux_text_encoders",
           "filename": "clip_l.safetensors",
           "subfolder": "",
@@ -42,7 +42,7 @@
       "clip2": {
           "host": "hf",
           "model_type": "text_encoders",
-          "model_subfolder": "flux1dev",
+          "model_subfolder": "t5xxl",
           "repo_id": "comfyanonymous/flux_text_encoders",
           "filename": "t5xxl_fp16.safetensors",
           "subfolder": "",

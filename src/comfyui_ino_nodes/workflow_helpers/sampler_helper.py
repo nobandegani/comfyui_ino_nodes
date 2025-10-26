@@ -141,7 +141,7 @@ class InoGetModelConfig:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING" "INT", "STRING", "STRING", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "INT", "STRING", "STRING", )
     RETURN_NAMES = ("Success", "MSG", "Model_ID", "Model_Name", "Model_Config", )
 
     FUNCTION = "function"
@@ -499,21 +499,11 @@ class InoLoadSamplerModels:
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "execute": (any_type,),
-                "model_config": ("STRING", {
-                    "multiline": True,
-                }),
-                "lora_1_config": ("STRING", {
-                    "multiline": True,
-                }),
-                "lora_2_config": ("STRING", {
-                    "multiline": True,
-                }),
-                "lora_3_config": ("STRING", {
-                    "multiline": True,
-                }),
-                "lora_4_config": ("STRING", {
-                    "multiline": True,
-                }),
+                "model_config": ("STRING", {}),
+                "lora_1_config": ("STRING", {}),
+                "lora_2_config": ("STRING", {}),
+                "lora_3_config": ("STRING", {}),
+                "lora_4_config": ("STRING", {}),
             },
             "optional": {
                 "clip_device": (["default", "cpu"], {"advanced": True}),
@@ -562,31 +552,36 @@ class InoLoadSamplerModels:
         civit_loader = None
 
         if unet_config["host"] == "hf":
-             unet_file_loader = await hf_loader.function(
+            unet_file_loader = await hf_loader.function(
                 enabled=True,
                 dict_as_input=unet_config
             )
+            if not unet_file_loader[0]:
+                return (False, unet_file_loader[1], None, None, None, None, None,)
 
         if clip1_config["host"] == "hf":
-             clip1_file_loader = await hf_loader.function(
+            clip1_file_loader = await hf_loader.function(
                 enabled=True,
                 dict_as_input=clip1_config
             )
+            if not clip1_file_loader[0]:
+                return (False, clip1_file_loader[1], None, None, None, None, None,)
 
         if clip2_config["host"] == "hf":
             clip2_file_loader = await hf_loader.function(
                 enabled=True,
                 dict_as_input=clip2_config
             )
+            if not clip2_file_loader[0]:
+                return (False, clip2_file_loader[1], None, None, None, None, None,)
 
         if vae_config["host"] == "hf":
-             vae_file_loader = await hf_loader.function(
+            vae_file_loader = await hf_loader.function(
                 enabled=True,
                 dict_as_input=vae_config
             )
-
-        if not (unet_file_loader[0] and clip1_file_loader[0] and clip2_file_loader[0] and vae_file_loader[0]):
-            return (False, "failed to download(load) the models", None, None, None, None, None,)
+            if not vae_file_loader[0]:
+                return (False, vae_file_loader[1], None, None, None, None, None,)
 
         from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
 
@@ -652,7 +647,7 @@ class InoLoadSamplerModels:
         if lora_4_loaded[0]:
             lora_loaded = True
 
-        return ( model_loaded, clip_loaded, load_vae[0], lora_loaded, trigger_words, )
+        return ( True, "Success", model_loaded, clip_loaded, load_vae[0], lora_loaded, trigger_words, )
 
 class InoGetSamplerConfig:
     """
