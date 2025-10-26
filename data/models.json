@@ -265,7 +265,7 @@
           "model_type": "diffusion_models",
           "model_subfolder": "flux1dev",
           "repo_id": "861840",
-          "filename": "",
+          "filename": 0,
           "subfolder": "",
           "repo_type": "",
           "revision": "2060393"
@@ -326,7 +326,7 @@
           "model_type": "diffusion_models",
           "model_subfolder": "flux1dev",
           "repo_id": "686814",
-          "filename": "",
+          "filename": 0,
           "subfolder": "",
           "repo_type": "",
           "revision": "2319074"
@@ -387,7 +387,7 @@
           "model_type": "diffusion_models",
           "model_subfolder": "flux1dev",
           "repo_id": "679262",
-          "filename": "",
+          "filename": 0,
           "subfolder": "",
           "repo_type": "",
           "revision": "2298051"
@@ -509,7 +509,7 @@
           "model_type": "diffusion_models",
           "model_subfolder": "flux1dev",
           "repo_id": "847101",
-          "filename": "",
+          "filename": 0,
           "subfolder": "",
           "repo_type": "",
           "revision": "2278561"
@@ -564,7 +564,7 @@
       "tags": "",
       "description": "",
       "lora_compatible": "",
-      "url": "https://civitai.com/models/686814/jib-mix-flux",
+      "url": "",
       "unet": {
           "host": "hf",
           "model_type": "diffusion_models",
