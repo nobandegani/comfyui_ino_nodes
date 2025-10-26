@@ -11,7 +11,7 @@ import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
 
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
-from .model_helper import InoHuggingFaceDownloadFile
+from .model_helper import InoHuggingFaceDownloadFile, InoCivitaiDownloadFile
 
 from ..node_helper import any_type
 
@@ -549,10 +549,17 @@ class InoLoadSamplerModels:
         vae_file_loader = {}
 
         hf_loader= InoHuggingFaceDownloadFile()
-        civit_loader = None
+        civitai_loader = InoCivitaiDownloadFile()
 
         if unet_config["host"] == "hf":
             unet_file_loader = await hf_loader.function(
+                enabled=True,
+                dict_as_input=unet_config
+            )
+            if not unet_file_loader[0]:
+                return (False, unet_file_loader[1], None, None, None, None, None,)
+        elif unet_config["host"] == "civitai":
+            unet_file_loader = await civitai_loader.function(
                 enabled=True,
                 dict_as_input=unet_config
             )
@@ -566,6 +573,8 @@ class InoLoadSamplerModels:
             )
             if not clip1_file_loader[0]:
                 return (False, clip1_file_loader[1], None, None, None, None, None,)
+        else:
+            return (False, "Downloading other than HF not supported for clip1", None, None, None, None, None,)
 
         if clip2_config["host"] == "hf":
             clip2_file_loader = await hf_loader.function(
@@ -574,6 +583,8 @@ class InoLoadSamplerModels:
             )
             if not clip2_file_loader[0]:
                 return (False, clip2_file_loader[1], None, None, None, None, None,)
+        else:
+            return (False, "Downloading other than HF not supported for clip2", None, None, None, None, None,)
 
         if vae_config["host"] == "hf":
             vae_file_loader = await hf_loader.function(
@@ -582,6 +593,8 @@ class InoLoadSamplerModels:
             )
             if not vae_file_loader[0]:
                 return (False, vae_file_loader[1], None, None, None, None, None,)
+        else:
+            return (False, "Downloading other than HF not supported for vae", None, None, None, None, None,)
 
         from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
 
