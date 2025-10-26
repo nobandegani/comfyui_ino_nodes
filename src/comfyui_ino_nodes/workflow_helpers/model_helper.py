@@ -215,16 +215,10 @@ class InoCivitaiDownloadFile:
             await http_client.close()
             return (False, "files is empty", "", "", "",)
 
-        print(f"remote_file:{download_url["data"]["files"][file_id]}")
-
-        print(f"remote_file_name: {file_name}")
-
         full_model_path = model_path / file_name
 
         if full_model_path.is_file():
             sha_res = await InoFileHelper.get_file_hash_sha_256(full_model_path)
-            print(f"remote_sha: {file_sha}")
-            print(f"local_sha: {sha_res['sha']}")
             if sha_res["success"] and sha_res["sha"].lower() == file_sha.lower():
                 rel_path = full_model_path.relative_to(model_path.parent)
                 await http_client.close()
@@ -237,7 +231,6 @@ class InoCivitaiDownloadFile:
             return (False, "downloadUrl is empty", "", "", "",)
 
         download_url = download_url["data"]["files"][file_id]["downloadUrl"]
-        print(f"download_url: {download_url}")
 
         download_file = await http_client.download(
             url=download_url,
