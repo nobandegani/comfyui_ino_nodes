@@ -4,16 +4,12 @@
       "id": 0,
       "name": "Flux1Dev",
       "type": "flux",
-      "unet": "flux1dev/flux1-dev.safetensors",
       "weight_type": "default",
       "use_dual_clip": true,
       "use_flux_encoder": false,
       "use_flux_guidance": true,
       "guidance": 3.5,
       "use_negative_prompt": false,
-      "clip1": "clip_l.safetensors",
-      "clip2": "t5/t5xxl_fp16.safetensors",
-      "vae": "flux1dev/ae.safetensors",
       "use_cfg": false,
       "cfg": 1,
       "sampler_name": "euler",
@@ -22,7 +18,47 @@
       "denoise": 1,
       "tags": "",
       "description": "original flux1 dev from blackforest",
-      "lora_compatible": ""
+      "lora_compatible": "",
+      "unet": {
+          "host": "hf",
+          "model_type": "diffusion_models",
+          "model_subfolder": "flux1dev",
+          "repo_id": "black-forest-labs/FLUX.1-dev",
+          "filename": "flux1-dev.safetensors",
+          "subfolder": "",
+          "repo_type": "",
+          "revision": ""
+      },
+      "clip1": {
+          "host": "hf",
+          "model_type": "diffusion_models",
+          "model_subfolder": "flux1dev",
+          "repo_id": "comfyanonymous/flux_text_encoders",
+          "filename": "clip_l.safetensors",
+          "subfolder": "",
+          "repo_type": "",
+          "revision": ""
+      },
+      "clip2": {
+          "host": "hf",
+          "model_type": "diffusion_models",
+          "model_subfolder": "flux1dev",
+          "repo_id": "comfyanonymous/flux_text_encoders",
+          "filename": "t5xxl_fp16.safetensors",
+          "subfolder": "",
+          "repo_type": "",
+          "revision": ""
+      },
+      "vae": {
+          "host": "hf",
+          "model_type": "diffusion_models",
+          "model_subfolder": "flux1dev",
+          "repo_id": "black-forest-labs/FLUX.1-dev",
+          "filename": "ae.safetensors",
+          "subfolder": "",
+          "repo_type": "",
+          "revision": ""
+      }
     },
     {
       "id": 1,

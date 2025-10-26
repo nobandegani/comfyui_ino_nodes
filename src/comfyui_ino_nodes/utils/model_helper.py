@@ -1,6 +1,6 @@
 from pathlib import Path
 from huggingface_hub import hf_hub_download
-
+from inopyutils import InoJsonHelper
 
 import folder_paths
 import node_helpers
@@ -69,6 +69,7 @@ class InoHuggingFaceDownloadFile:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "dict_as_input": ("STRING", {"default": "{}"}),
                 "model_type": (MODEL_TYPES, {}),
                 "model_subfolder": ("STRING", {"default": "flux1dev"}),
                 "repo_id": ("STRING", {"default": ""}),
@@ -87,9 +88,19 @@ class InoHuggingFaceDownloadFile:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, model_type, model_subfolder, repo_id, filename, subfolder, token, repo_type, revision,):
+    async def function(self, enabled, dict_as_input, model_type, model_subfolder, repo_id, filename, subfolder, token, repo_type, revision,):
         if not enabled:
             return (False, "", "", )
+
+        input_config = InoJsonHelper.string_to_dict(dict_as_input)
+        if input_config["success"]:
+            model_type = input_config["data"].get("model_type", model_type)
+            model_subfolder = input_config["data"].get("model_subfolder", model_subfolder)
+            repo_id = input_config["data"].get("repo_id", repo_id)
+            filename = input_config["data"].get("filename", filename)
+            subfolder = input_config["data"].get("subfolder", subfolder)
+            repo_type = input_config["data"].get("repo_type", repo_type)
+            revision = input_config["data"].get("revision", revision)
 
         parent_path = Path(folder_paths.get_input_directory()).parent
         model_path: Path = parent_path / "models" / model_type / model_subfolder
