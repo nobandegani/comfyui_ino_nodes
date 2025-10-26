@@ -22,8 +22,8 @@ scheduler_names = ["unset"] + SCHEDULER_NAMES
 def _load_models(config: str = "default", model_type: str = "models") -> Dict:
     """Load models"""
     if config == "default":
-        base_dir = Path(__file__).resolve().parent.parent  # comfyui_ino_nodes/
-        json_path:Path = base_dir / "configs" / f"{model_type}.json"
+        base_dir = Path(__file__).resolve().parent.parent.parent.parent
+        json_path:Path = base_dir / "data" / f"{model_type}.json"
         read_json =InoJsonHelper.read_json_from_file_sync(
             file_path=str(json_path.resolve())
         )
