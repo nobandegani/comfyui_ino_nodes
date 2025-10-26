@@ -2,7 +2,7 @@ import os
 
 from pathlib import Path
 from huggingface_hub import hf_hub_download
-from inopyutils import InoJsonHelper, InoHttpHelper
+from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper
 
 import folder_paths
 import node_helpers
@@ -168,8 +168,8 @@ class InoCivitaiDownloadFile:
         if isinstance(dict_as_input, dict):
             model_type = dict_as_input.get("model_type", model_type)
             model_subfolder = dict_as_input.get("model_subfolder", model_subfolder)
-            model_version = dict_as_input.get("model_version", model_version)
-            model_id = dict_as_input.get("model_id", model_id)
+            model_version = dict_as_input.get("revision", model_version)
+            model_id = dict_as_input.get("repo_id", model_id)
 
         parent_path = Path(folder_paths.get_input_directory()).parent
         model_path: Path = parent_path / "models" / model_type / model_subfolder
@@ -195,7 +195,7 @@ class InoCivitaiDownloadFile:
         if model_version:
             url = f"https://civitai.com/api/v1/model-versions/{model_version}"
         else:
-            return (False, "model_version is required", "", "", "",)
+            return (False, "model_version is required, using model_id not implemented yet", "", "", "",)
 
         download_url = await http_client.get(
             url=url
@@ -205,17 +205,24 @@ class InoCivitaiDownloadFile:
 
         try:
             file_name = download_url["data"]["files"][0]["name"]
+            file_sha = download_url["data"]["files"][0]["hashes"]["SHA256"]
         except:
             return (False, "files is empty", "", "", "",)
 
         full_model_path = model_path / file_name
+
+        if full_model_path.is_file():
+            sha_res = await InoFileHelper.get_file_hash_sha_256(full_model_path)
+            if sha_res["success"] and sha_res["sha"].lower() == file_sha.lower():
+                rel_path = full_model_path.relative_to(model_path.parent)
+                return (True, "File is valid", model_type, full_model_path, rel_path, )
 
         if not download_url["data"]["downloadUrl"]:
             return (False, "downloadUrl is empty", "", "", "",)
 
         download_url = download_url["data"]["downloadUrl"]
 
-        download_file = http_client.download(
+        download_file = await http_client.download(
             url=download_url,
             dest_path=model_path,
             chunk_size=8 * 1024 * 1024,
@@ -226,7 +233,11 @@ class InoCivitaiDownloadFile:
             verify_size=True,
         )
 
-        return (download_file["success"], download_file["msg"], model_type, download_url["data"], "", )
+        if not download_file["success"] and download_file["success"] != "OK":
+            return (download_file["success"], download_file["msg"], "", "", "",)
+
+        rel_path = Path(download_file["path"]).relative_to(model_path.parent)
+        return (download_file["success"], "File is downloaded", model_type, download_file["path"], rel_path, )
 
 
 LOCAL_NODE_CLASS = {
