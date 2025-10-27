@@ -13,7 +13,7 @@ from comfy_extras.nodes_flux import FluxGuidance
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
 from .model_helper import InoHuggingFaceDownloadFile, InoCivitaiDownloadFile
 
-from ..node_helper import any_type
+from ..node_helper import any_type, ino_print_log
 
 default_bool = ["unset", "true", "false"]
 sampler_names = ["unset"] + SAMPLER_NAMES
@@ -526,141 +526,159 @@ class InoLoadSamplerModels:
         use_dual_clip,
     ):
         if not enabled:
+            ino_print_log("InoLoadSamplerModels", "not enabled")
             return (False, "not enabled", None, None, None, None, None, )
 
         if execute is None:
+            ino_print_log("InoLoadSamplerModels", "execute is None")
             return (False, "not enabled", None, None, None, None, None, )
 
         if not execute:
+            ino_print_log("InoLoadSamplerModels", "execute is False")
             return (False, "not enabled", None, None, None, None, None, )
 
-        load_json = InoJsonHelper.string_to_dict(model_config)
-        if not load_json["success"]:
-            return (load_json["success"], load_json["msg"], None, None, None, None, None,)
-        model_cfg = load_json["data"]
+        try:
+            load_json = InoJsonHelper.string_to_dict(model_config)
+            if not load_json["success"]:
+                ino_print_log("InoLoadSamplerModels", "load_json failed")
+                return (load_json["success"], load_json["msg"], None, None, None, None, None,)
 
-        unet_config = model_cfg["unet"]
-        unet_file_loader = {}
-        clip1_config = model_cfg["clip1"]
-        clip1_file_loader = {}
-        clip2_config = model_cfg["clip2"]
-        clip2_file_loader = {}
-        vae_config = model_cfg["vae"]
-        vae_file_loader = {}
+            model_cfg = load_json["data"]
 
-        hf_loader= InoHuggingFaceDownloadFile()
-        civitai_loader = InoCivitaiDownloadFile()
+            unet_config = model_cfg["unet"]
+            unet_file_loader = {}
+            clip1_config = model_cfg["clip1"]
+            clip1_file_loader = {}
+            clip2_config = model_cfg["clip2"]
+            clip2_file_loader = {}
+            vae_config = model_cfg["vae"]
+            vae_file_loader = {}
 
-        if unet_config["host"] == "hf":
-            unet_file_loader = await hf_loader.function(
-                enabled=True,
-                dict_as_input=unet_config
-            )
-            if not unet_file_loader[0]:
-                return (False, unet_file_loader[1], None, None, None, None, None,)
-        elif unet_config["host"] == "civitai":
-            unet_file_loader = await civitai_loader.function(
-                enabled=True,
-                dict_as_input=unet_config
-            )
-            if not unet_file_loader[0]:
-                return (False, unet_file_loader[1], None, None, None, None, None,)
+            hf_loader= InoHuggingFaceDownloadFile()
+            civitai_loader = InoCivitaiDownloadFile()
 
-        if clip1_config["host"] == "hf":
-            clip1_file_loader = await hf_loader.function(
-                enabled=True,
-                dict_as_input=clip1_config
-            )
-            if not clip1_file_loader[0]:
-                return (False, clip1_file_loader[1], None, None, None, None, None,)
-        else:
-            return (False, "Downloading other than HF not supported for clip1", None, None, None, None, None,)
+            if unet_config["host"] == "hf":
+                unet_file_loader = await hf_loader.function(
+                    enabled=True,
+                    dict_as_input=unet_config
+                )
+                if not unet_file_loader[0]:
+                    ino_print_log("InoLoadSamplerModels", "unet_file_loader hf failed")
+                    return (False, unet_file_loader[1], None, None, None, None, None,)
+            elif unet_config["host"] == "civitai":
+                unet_file_loader = await civitai_loader.function(
+                    enabled=True,
+                    dict_as_input=unet_config
+                )
+                if not unet_file_loader[0]:
+                    ino_print_log("InoLoadSamplerModels", "unet_file_loader civitai failed")
+                    return (False, unet_file_loader[1], None, None, None, None, None,)
 
-        if clip2_config["host"] == "hf":
-            clip2_file_loader = await hf_loader.function(
-                enabled=True,
-                dict_as_input=clip2_config
-            )
-            if not clip2_file_loader[0]:
-                return (False, clip2_file_loader[1], None, None, None, None, None,)
-        else:
-            return (False, "Downloading other than HF not supported for clip2", None, None, None, None, None,)
+            if clip1_config["host"] == "hf":
+                clip1_file_loader = await hf_loader.function(
+                    enabled=True,
+                    dict_as_input=clip1_config
+                )
+                if not clip1_file_loader[0]:
+                    ino_print_log("InoLoadSamplerModels", "clip1_file_loader hf failed")
+                    return (False, clip1_file_loader[1], None, None, None, None, None,)
+            else:
+                ino_print_log("InoLoadSamplerModels", "clip1_file_loader not hf")
+                return (False, "Downloading other than HF not supported for clip1", None, None, None, None, None,)
 
-        if vae_config["host"] == "hf":
-            vae_file_loader = await hf_loader.function(
-                enabled=True,
-                dict_as_input=vae_config
-            )
-            if not vae_file_loader[0]:
-                return (False, vae_file_loader[1], None, None, None, None, None,)
-        else:
-            return (False, "Downloading other than HF not supported for vae", None, None, None, None, None,)
+            if clip2_config["host"] == "hf":
+                clip2_file_loader = await hf_loader.function(
+                    enabled=True,
+                    dict_as_input=clip2_config
+                )
+                if not clip2_file_loader[0]:
+                    ino_print_log("InoLoadSamplerModels", "clip2_file_loader hf failed")
+                    return (False, clip2_file_loader[1], None, None, None, None, None,)
+            else:
+                ino_print_log("InoLoadSamplerModels", "clip2_file_loader not hf")
+                return (False, "Downloading other than HF not supported for clip2", None, None, None, None, None,)
 
-        from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
+            if vae_config["host"] == "hf":
+                vae_file_loader = await hf_loader.function(
+                    enabled=True,
+                    dict_as_input=vae_config
+                )
+                if not vae_file_loader[0]:
+                    ino_print_log("InoLoadSamplerModels", "vae_file_loader hf failed")
+                    return (False, vae_file_loader[1], None, None, None, None, None,)
+            else:
+                ino_print_log("InoLoadSamplerModels", "vae_file_loader not hf")
+                return (False, "Downloading other than HF not supported for vae", None, None, None, None, None,)
 
-        unet_loader = UNETLoader()
-        load_unet = unet_loader.load_unet(
-            unet_name=unet_file_loader[4],
-            weight_dtype=model_cfg["weight_type"]
-        )
+            from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
 
-        dual_clip = model_cfg["use_dual_clip"]
-        if dual_clip:
-            clip_loader = DualCLIPLoader()
-            load_clip = clip_loader.load_clip(
-                clip_name1=clip1_file_loader[4],
-                clip_name2=clip2_file_loader[4],
-                type=model_cfg["type"],
-                device=clip_device,
-            )
-        else:
-            clip_loader = CLIPLoader()
-            load_clip = clip_loader.load_clip(
-                clip_name=clip1_file_loader[4],
-                type=model_cfg["type"],
-                device=clip_device,
+            unet_loader = UNETLoader()
+            load_unet = unet_loader.load_unet(
+                unet_name=unet_file_loader[4],
+                weight_dtype=model_cfg["weight_type"]
             )
 
-        vae_loader = VAELoader()
-        load_vae = vae_loader.load_vae(
-            vae_name=vae_file_loader[4],
-        )
+            dual_clip = model_cfg["use_dual_clip"]
+            if dual_clip:
+                clip_loader = DualCLIPLoader()
+                load_clip = clip_loader.load_clip(
+                    clip_name1=clip1_file_loader[4],
+                    clip_name2=clip2_file_loader[4],
+                    type=model_cfg["type"],
+                    device=clip_device,
+                )
+            else:
+                clip_loader = CLIPLoader()
+                load_clip = clip_loader.load_clip(
+                    clip_name=clip1_file_loader[4],
+                    type=model_cfg["type"],
+                    device=clip_device,
+                )
 
-        model_loaded = load_unet[0]
-        clip_loaded = load_clip[0]
-        trigger_words = ""
+            vae_loader = VAELoader()
+            load_vae = vae_loader.load_vae(
+                vae_name=vae_file_loader[4],
+            )
 
-        lora_loaded = False
+            model_loaded = load_unet[0]
+            clip_loaded = load_clip[0]
+            trigger_words = ""
 
-        lora_1_loaded = load_lora(lora_1_config, model_loaded, clip_loaded)
-        model_loaded = lora_1_loaded[1]
-        clip_loaded = lora_1_loaded[2]
-        trigger_words = trigger_words + lora_1_loaded[3]
-        if lora_1_loaded[0]:
-            lora_loaded = True
+            lora_loaded = False
 
-        lora_2_loaded = load_lora(lora_2_config, model_loaded, clip_loaded)
-        model_loaded = lora_2_loaded[1]
-        clip_loaded = lora_2_loaded[2]
-        trigger_words = trigger_words + lora_2_loaded[3]
-        if lora_2_loaded[0]:
-            lora_loaded = True
+            lora_1_loaded = load_lora(lora_1_config, model_loaded, clip_loaded)
+            model_loaded = lora_1_loaded[1]
+            clip_loaded = lora_1_loaded[2]
+            trigger_words = trigger_words + lora_1_loaded[3]
+            if lora_1_loaded[0]:
+                lora_loaded = True
 
-        lora_3_loaded = load_lora(lora_3_config, model_loaded, clip_loaded)
-        model_loaded = lora_3_loaded[1]
-        clip_loaded = lora_3_loaded[2]
-        trigger_words = trigger_words + lora_3_loaded[3]
-        if lora_3_loaded[0]:
-            lora_loaded = True
+            lora_2_loaded = load_lora(lora_2_config, model_loaded, clip_loaded)
+            model_loaded = lora_2_loaded[1]
+            clip_loaded = lora_2_loaded[2]
+            trigger_words = trigger_words + lora_2_loaded[3]
+            if lora_2_loaded[0]:
+                lora_loaded = True
 
-        lora_4_loaded = load_lora(lora_4_config, model_loaded, clip_loaded)
-        model_loaded = lora_4_loaded[1]
-        clip_loaded = lora_4_loaded[2]
-        trigger_words = trigger_words + lora_4_loaded[3]
-        if lora_4_loaded[0]:
-            lora_loaded = True
+            lora_3_loaded = load_lora(lora_3_config, model_loaded, clip_loaded)
+            model_loaded = lora_3_loaded[1]
+            clip_loaded = lora_3_loaded[2]
+            trigger_words = trigger_words + lora_3_loaded[3]
+            if lora_3_loaded[0]:
+                lora_loaded = True
 
-        return ( True, "Success", model_loaded, clip_loaded, load_vae[0], lora_loaded, trigger_words, )
+            lora_4_loaded = load_lora(lora_4_config, model_loaded, clip_loaded)
+            model_loaded = lora_4_loaded[1]
+            clip_loaded = lora_4_loaded[2]
+            trigger_words = trigger_words + lora_4_loaded[3]
+            if lora_4_loaded[0]:
+                lora_loaded = True
+
+            ino_print_log("InoLoadSamplerModels", "Success")
+            return ( True, "Success", model_loaded, clip_loaded, load_vae[0], lora_loaded, trigger_words, )
+        except Exception as e:
+            ino_print_log("InoLoadSamplerModels", str(e))
+            return (False, str(e), None, None, None, None, None,)
 
 class InoGetSamplerConfig:
     """
