@@ -3,6 +3,8 @@ import random
 
 from openai import OpenAI
 
+from custom_nodes.comfyui_ino_nodes.src.comfyui_ino_nodes.node_helper import ino_print_log
+
 openai_client = None
 
 def get_openai_client(config):
@@ -72,23 +74,26 @@ class InoOpenaiTextGeneration:
 
     async def function(self, enabled, seed, config, prompt, model):
         if not enabled:
+            ino_print_log("InoOpenaiTextGeneration","Node is disabled")
             return (False, )
 
-        client = get_openai_client(config)
+        try:
+            client = get_openai_client(config)
 
-        response = client.responses.create(
-            model=model,
-            input=prompt
-        )
+            response = client.responses.create(
+                model=model,
+                input=prompt
+            )
 
-        if response.error:
-            error_message = response.error.message
-        else:
-            error_message = "none"
+            if response.error:
+                error_message = response.error.message
+            else:
+                error_message = "none"
 
-        #response.output
-
-        return (True, response.id, response.status, error_message, response.output_text, "", )
+            return (True, response.id, response.status, error_message, response.output_text, "", )
+        except Exception as e:
+            ino_print_log("InoOpenaiTextGeneration","",e)
+            return (False, -1, "", "", "", "", )
 
 
 LOCAL_NODE_CLASS = {
