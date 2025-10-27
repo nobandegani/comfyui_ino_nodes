@@ -1,5 +1,8 @@
 from inopyutils import InoJsonHelper, InoHttpHelper
 
+from custom_nodes.comfyui_ino_nodes.src.comfyui_ino_nodes.node_helper import ino_print_log
+
+
 class InoHttpCall:
     """
 
@@ -33,39 +36,53 @@ class InoHttpCall:
                        trust_env, allow_redirects, max_retries
                        ):
         if not enabled:
+            ino_print_log("InoHttpCall", "Attempt to run but disabled")
             return (False, 0, "", "", )
 
-        http_client = InoHttpHelper(
-            retries=max_retries,
-            trust_env=trust_env
-        )
+        http_client = None
+        try:
+            http_client = InoHttpHelper(
+                retries=max_retries,
+                trust_env=trust_env
+            )
 
-        if InoJsonHelper.is_valid(headers):
-            headers = InoJsonHelper.string_to_dict(headers)["data"]
-        else:
-            headers = {}
+            if InoJsonHelper.is_valid(headers):
+                headers = InoJsonHelper.string_to_dict(headers)["data"]
+            else:
+                headers = {}
 
-        if InoJsonHelper.is_valid(json_payload):
-            json_payload = InoJsonHelper.string_to_dict(json_payload)["data"]
-        else:
-            json_payload = {}
+            if InoJsonHelper.is_valid(json_payload):
+                json_payload = InoJsonHelper.string_to_dict(json_payload)["data"]
+            else:
+                json_payload = {}
 
-        if request_type == "get":
-            resp = await http_client.get(url=url, headers=headers, allow_redirects=allow_redirects)
-        elif request_type == "post":
-            resp = await http_client.post(url=url, headers=headers, json=json_payload, allow_redirects=allow_redirects)
-        elif request_type == "put":
-            resp = await http_client.put(url, json=json_payload, allow_redirects=allow_redirects)
-        elif request_type == "delete":
-            resp = await http_client.delete(url, allow_redirects=allow_redirects)
-        elif request_type == "patch":
-            resp = await http_client.patch(url, json=json_payload, allow_redirects=allow_redirects)
-        else:
+            if request_type == "get":
+                resp = await http_client.get(url=url, headers=headers, allow_redirects=allow_redirects)
+            elif request_type == "post":
+                resp = await http_client.post(url=url, headers=headers, json=json_payload, allow_redirects=allow_redirects)
+            elif request_type == "put":
+                resp = await http_client.put(url, json=json_payload, allow_redirects=allow_redirects)
+            elif request_type == "delete":
+                resp = await http_client.delete(url, allow_redirects=allow_redirects)
+            elif request_type == "patch":
+                resp = await http_client.patch(url, json=json_payload, allow_redirects=allow_redirects)
+            else:
+                await http_client.close()
+                ino_print_log("InoHttpCall", "Invalid request type", request_type)
+                return (False, 0, "", "",)
+
             await http_client.close()
-            return (False, 0, "", "",)
+            if not resp["success"]:
+                ino_print_log("InoHttpCall", resp["msg"])
+                return (False, 0, "", "",)
 
-        await http_client.close()
-        return (resp["success"], resp["status_code"], resp["msg"], resp["data"], )
+            ino_print_log("InoHttpCall", "Success")
+            return (True, resp["status_code"], resp["msg"], resp["data"], )
+        except Exception as e:
+            if http_client:
+                await http_client.close()
+            ino_print_log("InoHttpCall", "", e)
+            return (False, 0, str(e), "",)
 
 LOCAL_NODE_CLASS = {
     "InoHttpCall": InoHttpCall,
