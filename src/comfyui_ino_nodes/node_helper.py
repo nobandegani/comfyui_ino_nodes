@@ -4,3 +4,10 @@ class AnyType(str):
         return False
 
 any_type = AnyType("*")
+
+import os
+IS_DEBUG  = bool(os.getenv('COMFYUI_INO_DEBUG', 0))
+
+def ino_print_log(prefix:str = "", msg:str="unknown", e = None):
+    if IS_DEBUG:
+        print(f"{prefix}: {msg} -> {e}")
