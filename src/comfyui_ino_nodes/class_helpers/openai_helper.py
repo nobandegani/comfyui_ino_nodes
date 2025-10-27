@@ -93,7 +93,7 @@ class InoOpenaiTextGeneration:
             return (True, response.id, response.status, error_message, response.output_text, "", )
         except Exception as e:
             ino_print_log("InoOpenaiTextGeneration","",e)
-            return (False, -1, "", "", "", "", )
+            return (False, -1, "", str(e), "", "", )
 
 
 LOCAL_NODE_CLASS = {
