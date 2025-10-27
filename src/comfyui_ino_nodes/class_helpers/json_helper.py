@@ -91,21 +91,25 @@ class InoSaveJson:
     def INPUT_TYPES(s):
         return {
             "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "json_string": ("STRING", {"default": "{}"}),
                 "local_path": ("STRING", {"default": ""}),
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", )
-    RETURN_NAMES = ("Success", "MSG",  )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", )
+    RETURN_NAMES = ("Success", "MSG",  "json_file", )
 
     FUNCTION = "function"
     CATEGORY = "InoNodes"
 
-    async def function(self, json_string, local_path):
+    async def function(self, enabled, json_string, local_path):
+        if not enabled:
+            return (False, "not enabled", "",)
         try:
             output_path = folder_paths.get_output_directory()
             save_path :Path = Path(output_path) / Path(local_path)
+
             save_json = await InoJsonHelper.save_string_as_json_async(
                 json_string=json_string,
                 file_path=str(save_path.resolve())
@@ -113,10 +117,10 @@ class InoSaveJson:
 
             if not save_json["success"]:
                 ino_print_log("InoSaveJson", save_json["msg"])
-                return (False, save_json["msg"],)
+                return (False, save_json["msg"], "")
 
             ino_print_log("InoSaveJson", "Success")
-            return (True, save_json["msg"], )
+            return (True, save_json["msg"], save_path)
         except Exception as e:
             ino_print_log("InoSaveJson", "",str(e))
             return (False, f"failed: {e}", "",)

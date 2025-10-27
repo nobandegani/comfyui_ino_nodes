@@ -1,3 +1,27 @@
+class InoBooleanEqual:
+    """
+        reverse boolean
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input": ("BOOLEAN", {"default": True}),
+                "compare": ("BOOLEAN", {"default": True}),
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN",)
+    RETURN_NAMES = ("boolean",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, input, compare):
+        return (input == compare,)
+
 class InoNotBoolean:
     """
         reverse boolean
@@ -97,11 +121,13 @@ class InoConditionBooleanMulti:
         return (result,)
 
 LOCAL_NODE_CLASS = {
+    "InoBooleanEqual": InoBooleanEqual,
     "InoNotBoolean": InoNotBoolean,
     "InoBoolToSwitch": InoBoolToSwitch,
     "InoConditionBooleanMulti": InoConditionBooleanMulti,
 }
 LOCAL_NODE_NAME = {
+    "InoBooleanEqual": "Ino Boolean Equal",
     "InoNotBoolean": "Ino Not Boolean",
     "InoBoolToSwitch": "Ino Bool To Switch",
     "InoConditionBooleanMulti": "Ino Condition Boolean Multi",

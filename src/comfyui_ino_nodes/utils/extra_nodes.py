@@ -96,9 +96,63 @@ class InoDateTimeAsString:
         else:
             return ("", )
 
+class InoRelay:
+    """
+        Date Time As String
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "execute": (any_type,),
+                "relay": (any_type,),
+            },
+        }
+
+    RETURN_TYPES = (any_type, any_type, )
+    RETURN_NAMES = ("execute", "relay" )
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def __init__(self):
+        pass
+
+    def function(self, execute, relay):
+        return (execute, relay, )
+
+class InoAnyEqual:
+    """
+        reverse boolean
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input": (any_type, {}),
+                "compare": (any_type, {}),
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN",)
+    RETURN_NAMES = ("equal",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, input, compare):
+        return (input == compare,)
+
 LOCAL_NODE_CLASS = {
     "InoDateTimeAsString": InoDateTimeAsString,
+    "InoRelay": InoRelay,
+    "InoAnyEqual": InoAnyEqual,
 }
 LOCAL_NODE_NAME = {
     "InoDateTimeAsString": "Ino Date Time As String",
+    "InoRelay": "Ino Relay",
+    "InoAnyEqual": "Ino Any Equal",
 }

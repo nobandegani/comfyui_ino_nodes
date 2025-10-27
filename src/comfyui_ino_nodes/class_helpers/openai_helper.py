@@ -75,7 +75,7 @@ class InoOpenaiTextGeneration:
     async def function(self, enabled, seed, config, prompt, model):
         if not enabled:
             ino_print_log("InoOpenaiTextGeneration","Node is disabled")
-            return (False, )
+            return (False, -1, "not enabled", "", "", "", )
 
         try:
             client = get_openai_client(config)
