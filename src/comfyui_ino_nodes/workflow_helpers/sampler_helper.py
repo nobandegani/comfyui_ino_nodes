@@ -69,23 +69,36 @@ def prepare_lora_config(lora_config: str) -> Dict:
         "lora_config": load_json["data"]
     }
 
-def load_lora(config_str, model, clip):
+async def load_lora(config_str, model, clip):
     """Load LoRA"""
-    from nodes import LoraLoader
+
     prepared_config = prepare_lora_config(config_str)
-    if prepared_config["use_lora"]:
-        config_dict = prepared_config["lora_config"]
-        lora_loader = LoraLoader()
-        lora_loaded = lora_loader.load_lora(
-            model=model,
-            clip=clip,
-            lora_name=config_dict["file"],
-            strength_model=config_dict["strength_model"],
-            strength_clip=config_dict["strength_clip"]
-        )
-        return True, lora_loaded[0], lora_loaded[1], f"{config_dict["trigger_word"]}, "
-    else:
+    if not  prepared_config["use_lora"]:
         return False, model, clip, ""
+
+    config_dict = prepared_config["lora_config"]
+
+    download_model_handler = InoHandleDownloadModel()
+    lora_file_loader = await download_model_handler.function(
+        enabled=True,
+        config=InoJsonHelper.dict_to_string(config_dict["file"])["data"],
+    )
+    if not lora_file_loader[0]:
+        ino_print_log("load_lora", "lora_file_loader failed")
+        return False, model, clip, ""
+
+    from nodes import LoraLoader
+    lora_loader = LoraLoader()
+    lora_loaded = lora_loader.load_lora(
+        model=model,
+        clip=clip,
+        lora_name=lora_file_loader[4],
+        strength_model=config_dict["strength_model"],
+        strength_clip=config_dict["strength_clip"]
+    )
+    return True, lora_loaded[0], lora_loaded[1], f"{config_dict["trigger_word"]}, "
+
+
 
 from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
 
@@ -613,7 +626,7 @@ class InoLoadSamplerModels:
                 config=unet_download_model_config
             )
             if not unet_file_loader[0]:
-                ino_print_log("InoLoadSamplerModels", "unet_file_loader hf failed")
+                ino_print_log("InoLoadSamplerModels", "unet_file_loader failed")
                 return (False, unet_file_loader[1], None, None, None, None, None,)
 
             clip1_file_loader = await download_model_handler.function(
@@ -677,28 +690,28 @@ class InoLoadSamplerModels:
 
             lora_loaded = False
 
-            lora_1_loaded = load_lora(lora_1_config, model_loaded, clip_loaded)
+            lora_1_loaded = await load_lora(lora_1_config, model_loaded, clip_loaded)
             model_loaded = lora_1_loaded[1]
             clip_loaded = lora_1_loaded[2]
             trigger_words = trigger_words + lora_1_loaded[3]
             if lora_1_loaded[0]:
                 lora_loaded = True
 
-            lora_2_loaded = load_lora(lora_2_config, model_loaded, clip_loaded)
+            lora_2_loaded = await load_lora(lora_2_config, model_loaded, clip_loaded)
             model_loaded = lora_2_loaded[1]
             clip_loaded = lora_2_loaded[2]
             trigger_words = trigger_words + lora_2_loaded[3]
             if lora_2_loaded[0]:
                 lora_loaded = True
 
-            lora_3_loaded = load_lora(lora_3_config, model_loaded, clip_loaded)
+            lora_3_loaded = await load_lora(lora_3_config, model_loaded, clip_loaded)
             model_loaded = lora_3_loaded[1]
             clip_loaded = lora_3_loaded[2]
             trigger_words = trigger_words + lora_3_loaded[3]
             if lora_3_loaded[0]:
                 lora_loaded = True
 
-            lora_4_loaded = load_lora(lora_4_config, model_loaded, clip_loaded)
+            lora_4_loaded = await load_lora(lora_4_config, model_loaded, clip_loaded)
             model_loaded = lora_4_loaded[1]
             clip_loaded = lora_4_loaded[2]
             trigger_words = trigger_words + lora_4_loaded[3]
