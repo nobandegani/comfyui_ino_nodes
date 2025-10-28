@@ -9,12 +9,57 @@ import node_helpers
 
 
 from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
-from ..node_helper import ino_print_log
+from ..node_helper import ino_print_log, MODEL_TYPES
 
-MODEL_TYPES = (
-    "checkpoints", "clip", "clip_vision", "controlnet", "diffusers", "diffusion_models",
-    "loras", "sams", "text_encoders", "vae"
-)
+
+class InoCreateModelFileConfig:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "host": (["s3", "hf", "civitai"], {}),
+                "model_type": (MODEL_TYPES, {}),
+                "model_subfolder": ("STRING", {"default": "flux1dev", "tooltip": ""}),
+                "repo_id": ("STRING", {"default": "", "tooltip": "depends on the host."}),
+                "filename": ("STRING", {"default": "", "tooltip": "depends on the host."}),
+                "subfolder": ("STRING", {"default": "", "tooltip": "depends on the host."}),
+                "repo_type": ("STRING", {"default": "", "tooltip": "depends on the host."}),
+                "revision": ("STRING", {"default": "", "tooltip": "depends on the host."}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("FileConfig",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self, enabled, host: str, model_type: str, model_subfolder: str, repo_id: str, filename: str,
+                 subfolder: str, repo_type: str, revision: str):
+        if not enabled:
+            return ("",)
+
+        file_config = {}
+        file_config["host"] = host
+        file_config["model_type"] = model_type
+        file_config["model_subfolder"] = model_subfolder
+        file_config["repo_id"] = repo_id
+        file_config["filename"] = filename
+        file_config["subfolder"] = subfolder
+        file_config["repo_type"] = repo_type
+        file_config["revision"] = revision
+
+        file_config_str = InoJsonHelper.dict_to_string(file_config)["data"]
+
+        return (file_config_str,)
 
 class InoS3DownloadModel:
 
@@ -57,7 +102,7 @@ class InoS3DownloadModel:
             ino_print_log("InoS3DownloadModel", validate_s3_config["msg"], )
             return (False, validate_s3_config["msg"], "", "", "",)
         s3_config = validate_s3_config["config"]
-        
+
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             ino_print_log("InoS3DownloadModel", validate_s3_key["msg"], )
@@ -283,12 +328,16 @@ class InoCivitaiDownloadModel:
             ino_print_log("InoCivitaiDownloadFile", "", e)
             return (False, e, "", "", "",)
 
+
+
 LOCAL_NODE_CLASS = {
+    "InoCreateModelFileConfig": InoCreateModelFileConfig,
     "InoS3DownloadModel": InoS3DownloadModel,
     "InoHuggingFaceDownloadModel": InoHuggingFaceDownloadModel,
     "InoCivitaiDownloadModel": InoCivitaiDownloadModel,
 }
 LOCAL_NODE_NAME = {
+    "InoCreateModelFileConfig": "Ino Create Model File Config",
     "InoS3DownloadModel": "Ino S3 Download Model",
     "InoHuggingFaceDownloadModel": "Ino Hugging Face Download Model",
     "InoCivitaiDownloadModel": "Ino Civitai Download Model",
