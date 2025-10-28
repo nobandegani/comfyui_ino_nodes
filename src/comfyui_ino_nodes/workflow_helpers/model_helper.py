@@ -31,32 +31,33 @@ class InoS3DownloadModel:
         }
 
     CATEGORY = "InoModelHelper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", )
-    RETURN_NAMES = ("success", "msg", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
     async def function(self, enabled, model_type, model_subfolder, s3_config, s3_key):
         if not enabled:
             ino_print_log("InoS3DownloadModel", "Attempt to run but disabled")
-            return (False, "", )
+            return (False, "", "", "", "",)
 
         parent_path = Path(folder_paths.get_input_directory()).parent
-        model_path:Path = parent_path / "models" / model_type / model_subfolder / Path(s3_key).name
+        model_path_base: Path = parent_path / "models" / model_type
+        model_path:Path = model_path_base / model_subfolder / Path(s3_key).name
 
         need_download = not model_path.is_file()
         if not need_download:
             ino_print_log("InoS3DownloadModel", "model already downloaded", )
-            return (True, "model validated", )
+            return (True, "model validated", "", "", "",)
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
             ino_print_log("InoS3DownloadModel", validate_s3_config["msg"], )
-            return (False, validate_s3_config["msg"],)
+            return (False, validate_s3_config["msg"], "", "", "",)
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             ino_print_log("InoS3DownloadModel", validate_s3_key["msg"], )
-            return (False, validate_s3_key["msg"],)
+            return (False, validate_s3_key["msg"], "", "", "",)
 
         model_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -66,8 +67,10 @@ class InoS3DownloadModel:
             local_file_path=model_path
         )
 
+        rel_path = Path(model_path).relative_to(model_path_base)
+
         ino_print_log("InoS3DownloadModel", "file downloaded successfully", )
-        return (s3_result["success"], s3_result["msg"], )
+        return (s3_result["success"], s3_result["msg"], model_type, model_path, rel_path, )
 
 class InoHuggingFaceDownloadModel:
     @classmethod
@@ -98,7 +101,7 @@ class InoHuggingFaceDownloadModel:
         try:
             if not enabled:
                 ino_print_log("InoHuggingFaceDownloadFile", "Attempt to run but disabled")
-                return (False, "", "", )
+                return (False, "", "", "", "",)
 
             if isinstance(dict_as_input, str):
                 input_config = InoJsonHelper.string_to_dict(dict_as_input)
@@ -116,7 +119,8 @@ class InoHuggingFaceDownloadModel:
 
 
             parent_path = Path(folder_paths.get_input_directory()).parent
-            model_path: Path = parent_path / "models" / model_type / model_subfolder
+            model_path_base: Path = parent_path / "models" / model_type
+            model_path: Path = model_path_base / model_subfolder
             if model_path.is_file():
                 model_path = model_path.parent
 
@@ -137,7 +141,7 @@ class InoHuggingFaceDownloadModel:
 
         try:
             result = hf_hub_download(repo_id, filename, **args)
-            rel_path = Path(result).relative_to(model_path.parent)
+            rel_path = Path(result).relative_to(model_path_base)
             ino_print_log("InoHuggingFaceDownloadFile", "file downloaded successfully", )
             return (True, "Successfull", model_type, result, rel_path)
         except Exception as e:
@@ -187,7 +191,8 @@ class InoCivitaiDownloadModel:
                 file_id = dict_as_input.get("filename", file_id)
 
             parent_path = Path(folder_paths.get_input_directory()).parent
-            model_path: Path = parent_path / "models" / model_type / model_subfolder
+            model_path_base: Path = parent_path / "models" / model_type
+            model_path = model_path_base / model_subfolder
             if model_path.is_file():
                 model_path = model_path.parent
 
@@ -265,7 +270,7 @@ class InoCivitaiDownloadModel:
                 ino_print_log("InoCivitaiDownloadFile", "failed to download file", download_file["msg"])
                 return (download_file["success"], download_file["msg"], "", "", "",)
 
-            rel_path = Path(download_file["path"]).relative_to(model_path.parent)
+            rel_path = Path(download_file["path"]).relative_to(model_path_base)
 
             await http_client.close()
             ino_print_log("InoCivitaiDownloadFile", "File downloaded successfully", )

@@ -1,4 +1,6 @@
+import os
 from pathlib import Path
+
 from inopyutils import InoS3Helper
 
 class S3Helper:
@@ -31,7 +33,13 @@ class S3Helper:
                 "msg": "S3 configuration must be a dictionary"
             }
 
-        required_keys = ["access_key_id", "secret_access_key", "endpoint_url", "region_name", "bucket_name"]
+        s3_config["access_key_id"] = str(os.getenv('S3_ACCESS_KEY', s3_config.get("access_key_id", "")))
+        s3_config["secret_access_key"] = str(os.getenv('S3_ACCESS_SECRET', s3_config.get("secret_access_key", "")))
+        s3_config["endpoint_url"] = str(os.getenv('S3_ENDPOINT_URL', s3_config.get("endpoint_url", "")))
+        s3_config["region_name"] = str(os.getenv('S3_REGION_NAME', s3_config.get("region_name", "")))
+        s3_config["bucket_name"] = str(os.getenv('S3_BUCKET_NAME', s3_config.get("bucket_name", "")))
+
+        required_keys = ["access_key_id", "secret_access_key"]
         missing_keys = [key for key in required_keys if key not in s3_config or not s3_config[key]]
         if missing_keys:
             return {

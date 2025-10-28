@@ -11,7 +11,7 @@ import folder_paths
 from comfy_extras.nodes_flux import FluxGuidance
 
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
-from .model_helper import InoHuggingFaceDownloadFile, InoCivitaiDownloadFile
+from .model_helper import InoHuggingFaceDownloadModel, InoCivitaiDownloadModel
 
 from ..node_helper import any_type, ino_print_log
 
@@ -554,8 +554,8 @@ class InoLoadSamplerModels:
             vae_config = model_cfg["vae"]
             vae_file_loader = {}
 
-            hf_loader= InoHuggingFaceDownloadFile()
-            civitai_loader = InoCivitaiDownloadFile()
+            hf_loader= InoHuggingFaceDownloadModel()
+            civitai_loader = InoCivitaiDownloadModel()
 
             if unet_config["host"] == "hf":
                 unet_file_loader = await hf_loader.function(
