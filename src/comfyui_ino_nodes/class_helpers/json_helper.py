@@ -91,6 +91,7 @@ class InoSaveJson:
     def INPUT_TYPES(s):
         return {
             "required": {
+                "execute": (any_type,),
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "json_string": ("STRING", {"default": "{}"}),
                 "local_path": ("STRING", {"default": ""}),
@@ -103,9 +104,13 @@ class InoSaveJson:
     FUNCTION = "function"
     CATEGORY = "InoNodes"
 
-    async def function(self, enabled, json_string, local_path):
+    async def function(self, execute, enabled, json_string, local_path):
         if not enabled:
             return (False, "not enabled", "",)
+
+        if not execute:
+            return (False, "execute is false", "",)
+        
         try:
             output_path = folder_paths.get_output_directory()
             save_path :Path = Path(output_path) / Path(local_path)

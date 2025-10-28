@@ -23,6 +23,7 @@ class InoS3UploadFolder:
                 "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
                 "bucket_name": ("STRING", {"default": "default"}),
                 "max_concurrent": ("INT", {"default": 5, "min": 1, "max": 10}),
+                "verify_with_s3": ("BOOLEAN", {"default": False}),
             }
         }
 
@@ -31,7 +32,7 @@ class InoS3UploadFolder:
     RETURN_NAMES = ("success", "msg", "result", "total_files", "uploaded_successfully", "failed_uploads", "errors", )
     FUNCTION = "function"
 
-    async def function(self, execute, enabled, s3_key, parent_folder, local_path, delete_local, s3_config, bucket_name, max_concurrent):
+    async def function(self, execute, enabled, s3_key, parent_folder, local_path, delete_local, s3_config, bucket_name, max_concurrent, verify_with_s3):
         if not enabled:
             return (False, "", "", 0, 0, 0, "", )
 
@@ -66,7 +67,8 @@ class InoS3UploadFolder:
             s3_folder_key=s3_key,
             local_folder_path=abs_path,
             #bucket_name=bucket_name,
-            max_concurrent=max_concurrent
+            max_concurrent=max_concurrent,
+            verify=verify_with_s3
         )
         if s3_result["success"] and delete_local:
             shutil.rmtree(local_upload_path)
