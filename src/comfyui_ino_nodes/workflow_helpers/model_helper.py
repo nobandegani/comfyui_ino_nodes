@@ -427,7 +427,7 @@ class InoLoadControlnet:
         )
         if not file_loader[0]:
             return (False, "control net not valid", None, )
-        
+
         return (True, "Success", file_loader[0], )
 
 LOCAL_NODE_CLASS = {
