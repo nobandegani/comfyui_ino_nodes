@@ -1,55 +1,80 @@
 import os
 from pathlib import Path
 
-from inopyutils import InoS3Helper
+from inopyutils import InoS3Helper, InoJsonHelper
+
+S3_EMPTY_CONFIG = {
+    "access_key_id": "",
+    "access_key_secret": "",
+    "bucket_name": "",
+    "endpoint_url": "",
+    "region_name": "",
+}
+S3_EMPTY_CONFIG_STRING = InoJsonHelper.dict_to_string(S3_EMPTY_CONFIG)["data"]
 
 class S3Helper:
     @staticmethod
-    def get_instance(s3_config):
+    def get_instance(s3_config:str):
         try:
+            s3_config = InoJsonHelper.string_to_dict(s3_config)["data"]
+            print(s3_config)
             s3_instance = InoS3Helper()
             s3_instance.init(
                 aws_access_key_id=s3_config["access_key_id"],
-                aws_secret_access_key=s3_config["secret_access_key"],
+                aws_secret_access_key=s3_config["access_key_secret"],
                 endpoint_url=s3_config["endpoint_url"],
                 region_name=s3_config["region_name"],
                 bucket_name=s3_config["bucket_name"],
             )
             return s3_instance
         except Exception as e:
-            print(f"Failed to create S3 instance: {e} Please check your environment variables.")
+            print(f"Failed to create S3 instance: {e} Please check your variables.")
 
     @staticmethod
-    def validate_s3_config(s3_config) -> dict:
+    def validate_s3_config(s3_config:str) -> dict:
         if not s3_config:
             return {
                 "success": False,
-                "msg": "S3 configuration is required and cannot be empty"
+                "msg": "S3 configuration is required and cannot be empty",
+                "config": ""
             }
 
-        if not isinstance(s3_config, dict):
+        s3_config_dict = InoJsonHelper.string_to_dict(s3_config)
+        if not s3_config_dict["success"]:
             return {
                 "success": False,
-                "msg": "S3 configuration must be a dictionary"
+                "msg": "S3 configuration must be a valid json string",
+                "config": ""
             }
+        s3_config_dict = s3_config_dict["data"]
 
-        s3_config["access_key_id"] = str(os.getenv('S3_ACCESS_KEY', s3_config.get("access_key_id", "")))
-        s3_config["secret_access_key"] = str(os.getenv('S3_ACCESS_SECRET', s3_config.get("secret_access_key", "")))
-        s3_config["endpoint_url"] = str(os.getenv('S3_ENDPOINT_URL', s3_config.get("endpoint_url", "")))
-        s3_config["region_name"] = str(os.getenv('S3_REGION_NAME', s3_config.get("region_name", "")))
-        s3_config["bucket_name"] = str(os.getenv('S3_BUCKET_NAME', s3_config.get("bucket_name", "")))
+        s3_config_dict["access_key_id"] = os.getenv('S3_ACCESS_KEY', s3_config_dict.get("access_key_id", ""))
+        s3_config_dict["access_key_secret"] = os.getenv('S3_ACCESS_SECRET', s3_config_dict.get("access_key_secret", ""))
+        s3_config_dict["endpoint_url"] = os.getenv('S3_ENDPOINT_URL', s3_config_dict.get("endpoint_url", ""))
+        s3_config_dict["region_name"] = os.getenv('S3_REGION_NAME', s3_config_dict.get("region_name", ""))
+        s3_config_dict["bucket_name"] = os.getenv('S3_BUCKET_NAME', s3_config_dict.get("bucket_name", ""))
 
-        required_keys = ["access_key_id", "secret_access_key"]
-        missing_keys = [key for key in required_keys if key not in s3_config or not s3_config[key]]
+        required_keys = ["access_key_id", "access_key_secret"]
+        missing_keys = [key for key in required_keys if key not in s3_config_dict or not s3_config_dict[key]]
         if missing_keys:
             return {
                 "success": False,
-                "msg": f"S3 configuration missing required keys: {', '.join(missing_keys)}"
+                "msg": f"S3 configuration missing required keys: {', '.join(missing_keys)}",
+                "config": ""
+            }
+
+        s3_config_str = InoJsonHelper.dict_to_string(s3_config_dict)
+        if not s3_config_str["success"]:
+            return {
+                "success": False,
+                "msg": "Failed to convert S3 configuration to json string",
+                "config": ""
             }
 
         return {
             "success": True,
-            "msg": "S3 configuration is valid"
+            "msg": "S3 configuration is valid",
+            "config": s3_config_str["data"]
         }
 
     @staticmethod
@@ -131,7 +156,7 @@ class InoS3Config:
         return {
             "required":{
                 "access_key_id": ("STRING", {"default": ""}),
-                "secret_access_key": ("STRING", {"default": ""}),
+                "access_key_secret": ("STRING", {"default": ""}),
                 "endpoint_url": ("STRING", {"default": ""}),
                 "region_name": ("STRING", {"default": ""}),
                 "bucket_name": ("STRING", {"default": ""}),
@@ -143,12 +168,16 @@ class InoS3Config:
     RETURN_NAMES = ("success", "config", )
     FUNCTION = "function"
 
-    async def function(self, access_key_id, secret_access_key, endpoint_url, region_name, bucket_name):
+    async def function(self, access_key_id, access_key_secret, endpoint_url, region_name, bucket_name):
         s3_config ={
             "access_key_id": access_key_id,
-            "secret_access_key": secret_access_key,
+            "access_keys_ecret": access_key_secret,
             "endpoint_url": endpoint_url,
             "region_name": region_name,
             "bucket_name": bucket_name,
         }
-        return (True, s3_config, )
+        dict_to_string = InoJsonHelper.dict_to_string(s3_config)
+        if not dict_to_string["success"]:
+            return (False, dict_to_string["msg"], )
+
+        return (True, dict_to_string["data"], )
