@@ -1,14 +1,8 @@
-import hashlib
 from pathlib import Path
-import json
-import asyncio
 from copy import deepcopy
 from typing import List, Dict, Tuple
 
 from inopyutils import InoJsonHelper
-
-import folder_paths
-from comfy_extras.nodes_flux import FluxGuidance
 
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
 from .model_helper import InoHuggingFaceDownloadModel, InoCivitaiDownloadModel
@@ -224,6 +218,63 @@ class InoGetLoraConfig:
             return (-1, "", "",)
 
         return (lora_cfg["id"], lora_cfg["name"], lora_cfg_str["data"], )
+
+class InoCreateLoraConfig:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "lora_id": ("INT", {"tooltip": "The id of the Model."}),
+                "lora_name": ("STRING", {"tooltip": "The name of the Model."}),
+                "trigger_word": ("STRING", {"default": "trigger", "tooltip": ""}),
+                "base_model": ("STRING", {"default":"flux1dev", "tooltip": ""}),
+                "file": ("STRING", {"default": "", "tooltip": "it should be a json string"}),
+            },
+            "optional": {
+                "lora_type": ("STRING", {"default": "person", "tooltip": ""}),
+                "weight_type": ("STRING", {"default": "fp16", "tooltip": ""}),
+                "trigger_words": ("STRING", {"default": "trigger1,trigger2", "tooltip": ""}),
+                "description": ("STRING", {"default": "", "tooltip": ""}),
+                "tags": ("STRING", {"default": "style, instagram", "tooltip": ""}),
+                "strength_model": ("FLOAT", {"default": 0.9, "min": -1, "max": 1, "step": 0.01}),
+                "strength_clip": ("FLOAT", {"default": 0.9, "min": -1, "max": 1, "step": 0.01}),
+            }
+        }
+
+    RETURN_TYPES = ("INT", "STRING", "STRING",)
+    RETURN_NAMES = ("LoraID", "LoraName", "LoraConfig",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self, enabled, lora_id, lora_name, trigger_word, base_model, file,
+                 lora_type, weight_type, trigger_words, description, tags, strength_model, strength_clip):
+        if not enabled:
+            return (-1, "", "", )
+
+        lora_config = {}
+        lora_config["id"] = lora_id
+        lora_config["name"] = lora_name
+        lora_config["base_model"] = base_model
+        lora_config["type"] = lora_type
+        lora_config["trigger_word"] = trigger_word
+        lora_config["trigger_words"] = trigger_words
+        lora_config["file"] = file
+        lora_config["weight_type"] = weight_type
+        lora_config["strength_model"] = strength_model
+        lora_config["strength_clip"] = strength_clip
+        lora_config["description"] = description
+        lora_config["tags"] = tags
+
+        lora_config_str = InoJsonHelper.dict_to_string(lora_config)["data"]
+
+        return (lora_config["id"], lora_config["name"], lora_config_str, )
 
 class InoShowModelConfig:
     """
@@ -968,6 +1019,7 @@ LOCAL_NODE_CLASS = {
     "InoShowModelConfig": InoShowModelConfig,
     "InoUpdateModelConfig": InoUpdateModelConfig,
     "InoGetLoraConfig": InoGetLoraConfig,
+    "InoCreateLoraConfig": InoCreateLoraConfig,
     "InoShowLoraConfig": InoShowLoraConfig,
     "InoLoadSamplerModels": InoLoadSamplerModels,
     "InoGetConditioning": InoGetConditioning,
@@ -980,6 +1032,7 @@ LOCAL_NODE_NAME = {
     "InoShowModelConfig": "Ino Show Model Config",
     "InoUpdateModelConfig": "Ino Update Model Config",
     "InoGetLoraConfig": "Ino Get Lora Config",
+    "InoCreateLoraConfig": "Ino Create Lora Config",
     "InoShowLoraConfig": "Ino Show Lora Config",
     "InoLoadSamplerModels": "Ino Load Sampler Models",
     "InoGetConditioning": "Ino Get Conditioning",
