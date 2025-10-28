@@ -23,8 +23,8 @@ class InoJsonSetField:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", )
-    RETURN_NAMES = ("Success", "MSG", "Json", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("Success", "MSG", "Json", "JsonAsDict",)
 
     FUNCTION = "function"
     CATEGORY = "InoNodes"
@@ -45,7 +45,7 @@ class InoJsonSetField:
 
             base_json = json_string["data"]
             ino_print_log("InoJsonSetField", "Success")
-            return (True, "Success", base_json, )
+            return (True, "Success", base_json, json_object)
         except Exception as e:
             ino_print_log("InoJsonSetField", "",str(e))
             return (False, f"failed: {e}", "",)

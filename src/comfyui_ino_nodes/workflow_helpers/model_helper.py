@@ -430,6 +430,32 @@ class InoLoadControlnet:
 
         return (True, "Success", file_loader[0], )
 
+class InoModelPathToCombo:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model_type": (MODEL_TYPES, {}),
+                "model_path": ("STRING", {"default": ""}),
+            }
+        }
+
+    RETURN_TYPES = ("COMBO", "COMBO",)
+    RETURN_NAMES = ("string", "list",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, model_type, model_path):
+        model_list = folder_paths.get_filename_list(model_type)
+
+        return (model_list[0], model_list, )
+
 LOCAL_NODE_CLASS = {
     "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
     "InoS3DownloadModel": InoS3DownloadModel,
@@ -437,6 +463,7 @@ LOCAL_NODE_CLASS = {
     "InoCivitaiDownloadModel": InoCivitaiDownloadModel,
     "InoHandleDownloadModel": InoHandleDownloadModel,
     "InoLoadControlnet": InoLoadControlnet,
+    "InoModelPathToCombo": InoModelPathToCombo,
 }
 LOCAL_NODE_NAME = {
     "InoCreateModelFileConfig": "Ino Create Model File Config",
@@ -445,4 +472,5 @@ LOCAL_NODE_NAME = {
     "InoCivitaiDownloadModel": "Ino Civitai Download Model",
     "InoHandleDownloadModel": "Ino Handle Download Model",
     "InoLoadControlnet": "Ino Load Controlnet",
+    "InoModelPathToCombo": "Ino Model Path To Combo",
 }

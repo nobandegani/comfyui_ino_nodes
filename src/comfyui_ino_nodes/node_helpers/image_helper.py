@@ -17,8 +17,8 @@ class InoSaveImages:
             }
         }
 
-    RETURN_TYPES = ("STRING" , "INT", )
-    RETURN_NAMES = ("Result", "NumberOfImages", )
+    RETURN_TYPES = ("BOOLEAN", "STRING" , "INT", )
+    RETURN_NAMES = ("Success", "Result", "NumberOfImages", )
 
     FUNCTION = "function"
     CATEGORY = "InoNodes"
@@ -36,7 +36,10 @@ class InoSaveImages:
         for result in results:
             names.append(result["filename"])
 
-        return (names, len(results), )
+        if len(results) == 0:
+            return (False, "", 0, )
+
+        return (True, names, len(results), )
 
 class InoImageResizeByLongerSideV1:
     @classmethod

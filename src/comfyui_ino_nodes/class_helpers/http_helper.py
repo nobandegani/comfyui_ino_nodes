@@ -37,7 +37,7 @@ class InoHttpCall:
                        ):
         if not enabled:
             ino_print_log("InoHttpCall", "Attempt to run but disabled")
-            return (False, 0, "", "", )
+            return (False, 0, "Attempt to run but disabled", "", )
 
         http_client = None
         try:
@@ -69,12 +69,12 @@ class InoHttpCall:
             else:
                 await http_client.close()
                 ino_print_log("InoHttpCall", "Invalid request type", request_type)
-                return (False, 0, "", "",)
+                return (False, 0, "Invalid request type", "",)
 
             await http_client.close()
             if not resp["success"]:
-                ino_print_log("InoHttpCall", resp["msg"])
-                return (False, 0, "", "",)
+                ino_print_log("InoHttpCall", resp["msg"], resp)
+                return (False, 0, resp["msg"], resp,)
 
             ino_print_log("InoHttpCall", "Success")
             return (True, resp["status_code"], resp["msg"], resp["data"], )

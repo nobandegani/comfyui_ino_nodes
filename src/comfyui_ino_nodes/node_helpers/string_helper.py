@@ -30,9 +30,35 @@ class InoStringToggleCase:
         result = str(input_string).upper() if toggle_to else str(input_string).lower()
         return (result,)
 
+class InoStringToCombo:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_string": ("STRING", {"default": "Test String"}),
+            }
+        }
+
+    RETURN_TYPES = ("COMBO", "COMBO",)
+    RETURN_NAMES = ("string", "list",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, input_string):
+        combo: list[str] = [input_string, ]
+        return (combo[0], combo, )
+
 LOCAL_NODE_CLASS = {
     "InoStringToggleCase": InoStringToggleCase,
+    "InoStringToCombo": InoStringToCombo,
 }
 LOCAL_NODE_NAME = {
     "InoStringToggleCase": "Ino String Toggle Case",
+    "InoStringToCombo": "Ino String To Combo",
 }
