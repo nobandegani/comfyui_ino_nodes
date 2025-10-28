@@ -384,6 +384,8 @@ class InoHandleDownloadModel:
             loader = InoHuggingFaceDownloadModel()
         elif config_dict["host"] == "civitai":
             loader = InoCivitaiDownloadModel()
+        else:
+            return (False, "unknown host", "", "", "")
 
         return await loader.function(enabled=True, model_config=config)
 

@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple
 from inopyutils import InoJsonHelper
 
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
-from .model_helper import InoHuggingFaceDownloadModel, InoCivitaiDownloadModel
+from .model_helper import InoHuggingFaceDownloadModel, InoCivitaiDownloadModel, InoHandleDownloadModel
 
 from ..node_helper import any_type, ino_print_log
 
@@ -597,69 +597,44 @@ class InoLoadSamplerModels:
             model_cfg = load_json["data"]
 
             unet_config = model_cfg["unet"]
-            unet_file_loader = {}
             clip1_config = model_cfg["clip1"]
-            clip1_file_loader = {}
             clip2_config = model_cfg["clip2"]
-            clip2_file_loader = {}
             vae_config = model_cfg["vae"]
-            vae_file_loader = {}
 
-            hf_loader= InoHuggingFaceDownloadModel()
-            civitai_loader = InoCivitaiDownloadModel()
+            download_model_handler = InoHandleDownloadModel()
 
-            if unet_config["host"] == "hf":
-                unet_file_loader = await hf_loader.function(
-                    enabled=True,
-                    dict_as_input=unet_config
-                )
-                if not unet_file_loader[0]:
-                    ino_print_log("InoLoadSamplerModels", "unet_file_loader hf failed")
-                    return (False, unet_file_loader[1], None, None, None, None, None,)
-            elif unet_config["host"] == "civitai":
-                unet_file_loader = await civitai_loader.function(
-                    enabled=True,
-                    dict_as_input=unet_config
-                )
-                if not unet_file_loader[0]:
-                    ino_print_log("InoLoadSamplerModels", "unet_file_loader civitai failed")
-                    return (False, unet_file_loader[1], None, None, None, None, None,)
+            unet_file_loader = download_model_handler.function(
+                enabled=True,
+                config=unet_config
+            )
+            if not unet_file_loader[0]:
+                ino_print_log("InoLoadSamplerModels", "unet_file_loader hf failed")
+                return (False, unet_file_loader[1], None, None, None, None, None,)
 
-            if clip1_config["host"] == "hf":
-                clip1_file_loader = await hf_loader.function(
-                    enabled=True,
-                    dict_as_input=clip1_config
-                )
-                if not clip1_file_loader[0]:
-                    ino_print_log("InoLoadSamplerModels", "clip1_file_loader hf failed")
-                    return (False, clip1_file_loader[1], None, None, None, None, None,)
-            else:
-                ino_print_log("InoLoadSamplerModels", "clip1_file_loader not hf")
-                return (False, "Downloading other than HF not supported for clip1", None, None, None, None, None,)
+            clip1_file_loader = download_model_handler.function(
+                enabled=True,
+                config=clip1_config
+            )
+            if not clip1_file_loader[0]:
+                ino_print_log("InoLoadSamplerModels", "clip1_file_loader failed")
+                return (False, clip1_file_loader[1], None, None, None, None, None,)
 
-            if clip2_config["host"] == "hf":
-                clip2_file_loader = await hf_loader.function(
-                    enabled=True,
-                    dict_as_input=clip2_config
-                )
-                if not clip2_file_loader[0]:
-                    ino_print_log("InoLoadSamplerModels", "clip2_file_loader hf failed")
-                    return (False, clip2_file_loader[1], None, None, None, None, None,)
-            else:
-                ino_print_log("InoLoadSamplerModels", "clip2_file_loader not hf")
-                return (False, "Downloading other than HF not supported for clip2", None, None, None, None, None,)
+            clip2_file_loader = download_model_handler.function(
+                enabled=True,
+                config=clip2_config
+            )
+            if not clip2_file_loader[0]:
+                ino_print_log("InoLoadSamplerModels", "clip2_file_loader failed")
+                return (False, clip2_file_loader[1], None, None, None, None, None,)
 
-            if vae_config["host"] == "hf":
-                vae_file_loader = await hf_loader.function(
-                    enabled=True,
-                    dict_as_input=vae_config
-                )
-                if not vae_file_loader[0]:
-                    ino_print_log("InoLoadSamplerModels", "vae_file_loader hf failed")
-                    return (False, vae_file_loader[1], None, None, None, None, None,)
-            else:
-                ino_print_log("InoLoadSamplerModels", "vae_file_loader not hf")
-                return (False, "Downloading other than HF not supported for vae", None, None, None, None, None,)
+            vae_file_loader = download_model_handler.function(
+                enabled=True,
+                config=vae_config
+            )
+            if not vae_file_loader[0]:
+                ino_print_log("InoLoadSamplerModels", "vae_file_loader failed")
+                return (False, vae_file_loader[1], None, None, None, None, None,)
+
 
             from nodes import UNETLoader, CLIPLoader, DualCLIPLoader, VAELoader
 
