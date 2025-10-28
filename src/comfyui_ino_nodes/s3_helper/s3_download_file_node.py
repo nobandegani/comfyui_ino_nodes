@@ -1,6 +1,7 @@
 from pathlib import Path
 import folder_paths
-from .s3_helper import S3Helper
+
+from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 
 class InoS3DownloadFile:
     @classmethod
@@ -8,12 +9,12 @@ class InoS3DownloadFile:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": "input/example.png"}),
                 "parent_folder": (["input", "output", "temp"],),
                 "save_path": ("STRING", {"default": "s3download/"}),
             },
             "optional": {
+                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
                 "bucket_name": ("STRING", {"default": "default"}),
             }
         }
@@ -25,11 +26,12 @@ class InoS3DownloadFile:
 
     async def function(self, enabled, s3_key, parent_folder, save_path, s3_config, bucket_name):
         if not enabled:
-            return (False, "", "", "", "",)
+            return (False, "not enabled", "", "", "",)
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
             return (False, validate_s3_config["msg"], "", "", "",)
+        s3_config = validate_s3_config["config"]
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:

@@ -9,7 +9,7 @@ from datetime import datetime
 import folder_paths
 import node_helpers
 
-from .s3_helper import S3Helper
+from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 
 class InoS3DownloadImage:
     @classmethod
@@ -17,10 +17,10 @@ class InoS3DownloadImage:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": "input/example.png"}),
             },
             "optional": {
+                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
                 "bucket_name": ("STRING", {"default": "default"}),
             }
         }
@@ -30,14 +30,15 @@ class InoS3DownloadImage:
     RETURN_NAMES = ("success", "msg", "result", "image", "mask", )
     FUNCTION = "function"
 
-    async def function(self, enabled, s3_config, s3_key, bucket_name):
+    async def function(self, enabled, s3_key, s3_config, bucket_name):
         if not enabled:
-            return (False, "", "", None, None, )
+            return (False, "not enabled", "", None, None, )
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
             return (False, validate_s3_config["msg"], "", None, None,)
-
+        s3_config = validate_s3_config["config"]
+        
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             return (False, validate_s3_key["msg"], "", None, None,)

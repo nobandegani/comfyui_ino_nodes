@@ -4,7 +4,7 @@ from pathlib import Path
 
 import folder_paths
 
-from .s3_helper import S3Helper
+from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import any_type
 
 class InoS3UploadFolder:
@@ -14,13 +14,13 @@ class InoS3UploadFolder:
             "required":{
                 "execute": (any_type,),
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": ""}),
                 "parent_folder": (["input", "output", "temp"], ),
                 "local_path": ("STRING", {"default": "input/example.png"}),
                 "delete_local": ("BOOLEAN", {"default": True}),
             },
             "optional": {
+                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
                 "bucket_name": ("STRING", {"default": "default"}),
                 "max_concurrent": ("INT", {"default": 5, "min": 1, "max": 10}),
             }
@@ -31,7 +31,7 @@ class InoS3UploadFolder:
     RETURN_NAMES = ("success", "msg", "result", "total_files", "uploaded_successfully", "failed_uploads", "errors", )
     FUNCTION = "function"
 
-    async def function(self, execute, enabled, s3_config, s3_key, parent_folder, local_path, delete_local, bucket_name, max_concurrent):
+    async def function(self, execute, enabled, s3_key, parent_folder, local_path, delete_local, s3_config, bucket_name, max_concurrent):
         if not enabled:
             return (False, "", "", 0, 0, 0, "", )
 
@@ -41,6 +41,7 @@ class InoS3UploadFolder:
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
             return (False, validate_s3_config["msg"], "", 0, 0, 0, "", )
+        s3_config = validate_s3_config["config"]
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:

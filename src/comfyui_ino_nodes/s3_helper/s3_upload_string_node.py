@@ -10,7 +10,7 @@ from inopyutils import InoJsonHelper, InoFileHelper
 import folder_paths
 from comfy.cli_args import args
 
-from .s3_helper import S3Helper
+from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import any_type
 
 class InoS3UploadString:
@@ -22,11 +22,11 @@ class InoS3UploadString:
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "string": ("STRING",),
                 "save_as": (["txt", "json", "ini"], ),
-                "s3_config": ("STRING", {"default": ""}),
                 "s3_key": ("STRING", {"default": ""}),
                 "file_name": ("STRING", {"default": ""})
             },
             "optional": {
+                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
                 "date_time_as_name": ("BOOLEAN", {"default": False}),
             },
         }
@@ -36,7 +36,7 @@ class InoS3UploadString:
     FUNCTION = "function"
     CATEGORY = "InoS3Helper"
 
-    async def function(self, execute, enabled, string, save_as, s3_config, s3_key, file_name, date_time_as_name):
+    async def function(self, execute, enabled, string, save_as, s3_key, file_name, s3_config, date_time_as_name):
         if not enabled:
             return (string, False, "", "", "", "",)
 
@@ -47,19 +47,20 @@ class InoS3UploadString:
             if len(file_name) == 1:
                 file_name = str(file_name[0])
             else:
-                return (string, False, "", "", "", "",)
+                return (string, False, "file name is list", "", "", "",)
         elif isinstance(file_name, str):
             pass
         else:
-            return (string, False, "", "", "", "",)
+            return (string, False, "file name not string", "", "", "",)
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
-            return (string,False, "", "", "", "",)
+            return (string, False, validate_s3_config["msg"], "", "", "",)
+        s3_config = validate_s3_config["config"]
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (string,False, "", "", "", "",)
+            return (string, False, validate_s3_key["msg"], "", "", "",)
 
         if date_time_as_name:
             file_name = datetime.now().strftime("%Y%m%d%H%M%S")
