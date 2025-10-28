@@ -8,7 +8,7 @@ import folder_paths
 import node_helpers
 
 
-from ..s3_helper.s3_helper import S3Helper
+from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import ino_print_log
 
 MODEL_TYPES = (
@@ -25,8 +25,11 @@ class InoS3DownloadModel:
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "model_type": (MODEL_TYPES, {}),
                 "model_subfolder": ("STRING", {"default": "flux1dev"}),
-                "s3_config": ("STRING", {}),
                 "s3_key": ("STRING", {"default": "uploads/lora/aly_v001.safetensors"}),
+            },
+            "optional": {
+                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
+                "bucket_name": ("STRING", {"default": "default"}),
             }
         }
 
@@ -35,7 +38,7 @@ class InoS3DownloadModel:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, model_type, model_subfolder, s3_config, s3_key):
+    async def function(self, enabled, model_type, model_subfolder, s3_key, s3_config, bucket_name):
         if not enabled:
             ino_print_log("InoS3DownloadModel", "Attempt to run but disabled")
             return (False, "", "", "", "",)
@@ -53,7 +56,8 @@ class InoS3DownloadModel:
         if not validate_s3_config["success"]:
             ino_print_log("InoS3DownloadModel", validate_s3_config["msg"], )
             return (False, validate_s3_config["msg"], "", "", "",)
-
+        s3_config = validate_s3_config["config"]
+        
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             ino_print_log("InoS3DownloadModel", validate_s3_key["msg"], )
