@@ -6,6 +6,8 @@ import hashlib
 from datetime import datetime, timezone
 from ..node_helper import any_type
 
+#todo add delay (async)
+#todo add show any
 
 class InoDateTimeAsString:
     """

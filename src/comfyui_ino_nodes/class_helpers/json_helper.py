@@ -110,7 +110,7 @@ class InoSaveJson:
 
         if not execute:
             return (False, "execute is false", "",)
-        
+
         try:
             output_path = folder_paths.get_output_directory()
             save_path :Path = Path(output_path) / Path(local_path)

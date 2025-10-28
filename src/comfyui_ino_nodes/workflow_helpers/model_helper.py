@@ -11,6 +11,7 @@ import node_helpers
 from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import ino_print_log, MODEL_TYPES
 
+#todo add progress bar
 
 class InoCreateDownloadModelConfig:
     """
@@ -389,12 +390,53 @@ class InoHandleDownloadModel:
 
         return await loader.function(enabled=True, model_config=config)
 
+class InoLoadControlnet:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_path": ("STRING", {"default": ""}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "CONTROL_NET", )
+    RETURN_NAMES = ("Success", "MSG", "ControlNet")
+
+    FUNCTION = "function"
+    CATEGORY = "InoSamplerHelper"
+
+    async def function(self, enabled, model_path: str):
+        if not enabled:
+            return (False, "not enabled", None, )
+
+        #if not Path(model_path).is_file():
+        #    return (False, "model path is not valid", None, )
+
+        from nodes import ControlNetLoader
+
+        controlnet_loader = ControlNetLoader()
+        file_loader = controlnet_loader.load_controlnet(
+            control_net_name=model_path
+        )
+        if not file_loader[0]:
+            return (False, "control net not valid", None, )
+        
+        return (True, "Success", file_loader[0], )
+
 LOCAL_NODE_CLASS = {
     "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
     "InoS3DownloadModel": InoS3DownloadModel,
     "InoHuggingFaceDownloadModel": InoHuggingFaceDownloadModel,
     "InoCivitaiDownloadModel": InoCivitaiDownloadModel,
     "InoHandleDownloadModel": InoHandleDownloadModel,
+    "InoLoadControlnet": InoLoadControlnet,
 }
 LOCAL_NODE_NAME = {
     "InoCreateModelFileConfig": "Ino Create Model File Config",
@@ -402,4 +444,5 @@ LOCAL_NODE_NAME = {
     "InoHuggingFaceDownloadModel": "Ino Hugging Face Download Model",
     "InoCivitaiDownloadModel": "Ino Civitai Download Model",
     "InoHandleDownloadModel": "Ino Handle Download Model",
+    "InoLoadControlnet": "Ino Load Controlnet",
 }
