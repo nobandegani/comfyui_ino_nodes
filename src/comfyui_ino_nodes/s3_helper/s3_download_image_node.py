@@ -38,7 +38,7 @@ class InoS3DownloadImage:
         if not validate_s3_config["success"]:
             return (False, validate_s3_config["msg"], "", None, None,)
         s3_config = validate_s3_config["config"]
-        
+
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             return (False, validate_s3_key["msg"], "", None, None,)
