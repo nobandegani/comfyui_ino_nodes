@@ -253,10 +253,15 @@ class InoCreateLoraConfig:
 
     CATEGORY = "InoSamplerHelper"
 
-    def function(self, enabled, lora_id, lora_name, trigger_word, base_model, file,
+    def function(self, enabled, lora_id: int, lora_name:str, trigger_word:str, base_model, file,
                  lora_type, weight_type, trigger_words, description, tags, strength_model, strength_clip):
         if not enabled:
             return (-1, "", "", )
+
+        file_dict = InoJsonHelper.string_to_dict(file)
+        if not file_dict["success"]:
+            return (-1, "failed to parse file", "",)
+        file_dict = file_dict["data"]
 
         lora_config = {}
         lora_config["id"] = lora_id
@@ -265,7 +270,7 @@ class InoCreateLoraConfig:
         lora_config["type"] = lora_type
         lora_config["trigger_word"] = trigger_word
         lora_config["trigger_words"] = trigger_words
-        lora_config["file"] = file
+        lora_config["file"] = file_dict
         lora_config["weight_type"] = weight_type
         lora_config["strength_model"] = strength_model
         lora_config["strength_clip"] = strength_clip
@@ -596,40 +601,40 @@ class InoLoadSamplerModels:
 
             model_cfg = load_json["data"]
 
-            unet_config = model_cfg["unet"]
-            clip1_config = model_cfg["clip1"]
-            clip2_config = model_cfg["clip2"]
-            vae_config = model_cfg["vae"]
+            unet_download_model_config = InoJsonHelper.dict_to_string(model_cfg["unet"])[ "data"]
+            clip1_download_model_config = InoJsonHelper.dict_to_string(model_cfg["clip1"])[ "data"]
+            clip2_download_model_config = InoJsonHelper.dict_to_string(model_cfg["clip2"])[ "data"]
+            vae_download_model_config = InoJsonHelper.dict_to_string(model_cfg["vae"])[ "data"]
 
             download_model_handler = InoHandleDownloadModel()
 
-            unet_file_loader = download_model_handler.function(
+            unet_file_loader = await download_model_handler.function(
                 enabled=True,
-                config=unet_config
+                config=unet_download_model_config
             )
             if not unet_file_loader[0]:
                 ino_print_log("InoLoadSamplerModels", "unet_file_loader hf failed")
                 return (False, unet_file_loader[1], None, None, None, None, None,)
 
-            clip1_file_loader = download_model_handler.function(
+            clip1_file_loader = await download_model_handler.function(
                 enabled=True,
-                config=clip1_config
+                config=clip1_download_model_config
             )
             if not clip1_file_loader[0]:
                 ino_print_log("InoLoadSamplerModels", "clip1_file_loader failed")
                 return (False, clip1_file_loader[1], None, None, None, None, None,)
 
-            clip2_file_loader = download_model_handler.function(
+            clip2_file_loader = await download_model_handler.function(
                 enabled=True,
-                config=clip2_config
+                config=clip2_download_model_config
             )
             if not clip2_file_loader[0]:
                 ino_print_log("InoLoadSamplerModels", "clip2_file_loader failed")
                 return (False, clip2_file_loader[1], None, None, None, None, None,)
 
-            vae_file_loader = download_model_handler.function(
+            vae_file_loader = await download_model_handler.function(
                 enabled=True,
-                config=vae_config
+                config=vae_download_model_config
             )
             if not vae_file_loader[0]:
                 ino_print_log("InoLoadSamplerModels", "vae_file_loader failed")
