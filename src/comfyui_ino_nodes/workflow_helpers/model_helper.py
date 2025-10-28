@@ -12,7 +12,7 @@ from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import ino_print_log, MODEL_TYPES
 
 
-class InoCreateModelFileConfig:
+class InoCreateDownloadModelConfig:
     """
 
     """
@@ -36,7 +36,7 @@ class InoCreateModelFileConfig:
         }
 
     RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("FileConfig",)
+    RETURN_NAMES = ("ModelConfig",)
 
     FUNCTION = "function"
 
@@ -47,19 +47,19 @@ class InoCreateModelFileConfig:
         if not enabled:
             return ("",)
 
-        file_config = {}
-        file_config["host"] = host
-        file_config["model_type"] = model_type
-        file_config["model_subfolder"] = model_subfolder
-        file_config["repo_id"] = repo_id
-        file_config["filename"] = filename
-        file_config["subfolder"] = subfolder
-        file_config["repo_type"] = repo_type
-        file_config["revision"] = revision
+        config = {}
+        config["host"] = host
+        config["model_type"] = model_type
+        config["model_subfolder"] = model_subfolder
+        config["repo_id"] = repo_id
+        config["filename"] = filename
+        config["subfolder"] = subfolder
+        config["repo_type"] = repo_type
+        config["revision"] = revision
 
-        file_config_str = InoJsonHelper.dict_to_string(file_config)["data"]
+        config_str = InoJsonHelper.dict_to_string(config)["data"]
 
-        return (file_config_str,)
+        return (config_str,)
 
 class InoS3DownloadModel:
 
@@ -68,6 +68,7 @@ class InoS3DownloadModel:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_config": ("STRING", {"default": "{}"}),
                 "model_type": (MODEL_TYPES, {}),
                 "model_subfolder": ("STRING", {"default": "flux1dev"}),
                 "s3_key": ("STRING", {"default": "uploads/lora/aly_v001.safetensors"}),
@@ -83,43 +84,58 @@ class InoS3DownloadModel:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, model_type, model_subfolder, s3_key, s3_config, bucket_name):
+    async def function(self, enabled, model_config, model_type="", model_subfolder="", s3_key="", s3_config="{}", bucket_name="default"):
         if not enabled:
             ino_print_log("InoS3DownloadModel", "Attempt to run but disabled")
             return (False, "", "", "", "",)
 
-        parent_path = Path(folder_paths.get_input_directory()).parent
-        model_path_base: Path = parent_path / "models" / model_type
-        model_path:Path = model_path_base / model_subfolder / Path(s3_key).name
+        try:
+            if isinstance(model_config, str):
+                input_config = InoJsonHelper.string_to_dict(model_config)
+                if input_config["success"]:
+                    model_config = input_config["data"]
 
-        need_download = not model_path.is_file()
-        if not need_download:
-            ino_print_log("InoS3DownloadModel", "model already downloaded", )
-            return (True, "model validated", "", "", "",)
+            if isinstance(model_config, dict):
+                model_type = model_config.get("model_type", model_type)
+                model_subfolder = model_config.get("model_subfolder", model_subfolder)
+                s3_config = model_config.get("repo_id", s3_config)
+                s3_key = model_config.get("filename", s3_key)
+                bucket_name = model_config.get("subfolder", bucket_name)
 
-        validate_s3_config = S3Helper.validate_s3_config(s3_config)
-        if not validate_s3_config["success"]:
-            ino_print_log("InoS3DownloadModel", validate_s3_config["msg"], )
-            return (False, validate_s3_config["msg"], "", "", "",)
-        s3_config = validate_s3_config["config"]
+            parent_path = Path(folder_paths.get_input_directory()).parent
+            model_path_base: Path = parent_path / "models" / model_type
+            model_path:Path = model_path_base / model_subfolder / Path(s3_key).name
+            rel_path = Path(model_path).relative_to(model_path_base)
 
-        validate_s3_key = S3Helper.validate_s3_key(s3_key)
-        if not validate_s3_key["success"]:
-            ino_print_log("InoS3DownloadModel", validate_s3_key["msg"], )
-            return (False, validate_s3_key["msg"], "", "", "",)
+            need_download = not model_path.is_file()
+            if not need_download:
+                ino_print_log("InoS3DownloadModel", "model already downloaded", )
+                return (True, "model validated", model_type, model_path, rel_path,)
 
-        model_path.parent.mkdir(parents=True, exist_ok=True)
+            validate_s3_config = S3Helper.validate_s3_config(s3_config)
+            if not validate_s3_config["success"]:
+                ino_print_log("InoS3DownloadModel", validate_s3_config["msg"], )
+                return (False, validate_s3_config["msg"], "", "", "",)
+            s3_config = validate_s3_config["config"]
 
-        s3_instance = S3Helper.get_instance(s3_config)
-        s3_result = await s3_instance.download_file(
-            s3_key=s3_key,
-            local_file_path=model_path
-        )
+            validate_s3_key = S3Helper.validate_s3_key(s3_key)
+            if not validate_s3_key["success"]:
+                ino_print_log("InoS3DownloadModel", validate_s3_key["msg"], )
+                return (False, validate_s3_key["msg"], "", "", "",)
 
-        rel_path = Path(model_path).relative_to(model_path_base)
+            model_path.parent.mkdir(parents=True, exist_ok=True)
 
-        ino_print_log("InoS3DownloadModel", "file downloaded successfully", )
-        return (s3_result["success"], s3_result["msg"], model_type, model_path, rel_path, )
+            s3_instance = S3Helper.get_instance(s3_config)
+            s3_result = await s3_instance.download_file(
+                s3_key=s3_key,
+                local_file_path=model_path
+            )
+
+            ino_print_log("InoS3DownloadModel", "file downloaded successfully", )
+            return (s3_result["success"], s3_result["msg"], model_type, model_path, rel_path, )
+        except Exception as e:
+            ino_print_log("InoS3DownloadModel", "", e)
+            return (False, f"Error: {e}", "", "", "",)
 
 class InoHuggingFaceDownloadModel:
     @classmethod
@@ -127,7 +143,7 @@ class InoHuggingFaceDownloadModel:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "dict_as_input": ("STRING", {"default": "{}"}),
+                "model_config": ("STRING", {"default": "{}"}),
                 "model_type": (MODEL_TYPES, {}),
                 "model_subfolder": ("STRING", {"default": "flux1dev"}),
                 "repo_id": ("STRING", {"default": ""}),
@@ -146,25 +162,25 @@ class InoHuggingFaceDownloadModel:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, dict_as_input, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision=""):
+    async def function(self, enabled, model_config, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision=""):
+        if not enabled:
+            ino_print_log("InoHuggingFaceDownloadFile", "Attempt to run but disabled")
+            return (False, "", "", "", "",)
+
         try:
-            if not enabled:
-                ino_print_log("InoHuggingFaceDownloadFile", "Attempt to run but disabled")
-                return (False, "", "", "", "",)
-
-            if isinstance(dict_as_input, str):
-                input_config = InoJsonHelper.string_to_dict(dict_as_input)
+            if isinstance(model_config, str):
+                input_config = InoJsonHelper.string_to_dict(model_config)
                 if input_config["success"]:
-                    dict_as_input = input_config["data"]
+                    model_config = input_config["data"]
 
-            if isinstance(dict_as_input, dict):
-                model_type = dict_as_input.get("model_type", model_type)
-                model_subfolder = dict_as_input.get("model_subfolder", model_subfolder)
-                repo_id = dict_as_input.get("repo_id", repo_id)
-                filename = dict_as_input.get("filename", filename)
-                subfolder = dict_as_input.get("subfolder", subfolder)
-                repo_type = dict_as_input.get("repo_type", repo_type)
-                revision = dict_as_input.get("revision", revision)
+            if isinstance(model_config, dict):
+                model_type = model_config.get("model_type", model_type)
+                model_subfolder = model_config.get("model_subfolder", model_subfolder)
+                repo_id = model_config.get("repo_id", repo_id)
+                filename = model_config.get("filename", filename)
+                subfolder = model_config.get("subfolder", subfolder)
+                repo_type = model_config.get("repo_type", repo_type)
+                revision = model_config.get("revision", revision)
 
 
             parent_path = Path(folder_paths.get_input_directory()).parent
@@ -203,7 +219,7 @@ class InoCivitaiDownloadModel:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "dict_as_input": ("STRING", {"default": "{}"}),
+                "model_config": ("STRING", {"default": "{}"}),
                 "model_type": (MODEL_TYPES, {}),
                 "model_subfolder": ("STRING", {"default": "flux1dev"}),
                 "model_version": ("STRING", {"default": ""}),
@@ -221,23 +237,23 @@ class InoCivitaiDownloadModel:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, dict_as_input, model_type="", model_subfolder="", model_version="", token="", model_id="", file_id=0, chunk_size=8):
+    async def function(self, enabled, model_config, model_type="", model_subfolder="", model_version="", token="", model_id="", file_id=0, chunk_size=8):
         if not enabled:
             ino_print_log("InoCivitaiDownloadFile", "Attempt to run but disabled")
             return (False, "", "", "", "", )
 
         try:
-            if isinstance(dict_as_input, str):
-                input_config = InoJsonHelper.string_to_dict(dict_as_input)
+            if isinstance(model_config, str):
+                input_config = InoJsonHelper.string_to_dict(model_config)
                 if input_config["success"]:
-                    dict_as_input = input_config["data"]
+                    model_config = input_config["data"]
 
-            if isinstance(dict_as_input, dict):
-                model_type = dict_as_input.get("model_type", model_type)
-                model_subfolder = dict_as_input.get("model_subfolder", model_subfolder)
-                model_version = dict_as_input.get("revision", model_version)
-                model_id = dict_as_input.get("repo_id", model_id)
-                file_id = dict_as_input.get("filename", file_id)
+            if isinstance(model_config, dict):
+                model_type = model_config.get("model_type", model_type)
+                model_subfolder = model_config.get("model_subfolder", model_subfolder)
+                model_version = model_config.get("revision", model_version)
+                model_id = model_config.get("repo_id", model_id)
+                file_id = int(model_config.get("filename", file_id))
 
             parent_path = Path(folder_paths.get_input_directory()).parent
             model_path_base: Path = parent_path / "models" / model_type
@@ -282,7 +298,7 @@ class InoCivitaiDownloadModel:
             except Exception as e:
                 await http_client.close()
                 ino_print_log("InoCivitaiDownloadFile", "failed to get file name or sha", e)
-                return (False, "files is empty", "", "", "",)
+                return (False, "failed to get file name or sha", "", "", "",)
 
             full_model_path = model_path / file_name
 
@@ -328,17 +344,60 @@ class InoCivitaiDownloadModel:
             ino_print_log("InoCivitaiDownloadFile", "", e)
             return (False, e, "", "", "",)
 
+class InoHandleDownloadModel:
+    """
 
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "config": ("STRING", {"default": "{}"}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    async def function(self, enabled, config: str):
+        if not enabled:
+            return (False, "not enabled", "", "", "")
+
+        config_dict = InoJsonHelper.string_to_dict(config)
+        if not config_dict["success"]:
+            return (False, config_dict["msg"], "", "", "")
+
+        config_dict = config_dict["data"]
+
+        loader = None
+        if config_dict["host"] == "s3":
+            loader = InoS3DownloadModel()
+        elif config_dict["host"] == "hf":
+            loader = InoHuggingFaceDownloadModel()
+        elif config_dict["host"] == "civitai":
+            loader = InoCivitaiDownloadModel()
+
+        return await loader.function(enabled=True, model_config=config)
 
 LOCAL_NODE_CLASS = {
-    "InoCreateModelFileConfig": InoCreateModelFileConfig,
+    "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
     "InoS3DownloadModel": InoS3DownloadModel,
     "InoHuggingFaceDownloadModel": InoHuggingFaceDownloadModel,
     "InoCivitaiDownloadModel": InoCivitaiDownloadModel,
+    "InoHandleDownloadModel": InoHandleDownloadModel,
 }
 LOCAL_NODE_NAME = {
     "InoCreateModelFileConfig": "Ino Create Model File Config",
     "InoS3DownloadModel": "Ino S3 Download Model",
     "InoHuggingFaceDownloadModel": "Ino Hugging Face Download Model",
     "InoCivitaiDownloadModel": "Ino Civitai Download Model",
+    "InoHandleDownloadModel": "Ino Handle Download Model",
 }
