@@ -16,16 +16,17 @@ MODEL_TYPES = (
     "loras", "sams", "text_encoders", "vae"
 )
 
-class InoValidateModel:
+class InoS3DownloadModel:
 
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "s3_config": ("STRING", {}),
                 "model_type": (MODEL_TYPES, {}),
-                "model_name": ("STRING", {"default": "flux1dev/ae.safetensors"}),
+                "model_subfolder": ("STRING", {"default": "flux1dev"}),
+                "s3_config": ("STRING", {}),
+                "s3_key": ("STRING", {"default": "uploads/lora/aly_v001.safetensors"}),
             }
         }
 
@@ -34,25 +35,27 @@ class InoValidateModel:
     RETURN_NAMES = ("success", "msg", )
     FUNCTION = "function"
 
-    async def function(self, enabled, s3_config, model_type, model_name):
+    async def function(self, enabled, model_type, model_subfolder, s3_config, s3_key):
         if not enabled:
+            ino_print_log("InoS3DownloadModel", "Attempt to run but disabled")
             return (False, "", )
 
         parent_path = Path(folder_paths.get_input_directory()).parent
-        model_path:Path = parent_path / "models" / model_type / model_name
+        model_path:Path = parent_path / "models" / model_type / model_subfolder / Path(s3_key).name
 
         need_download = not model_path.is_file()
         if not need_download:
+            ino_print_log("InoS3DownloadModel", "model already downloaded", )
             return (True, "model validated", )
-
-        s3_key = f"comfyui/models/{model_type}/{model_name}"
 
         validate_s3_config = S3Helper.validate_s3_config(s3_config)
         if not validate_s3_config["success"]:
+            ino_print_log("InoS3DownloadModel", validate_s3_config["msg"], )
             return (False, validate_s3_config["msg"],)
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
+            ino_print_log("InoS3DownloadModel", validate_s3_key["msg"], )
             return (False, validate_s3_key["msg"],)
 
         model_path.parent.mkdir(parents=True, exist_ok=True)
@@ -63,10 +66,10 @@ class InoValidateModel:
             local_file_path=model_path
         )
 
+        ino_print_log("InoS3DownloadModel", "file downloaded successfully", )
         return (s3_result["success"], s3_result["msg"], )
 
-class InoHuggingFaceDownloadFile:
-
+class InoHuggingFaceDownloadModel:
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -141,7 +144,7 @@ class InoHuggingFaceDownloadFile:
             ino_print_log("InoHuggingFaceDownloadFile", "", e)
             return (False, f"Error: {e}", "", )
 
-class InoCivitaiDownloadFile:
+class InoCivitaiDownloadModel:
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -272,12 +275,12 @@ class InoCivitaiDownloadFile:
             return (False, e, "", "", "",)
 
 LOCAL_NODE_CLASS = {
-    "InoValidateModel": InoValidateModel,
-    "InoHuggingFaceDownloadFile": InoHuggingFaceDownloadFile,
-    "InoCivitaiDownloadFile": InoCivitaiDownloadFile,
+    "InoS3DownloadModel": InoS3DownloadModel,
+    "InoHuggingFaceDownloadModel": InoHuggingFaceDownloadModel,
+    "InoCivitaiDownloadModel": InoCivitaiDownloadModel,
 }
 LOCAL_NODE_NAME = {
-    "InoValidateModel": "Ino Validate Model",
-    "InoHuggingFaceDownloadFile": "Ino Hugging Face Download File",
-    "InoCivitaiDownloadFile": "Ino Civitai Download File",
+    "InoS3DownloadModel": "Ino S3 Download Model",
+    "InoHuggingFaceDownloadModel": "Ino Hugging Face Download Model",
+    "InoCivitaiDownloadModel": "Ino Civitai Download Model",
 }
