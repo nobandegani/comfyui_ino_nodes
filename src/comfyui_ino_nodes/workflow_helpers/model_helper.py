@@ -1,7 +1,7 @@
 import os
 
 from pathlib import Path
-from huggingface_hub import hf_hub_download
+from huggingface_hub import hf_hub_download, snapshot_download
 from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper
 
 import folder_paths
@@ -212,6 +212,76 @@ class InoHuggingFaceDownloadModel:
             return (True, "Successfull", model_type, result, rel_path)
         except Exception as e:
             ino_print_log("InoHuggingFaceDownloadFile", "", e)
+            return (False, f"Error: {e}", "", )
+
+class InoHuggingFaceDownloadRepo:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_config": ("STRING", {"default": "{}"}),
+                "model_type": (MODEL_TYPES, {}),
+                "model_subfolder": ("STRING", {"default": "flux1dev"}),
+                "repo_id": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "token": ("STRING", {"default": ""}),
+                "repo_type": ("STRING", {"default": ""}),
+                "revision": ("STRING", {"default": ""})
+            }
+        }
+
+    CATEGORY = "InoModelHelper"
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
+    FUNCTION = "function"
+
+    async def function(self, enabled, model_config, model_type="", model_subfolder="", repo_id="", token="", repo_type="", revision=""):
+        if not enabled:
+            ino_print_log("InoHuggingFaceDownloadRepo", "Attempt to run but disabled")
+            return (False, "", "", "", "",)
+
+        try:
+            if isinstance(model_config, str):
+                input_config = InoJsonHelper.string_to_dict(model_config)
+                if input_config["success"]:
+                    model_config = input_config["data"]
+
+            if isinstance(model_config, dict):
+                model_type = model_config.get("model_type", model_type)
+                model_subfolder = model_config.get("model_subfolder", model_subfolder)
+                repo_id = model_config.get("repo_id", repo_id)
+                repo_type = model_config.get("repo_type", repo_type)
+                revision = model_config.get("revision", revision)
+
+
+            parent_path = Path(folder_paths.get_input_directory()).parent
+            model_path_base: Path = parent_path / "models" / model_type
+            model_path: Path = model_path_base / model_subfolder
+            if model_path.is_file():
+                model_path = model_path.parent
+
+            args = {}
+            if token:
+                args["token"] = token
+            if repo_type:
+                args["repo_type"] = repo_type
+            if revision:
+                args["revision"] = revision
+
+            args["local_dir"] = model_path
+        except Exception as e:
+            ino_print_log("InoHuggingFaceDownloadRepo", "", e)
+            return (False, f"Error: {e}", "",)
+
+        try:
+            result = snapshot_download(repo_id, **args)
+            rel_path = Path(result).relative_to(model_path_base)
+            ino_print_log("InoHuggingFaceDownloadRepo", "file downloaded successfully", )
+            return (True, "Successfull", model_type, result, rel_path)
+        except Exception as e:
+            ino_print_log("InoHuggingFaceDownloadRepo", "", e)
             return (False, f"Error: {e}", "", )
 
 class InoCivitaiDownloadModel:
@@ -521,6 +591,7 @@ LOCAL_NODE_CLASS = {
 
     "InoS3DownloadModel": InoS3DownloadModel,
     "InoHuggingFaceDownloadModel": InoHuggingFaceDownloadModel,
+    "InoHuggingFaceDownloadRepo": InoHuggingFaceDownloadRepo,
     "InoCivitaiDownloadModel": InoCivitaiDownloadModel,
 
     "InoHandleDownloadModel": InoHandleDownloadModel,
@@ -535,6 +606,7 @@ LOCAL_NODE_NAME = {
 
     "InoS3DownloadModel": "Ino S3 Download Model",
     "InoHuggingFaceDownloadModel": "Ino Hugging Face Download Model",
+    "InoHuggingFaceDownloadRepo": "Ino Hugging Face Download Repo",
     "InoCivitaiDownloadModel": "Ino Civitai Download Model",
 
     "InoHandleDownloadModel": "Ino Handle Download Model",
