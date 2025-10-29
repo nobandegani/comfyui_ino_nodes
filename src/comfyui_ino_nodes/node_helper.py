@@ -6,11 +6,18 @@ class AnyType(str):
 any_type = AnyType("*")
 
 import os
-IS_DEBUG  = bool(os.getenv('COMFYUI_INO_DEBUG', 0))
+_is_debug = os.getenv('COMFYUI_INO_DEBUG', 0) == 1
+IS_DEBUG  = _is_debug
 
 def ino_print_log(prefix:str = "", msg:str="unknown", e = None):
     if IS_DEBUG:
-        print(f"{prefix}: {msg} -> {e}")
+        message = ""
+        if prefix:
+            message += f"[{prefix}]: "
+        message += f"{msg}"
+        if e:
+            message += f" ->{e}"
+        print(message)
 
 MODEL_TYPES = (
     "checkpoints", "clip", "clip_vision", "controlnet", "diffusers", "diffusion_models",

@@ -4,9 +4,9 @@ import asyncio
 
 import hashlib
 from datetime import datetime, timezone
-from ..node_helper import any_type
 
-#todo add delay (async)
+from ..node_helper import any_type, ino_print_log
+
 #todo add show any
 
 class InoDateTimeAsString:
@@ -205,12 +205,42 @@ class InoDelayAsync:
         await asyncio.sleep(delay)
         return (relay,)
 
+class InoPrintLog:
+    """
+        reverse boolean
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "relay": (any_type, {}),
+                "log_message": ("STRING", {"default": "Log message", "multiline": True}),
+            }
+        }
+
+    RETURN_TYPES = (any_type,)
+    RETURN_NAMES = ("output",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    async def function(self, enabled, relay, log_message):
+        if not enabled:
+            return (relay,)
+
+        ino_print_log("", log_message)
+        return (relay,)
+
 LOCAL_NODE_CLASS = {
     "InoDateTimeAsString": InoDateTimeAsString,
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
     "InoAnyBoolSwitch": InoAnyBoolSwitch,
     "InoDelayAsync": InoDelayAsync,
+    "InoPrintLog": InoPrintLog,
 }
 LOCAL_NODE_NAME = {
     "InoDateTimeAsString": "Ino Date Time As String",
@@ -218,4 +248,5 @@ LOCAL_NODE_NAME = {
     "InoAnyEqual": "Ino Any Equal",
     "InoAnyBoolSwitch": "Ino Any Bool Switch",
     "InoDelayAsync": "Ino Delay Async",
+    "InoPrintLog": "Ino Print Log",
 }
