@@ -428,6 +428,7 @@ class InoHandleDownloadAndLoadModel:
         rel_path = download_result[4]
 
         loaded_model = None
+        supported = True
         if model_type == "controlnet":
             from nodes import ControlNetLoader
 
@@ -436,13 +437,17 @@ class InoHandleDownloadAndLoadModel:
                 control_net_name=rel_path
             )
             loaded_model = file_loader[0]
+        else:
+            supported = False
+
+        if not supported:
+            return (False, f"loading {model_type} models not supported yet", model_type, abs_path, rel_path, None,)
 
         if loaded_model:
             return (True, f"{model_type} loaded", model_type, abs_path, rel_path, loaded_model, )
         else:
             return (False, f"{model_type} not loaded", model_type, abs_path, rel_path, None, )
 
-        return (False, "Mdel type not supported", model_type, abs_path, rel_path, None, )
 
 
 class InoLoadControlnet:
