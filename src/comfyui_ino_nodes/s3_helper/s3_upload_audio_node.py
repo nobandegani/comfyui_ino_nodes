@@ -30,8 +30,8 @@ class InoS3UploadAudio:
             },
         }
 
-    RETURN_TYPES = ("STRING", "BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("STRING", "success", "msg", "result", "file_name", "s3_audio_path",)
+    RETURN_TYPES = ("AUDIO", "BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("audio", "success", "msg", "result", "file_name", "s3_audio_path",)
     FUNCTION = "function"
     CATEGORY = "InoS3Helper"
 
@@ -65,33 +65,36 @@ class InoS3UploadAudio:
         if date_time_as_name:
             file_name = datetime.now().strftime("%Y%m%d%H%M%S")
 
-        parent_path = folder_paths.get_temp_directory()
-
-        full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(file_name, parent_path, 0, 0)
-
-        filename_with_batch_num = filename.replace("%batch_num%", "0")
         save_as = "mp3"
-        file = f"{filename_with_batch_num}_{counter:05}_.{save_as}"
-        full_path = os.path.join(full_output_folder, file)
+        file = f"{file_name}.{save_as}"
 
         from comfy_extras.nodes_audio import SaveAudioMP3
 
         audio_saver = SaveAudioMP3()
         save_audio = audio_saver.save_mp3(
             audio=audio,
-            filename_prefix=filename_prefix,
+            filename_prefix=file_name,
+            format="mp3",
+            prompt=None,
+            extra_pnginfo=None,
+            quality="128k"
         )
-        print(full_path)
+
         print(save_audio)
+        if not isinstance(save_audio, dict):
+            return (audio, False, "Audio saved, but failed to get filename", "", "", "",)
 
-        return (audio, False, "", "", "", "",)
+        if len(save_audio["ui"]["audio"]) != 1:
+            return (audio, False, "Audio saved, but there is more than one file", "", "", "",)
 
-        if not save_file["success"]:
-            return (audio, False, save_file["msg"], "", "", "", )
+        file_name = save_audio["ui"]["audio"][0]["filename"]
+
+        parent_path = folder_paths.get_output_directory()
+        full_path:Path = Path(parent_path) / file_name
 
         s3_instance = S3Helper.get_instance(s3_config)
 
-        s3_full_key = s3_key + "/" + file
+        s3_full_key = f"{s3_key.rstrip('/')}/{file_name}"
         s3_result = await s3_instance.upload_file(
             s3_key=s3_full_key,
             local_file_path=full_path,
