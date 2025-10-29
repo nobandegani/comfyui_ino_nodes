@@ -1,6 +1,6 @@
 
 import json
-
+import asyncio
 
 import hashlib
 from datetime import datetime, timezone
@@ -148,13 +148,74 @@ class InoAnyEqual:
     def function(self, input, compare):
         return (input == compare,)
 
+class InoAnyBoolSwitch:
+    """
+        reverse boolean
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_false": (any_type, {}),
+                "input_true": (any_type, {}),
+                "condition": ("BOOLEAN", {"default": True, "label_off": "False", "label_on": "True"}),
+            }
+        }
+
+    RETURN_TYPES = (any_type,)
+    RETURN_NAMES = ("output",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, input_false, input_true, condition):
+        if condition:
+            return (input_true,)
+        else:
+            return (input_false,)
+
+class InoDelayAsync:
+    """
+        reverse boolean
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "relay": (any_type, {}),
+                "delay": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 10000.0, "step": 0.1,}),
+            }
+        }
+
+    RETURN_TYPES = (any_type,)
+    RETURN_NAMES = ("output",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    async def function(self, enabled, relay, delay):
+        if not enabled:
+            return (relay,)
+
+        await asyncio.sleep(delay)
+        return (relay,)
+
 LOCAL_NODE_CLASS = {
     "InoDateTimeAsString": InoDateTimeAsString,
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
+    "InoAnyBoolSwitch": InoAnyBoolSwitch,
+    "InoDelayAsync": InoDelayAsync,
 }
 LOCAL_NODE_NAME = {
     "InoDateTimeAsString": "Ino Date Time As String",
     "InoRelay": "Ino Relay",
     "InoAnyEqual": "Ino Any Equal",
+    "InoAnyBoolSwitch": "Ino Any Bool Switch",
+    "InoDelayAsync": "Ino Delay Async",
 }

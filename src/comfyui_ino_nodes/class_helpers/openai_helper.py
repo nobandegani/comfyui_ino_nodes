@@ -1,5 +1,6 @@
 import hashlib
 import random
+import os
 
 from openai import OpenAI
 
@@ -35,6 +36,7 @@ class InoOpenaiConfig:
     FUNCTION = "function"
 
     async def function(self, openai_api_key, timeout, max_retries):
+        openai_api_key = os.getenv('OPENAI_TOKEN', openai_api_key)
         config = {
             "api_key": openai_api_key,
             "timeout": timeout,
