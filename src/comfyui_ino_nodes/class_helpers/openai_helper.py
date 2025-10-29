@@ -2,6 +2,7 @@ import hashlib
 import random
 import os
 
+from inopyutils import InoJsonHelper
 from openai import OpenAI
 
 from custom_nodes.comfyui_ino_nodes.src.comfyui_ino_nodes.node_helper import ino_print_log
@@ -44,7 +45,7 @@ class InoOpenaiConfig:
         }
         return (True, config)
 
-class InoOpenaiTextGeneration:
+class InoOpenaiResponses:
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -57,9 +58,13 @@ class InoOpenaiTextGeneration:
                     "step": 1,
                     "label": "Seed (0 = random)"
                 }),
+                "response_type": (["text", "image"], {}),
+                "text": ("STRING", {"default": ""}),
+                "image_url": ("STRING", {"default": ""}),
+            },
+            "optional": {
                 "config": ("STRING", {"default": ""}),
-                "prompt": ("STRING", {"default": ""}),
-                "model": ("STRING", {"default": "gpt-5"}),
+                "model": (["gpt-5", "gpt-4.1"], {}),
             }
         }
 
@@ -74,7 +79,7 @@ class InoOpenaiTextGeneration:
         m.update(seed)
         return m.digest().hex()
 
-    async def function(self, enabled, seed, config, prompt, model):
+    async def function(self, enabled, seed, response_type, text, image_url, config, model):
         if not enabled:
             ino_print_log("InoOpenaiTextGeneration","Node is disabled")
             return (False, -1, "not enabled", "", "", "", )
@@ -82,9 +87,25 @@ class InoOpenaiTextGeneration:
         try:
             client = get_openai_client(config)
 
+            response_input = text
+            if response_type == "text":
+                pass
+            elif response_type == "image":
+                response_input=[
+                    {
+                        "role": "user",
+                        "content": [
+                            { "type": "input_text", "text": text },
+                            {
+                                "type": "input_image",
+                                "image_url": image_url
+                            }
+                        ]
+                    }
+                ]
             response = client.responses.create(
                 model=model,
-                input=prompt
+                input=response_input
             )
 
             if response.error:
@@ -92,15 +113,25 @@ class InoOpenaiTextGeneration:
             else:
                 error_message = "none"
 
-            return (True, response.id, response.status, error_message, response.output_text, "", )
+            if response.output:
+                response_output = InoJsonHelper.dict_to_string(response.output)["data"]
+            else:
+                response_output = "empty"
+
+            if response.output_text:
+                response_text = response.output_text
+            else:
+                response_text = "empty"
+
+            return (True, response.id, response.status, error_message, response_text, response_output, )
         except Exception as e:
-            ino_print_log("InoOpenaiTextGeneration","",e)
-            return (False, -1, "", str(e), "", "", )
+            ino_print_log("InoOpenaiResponses","",e)
+            return (False, -1, "Openai response failed", str(e), "", "", )
 
 
 LOCAL_NODE_CLASS = {
     "InoOpenaiConfig": InoOpenaiConfig,
-    "InoOpenaiTextGeneration": InoOpenaiTextGeneration,
+    "InoOpenaiTextGeneration": InoOpenaiResponses,
 }
 LOCAL_NODE_NAME = {
     "InoOpenaiConfig": "Ino Openai Config",
