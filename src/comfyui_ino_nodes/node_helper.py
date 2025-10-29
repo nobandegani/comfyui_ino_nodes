@@ -20,6 +20,7 @@ def ino_print_log(prefix:str = "", msg:str="unknown", e = None):
         print(message)
 
 MODEL_TYPES = (
-    "checkpoints", "clip", "clip_vision", "controlnet", "diffusers", "diffusion_models",
-    "loras", "sams", "text_encoders", "vae"
+    "audio_encoders", "checkpoints", "clip", "clip_vision", "controlnet", "diffusers", "diffusion_models",
+    "embeddings", "face_restore", "loras", "sams", "style_models","text_encoders", "transformers",
+    "tts", "unet", "upscale_models", "vae", "vibevoice", "wav2vec2"
 )
