@@ -81,7 +81,7 @@ class InoOpenaiResponses:
 
     async def function(self, enabled, seed, response_type, text, image_url, config, model):
         if not enabled:
-            ino_print_log("InoOpenaiTextGeneration","Node is disabled")
+            ino_print_log("InoOpenaiResponses","Node is disabled")
             return (False, -1, "not enabled", "", "", "", )
 
         try:
@@ -131,9 +131,9 @@ class InoOpenaiResponses:
 
 LOCAL_NODE_CLASS = {
     "InoOpenaiConfig": InoOpenaiConfig,
-    "InoOpenaiTextGeneration": InoOpenaiResponses,
+    "InoOpenaiResponses": InoOpenaiResponses,
 }
 LOCAL_NODE_NAME = {
     "InoOpenaiConfig": "Ino Openai Config",
-    "InoOpenaiTextGeneration": "Ino Openai Text Generation",
+    "InoOpenaiResponses": "Ino Openai Responses",
 }
