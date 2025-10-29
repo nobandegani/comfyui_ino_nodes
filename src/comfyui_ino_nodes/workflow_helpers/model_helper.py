@@ -390,6 +390,46 @@ class InoHandleDownloadModel:
 
         return await loader.function(enabled=True, model_config=config)
 
+class InoHandleDownloadAndLoadModel:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "config": ("STRING", {"default": "{}"}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", any_type, )
+    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path", "loaded_model", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoSamplerHelper"
+
+    async def function(self, enabled, config: str):
+        if not enabled:
+            return (False, "not enabled", "", "", "")
+
+        download_handler = InoHandleDownloadModel()
+        download_result = await download_handler.function(enabled=True, config=config)
+
+        if not download_result[0]:
+            return (False, download_result[1], "", "", "", None, )
+
+        model_type = download_result[2]
+        abs_path = download_result[3]
+        rel_path = download_result[4]
+
+        return (True, "success", model_type, abs_path, rel_path, None, )
+
+
 class InoLoadControlnet:
     """
 
@@ -458,19 +498,29 @@ class InoModelPathToCombo:
 
 LOCAL_NODE_CLASS = {
     "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
+
     "InoS3DownloadModel": InoS3DownloadModel,
     "InoHuggingFaceDownloadModel": InoHuggingFaceDownloadModel,
     "InoCivitaiDownloadModel": InoCivitaiDownloadModel,
+
     "InoHandleDownloadModel": InoHandleDownloadModel,
+    "InoHandleDownloadAndLoadModel": InoHandleDownloadAndLoadModel,
+
     "InoLoadControlnet": InoLoadControlnet,
+
     "InoModelPathToCombo": InoModelPathToCombo,
 }
 LOCAL_NODE_NAME = {
     "InoCreateModelFileConfig": "Ino Create Model File Config",
+
     "InoS3DownloadModel": "Ino S3 Download Model",
     "InoHuggingFaceDownloadModel": "Ino Hugging Face Download Model",
     "InoCivitaiDownloadModel": "Ino Civitai Download Model",
+
     "InoHandleDownloadModel": "Ino Handle Download Model",
+    "InoHandleDownloadAndLoadModel": "Ino Handle Download And Load Model",
+
     "InoLoadControlnet": "Ino Load Controlnet",
+
     "InoModelPathToCombo": "Ino Model Path To Combo",
 }
