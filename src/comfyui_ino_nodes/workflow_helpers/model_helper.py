@@ -9,7 +9,7 @@ import node_helpers
 
 
 from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
-from ..node_helper import ino_print_log, MODEL_TYPES
+from ..node_helper import ino_print_log, MODEL_TYPES, any_type
 
 #todo add progress bar
 
@@ -427,7 +427,22 @@ class InoHandleDownloadAndLoadModel:
         abs_path = download_result[3]
         rel_path = download_result[4]
 
-        return (True, "success", model_type, abs_path, rel_path, None, )
+        loaded_model = None
+        if model_type == "controlnet":
+            from nodes import ControlNetLoader
+
+            controlnet_loader = ControlNetLoader()
+            file_loader = controlnet_loader.load_controlnet(
+                control_net_name=rel_path
+            )
+            loaded_model = file_loader[0]
+
+        if loaded_model:
+            return (True, f"{model_type} loaded", model_type, abs_path, rel_path, loaded_model, )
+        else:
+            return (False, f"{model_type} not loaded", model_type, abs_path, rel_path, None, )
+
+        return (False, "Mdel type not supported", model_type, abs_path, rel_path, None, )
 
 
 class InoLoadControlnet:
