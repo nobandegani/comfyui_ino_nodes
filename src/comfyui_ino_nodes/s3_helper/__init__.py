@@ -21,6 +21,7 @@ LOCAL_NODE_CLASS = {
     "InoS3UploadString": InoS3UploadString,
     "InoS3GetDownloadURL": InoS3GetDownloadURL,
     "InoS3DownloadAudio": InoS3DownloadAudio,
+    "InoS3UploadAudio": InoS3UploadAudio,
 }
 LOCAL_NODE_NAME = {
     "InoS3Config": "Ino S3 Config",
@@ -33,4 +34,5 @@ LOCAL_NODE_NAME = {
     "InoS3UploadString": "Ino S3 Upload String",
     "InoS3GetDownloadURL": "Ino S3 Get Download URL",
     "InoS3DownloadAudio": "Ino S3 Download Audio",
+    "InoS3UploadAudio": "Ino S3 Upload Audio",
 }
