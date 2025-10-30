@@ -83,7 +83,7 @@ class InoS3UploadString:
 
         s3_instance = S3Helper.get_instance(s3_config)
 
-        s3_full_key = s3_key + "/" + file
+        s3_full_key = f"{s3_key.rstrip('/')}/{file}"
         s3_result = await s3_instance.upload_file(
             s3_key=s3_full_key,
             local_file_path=full_path,
