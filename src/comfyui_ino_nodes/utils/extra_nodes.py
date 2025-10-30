@@ -107,8 +107,8 @@ class InoRelay:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "execute": (any_type,),
-                "relay": (any_type,),
+                "execute": (any_type, {}),
+                "relay": (any_type, {}),
             },
         }
 
@@ -234,6 +234,38 @@ class InoPrintLog:
         ino_print_log("", log_message)
         return (relay,)
 
+from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
+
+class InoRandomNoise:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "noise_seed": ("INT", {
+                    "default": 0,
+                    "min": 0,
+                    "max": 0xffffffffffffffff,
+                    "control_after_generate": True,
+                }),
+                "precision": ("BOOLEAN", {"default": True, "label_off": "32-bit", "label_on": "64-bit"}),
+            }
+        }
+
+    RETURN_TYPES = ("NOISE", "INT", )
+    FUNCTION = "function"
+    CATEGORY = "InoSamplerHelper"
+
+    def function(self, noise_seed, precision:bool):
+        if precision:
+            final_seed = noise_seed & 0xFFFFFFFFFFFFFFFF
+        else:
+            final_seed = noise_seed & 0xFFFFFFFF
+
+        random_seed = Noise_RandomNoise(final_seed)
+
+        return (random_seed, final_seed, )
+
+
 LOCAL_NODE_CLASS = {
     "InoDateTimeAsString": InoDateTimeAsString,
     "InoRelay": InoRelay,
@@ -241,6 +273,7 @@ LOCAL_NODE_CLASS = {
     "InoAnyBoolSwitch": InoAnyBoolSwitch,
     "InoDelayAsync": InoDelayAsync,
     "InoPrintLog": InoPrintLog,
+    "InoRandomNoise": InoRandomNoise,
 }
 LOCAL_NODE_NAME = {
     "InoDateTimeAsString": "Ino Date Time As String",
@@ -249,4 +282,5 @@ LOCAL_NODE_NAME = {
     "InoAnyBoolSwitch": "Ino Any Bool Switch",
     "InoDelayAsync": "Ino Delay Async",
     "InoPrintLog": "Ino Print Log",
+    "InoRandomNoise": "Ino Random Noise",
 }

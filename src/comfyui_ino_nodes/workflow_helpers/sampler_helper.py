@@ -98,32 +98,6 @@ async def load_lora(config_str, model, clip):
     )
     return True, lora_loaded[0], lora_loaded[1], f"{config_dict["trigger_word"]}, "
 
-
-
-from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
-
-class InoRandomNoise:
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "noise_seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "control_after_generate": True,
-                }),
-            }
-        }
-
-    RETURN_TYPES = ("NOISE", "INT", )
-    FUNCTION = "function"
-    CATEGORY = "InoSamplerHelper"
-
-    def function(self, noise_seed):
-        random_seed = Noise_RandomNoise(noise_seed)
-        return (random_seed, noise_seed, )
-
 class InoGetModelConfig:
     """
 
@@ -1007,7 +981,6 @@ class InoGetModelDownloadConfig:
 
 
 LOCAL_NODE_CLASS = {
-    "InoRandomNoise": InoRandomNoise,
     "InoGetModelConfig": InoGetModelConfig,
     "InoShowModelConfig": InoShowModelConfig,
     "InoUpdateModelConfig": InoUpdateModelConfig,
@@ -1020,7 +993,6 @@ LOCAL_NODE_CLASS = {
     "InoGetModelDownloadConfig": InoGetModelDownloadConfig,
 }
 LOCAL_NODE_NAME = {
-    "InoRandomNoise": "Ino Random Noise",
     "InoGetModelConfig": "Ino Get Model Config",
     "InoShowModelConfig": "Ino Show Model Config",
     "InoUpdateModelConfig": "Ino Update Model Config",
