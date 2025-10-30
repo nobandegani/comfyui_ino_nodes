@@ -17,7 +17,6 @@ class S3Helper:
     def get_instance(s3_config:str):
         try:
             s3_config = InoJsonHelper.string_to_dict(s3_config)["data"]
-            print(s3_config)
             s3_instance = InoS3Helper()
             s3_instance.init(
                 aws_access_key_id=s3_config["access_key_id"],
