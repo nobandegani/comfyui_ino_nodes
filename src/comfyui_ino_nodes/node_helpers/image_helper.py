@@ -1,7 +1,7 @@
 import torch
 from torchvision.transforms import InterpolationMode
 import torchvision.transforms.functional as TorchFunctional
-
+from datetime import datetime, timezone, timedelta
 
 class InoSaveImages:
     """
@@ -17,13 +17,15 @@ class InoSaveImages:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING" , "INT", )
-    RETURN_NAMES = ("Success", "Result", "NumberOfImages", )
+    RETURN_TYPES = ("BOOLEAN", "STRING" , "INT", "STRING", )
+    RETURN_NAMES = ("Success", "Result", "NumberOfImages", "DateTimeIso", )
 
     FUNCTION = "function"
     CATEGORY = "InoNodes"
 
     def function(self, images, filename_prefix):
+        time_now = datetime.now(timezone.utc).isoformat()
+
         from nodes import SaveImage
         save_image = SaveImage()
         save_image_res = save_image.save_images(
@@ -39,7 +41,7 @@ class InoSaveImages:
         if len(results) == 0:
             return (False, "", 0, )
 
-        return (True, names, len(results), )
+        return (True, names, len(results), time_now)
 
 class InoImageResizeByLongerSideV1:
     @classmethod

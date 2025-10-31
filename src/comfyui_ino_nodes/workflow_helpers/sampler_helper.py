@@ -1,6 +1,7 @@
 from pathlib import Path
 from copy import deepcopy
 from typing import List, Dict, Tuple
+from datetime import datetime, timezone
 
 from inopyutils import InoJsonHelper
 
@@ -122,19 +123,18 @@ class InoGetModelConfig:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "INT", "STRING", "STRING", )
-    RETURN_NAMES = ("Success", "MSG", "Model_ID", "Model_Name", "Model_Config", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "INT", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("Success", "MSG", "Model_ID", "Model_Name", "Model_Config", "DateTimeIso",)
 
     FUNCTION = "function"
 
     CATEGORY = "InoSamplerHelper"
 
-    def function(self,
-                 enabled,
-                 model_name, model_id
-        ):
+    def function(self,enabled, model_name, model_id ):
         if not enabled:
-            return (False, "not enabled", -1, "", "", )
+            return (False, "not enabled", -1, "", "", "", )
+
+        time_now = datetime.now(timezone.utc).isoformat()
 
         models = self.load_models()["fields"]
         if model_name == "unset":
@@ -144,9 +144,9 @@ class InoGetModelConfig:
 
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
-            return (model_cfg_str["success"], model_cfg_str["msg"], -1, "", "", )
+            return (model_cfg_str["success"], model_cfg_str["msg"], -1, "", "", time_now)
 
-        return (True, "Success", model_cfg["id"], model_cfg["name"], model_cfg_str["data"], )
+        return (True, "Success", model_cfg["id"], model_cfg["name"], model_cfg_str["data"], time_now)
 
 class InoGetLoraConfig:
     """
