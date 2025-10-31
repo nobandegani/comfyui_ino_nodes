@@ -13,8 +13,8 @@ class InoRelay:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "execute": (any_type, {}),
-                "relay": (any_type, {}),
+                "execute": (any_type, {"default": None, }),
+                "relay": (any_type, {"default": None, }),
             },
         }
 
@@ -27,8 +27,11 @@ class InoRelay:
     def __init__(self):
         pass
 
-    def function(self, execute, relay):
-        return (execute, relay, )
+    async def function(self, execute = None, relay = None):
+        if execute is not None:
+            return (execute, relay,)
+
+        return (execute, None,)
 
 class InoAnyEqual:
     """
