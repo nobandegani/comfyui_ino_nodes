@@ -1,102 +1,8 @@
-
-import json
 import asyncio
-
-import hashlib
-from datetime import datetime, timezone
 
 from ..node_helper import any_type, ino_print_log
 
 #todo add show any
-
-class InoDateTimeAsString:
-    """
-        Date Time As String
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "step": 1,
-                    "label": "Seed (0 = random)"
-                }),
-                "include_year": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_month": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_day": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_hour": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_minute": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_second": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "date_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-                "datetime_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-                "time_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("output_date_time", )
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def __init__(self):
-        pass
-
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
-
-    def function(
-        self, seed,
-        include_year, include_month, include_day,
-        include_hour, include_minute, include_second,
-        date_sep="-", datetime_sep=" ", time_sep=":"
-    ):
-        now = datetime.now()
-
-        date_parts = []
-        time_parts = []
-
-        if include_year:
-            date_parts.append(str(now.year))
-        if include_month:
-            date_parts.append(f"{now.month:02d}")
-        if include_day:
-            date_parts.append(f"{now.day:02d}")
-
-        if include_hour:
-            time_parts.append(f"{now.hour:02d}")
-        if include_minute:
-            time_parts.append(f"{now.minute:02d}")
-        if include_second:
-            time_parts.append(f"{now.second:02d}")
-
-        date_str = date_sep.join(date_parts) if date_parts else ""
-        time_str = time_sep.join(time_parts) if time_parts else ""
-
-        if date_str and time_str:
-            return (f"{date_str}{datetime_sep}{time_str}", )
-        elif date_str:
-            return (date_str, )
-        elif time_str:
-            return (time_str, )
-        else:
-            return ("", )
 
 class InoRelay:
     """
@@ -265,22 +171,61 @@ class InoRandomNoise:
 
         return (random_seed, final_seed, )
 
+class InoCastAnyToString:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_any": (any_type, {}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    FUNCTION = "function"
+    CATEGORY = "InoExtraNodes"
+
+    def function(self, input_any):
+        return (str(input_any), )
+
+class InoCastAnyToInt:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_any": (any_type, {}),
+            }
+        }
+
+    RETURN_TYPES = ("INT",)
+    FUNCTION = "function"
+    CATEGORY = "InoExtraNodes"
+
+    def function(self, input_any):
+        return (int(input_any), )
 
 LOCAL_NODE_CLASS = {
-    "InoDateTimeAsString": InoDateTimeAsString,
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
     "InoAnyBoolSwitch": InoAnyBoolSwitch,
     "InoDelayAsync": InoDelayAsync,
+
     "InoPrintLog": InoPrintLog,
+
     "InoRandomNoise": InoRandomNoise,
+
+    "InoCastAnyToString": InoCastAnyToString,
+    "InoCastAnyToInt": InoCastAnyToInt,
 }
 LOCAL_NODE_NAME = {
-    "InoDateTimeAsString": "Ino Date Time As String",
     "InoRelay": "Ino Relay",
     "InoAnyEqual": "Ino Any Equal",
     "InoAnyBoolSwitch": "Ino Any Bool Switch",
     "InoDelayAsync": "Ino Delay Async",
+
     "InoPrintLog": "Ino Print Log",
+
     "InoRandomNoise": "Ino Random Noise",
+
+    "InoCastAnyToString": "Ino Cast Any To String",
+    "InoCastAnyToInt": "Ino Cast Any To Int",
 }

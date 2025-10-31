@@ -40,12 +40,18 @@ from .src.comfyui_ino_nodes.node_helpers.string_helper import (
     LOCAL_NODE_CLASS as STRING_HELPER_CLASS,
     LOCAL_NODE_NAME as STRING_HELPER_NAME
 )
+from .src.comfyui_ino_nodes.node_helpers.time_helper import (
+    LOCAL_NODE_CLASS as TIME_HELPER_CLASS,
+    LOCAL_NODE_NAME as TIME_HELPER_NAME
+)
 
+#--------------------------------- S3 helper ---------------------------------
 from .src.comfyui_ino_nodes.s3_helper import (
     LOCAL_NODE_CLASS as S3_HELPER_CLASS,
     LOCAL_NODE_NAME as S3_HELPER_NAME
 )
 
+#--------------------------------- Extra nodes ---------------------------------
 from .src.comfyui_ino_nodes.utils.extra_nodes import (
     LOCAL_NODE_CLASS as EXTRA_CLASS,
     LOCAL_NODE_NAME as EXTRA_NAME
@@ -82,6 +88,7 @@ _node_classes.update(FLOAT_HELPER_CLASS)
 _node_classes.update(IMAGE_HELPER_CLASS)
 _node_classes.update(INT_HELPER_CLASS)
 _node_classes.update(STRING_HELPER_CLASS)
+_node_classes.update(TIME_HELPER_CLASS)
 
 _node_classes.update(S3_HELPER_CLASS)
 
@@ -105,6 +112,7 @@ _node_names.update(FLOAT_HELPER_NAME)
 _node_names.update(IMAGE_HELPER_NAME)
 _node_names.update(INT_HELPER_NAME)
 _node_names.update(STRING_HELPER_NAME)
+_node_names.update(TIME_HELPER_NAME)
 
 _node_names.update(S3_HELPER_NAME)
 
