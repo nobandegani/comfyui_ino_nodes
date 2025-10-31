@@ -52,7 +52,7 @@ class InoGetDateTimeDuration:
             },
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_TYPES = ("STRING", "FLOAT", "FLOAT", "FLOAT", "FLOAT",)
     RETURN_NAMES = ("iso_format", "total_seconds", "total_minutes", "total_hours", "total_days",)
     FUNCTION = "function"
 
@@ -66,8 +66,9 @@ class InoGetDateTimeDuration:
         datetime_b: datetime = datetime.fromisoformat(datetime_b)
 
         time_delta: timedelta = datetime_a - datetime_b
+        total_seconds: float = time_delta.total_seconds()
 
-        return (time_delta, time_delta.total_seconds(), time_delta.total_seconds()/60, time_delta.total_seconds()/3600, time_delta.days,)
+        return (time_delta, total_seconds, float(total_seconds/60), float(total_seconds/3600), float(time_delta.days),)
 
 class InoDateTimeAsString:
     """
