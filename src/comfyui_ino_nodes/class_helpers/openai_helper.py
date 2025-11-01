@@ -56,7 +56,8 @@ class InoOpenaiResponses:
                     "min": 0,
                     "max": 0xffffffffffffffff,
                     "step": 1,
-                    "label": "Seed (0 = random)"
+                    "label": "Seed (0 = random)",
+                    "control_after_generate": True,
                 }),
                 "response_type": (["text", "image"], {}),
                 "text": ("STRING", {"default": ""}),
@@ -72,12 +73,6 @@ class InoOpenaiResponses:
     RETURN_TYPES = ("BOOLEAN", "INT", "STRING", "STRING", "STRING", "STRING",)
     RETURN_NAMES = ("success", "id", "status", "error", "output_text", "output",)
     FUNCTION = "function"
-
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
 
     async def function(self, enabled, seed, response_type, text, image_url, config, model):
         if not enabled:

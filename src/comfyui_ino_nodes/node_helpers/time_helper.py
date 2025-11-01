@@ -84,7 +84,8 @@ class InoDateTimeAsString:
                     "min": 0,
                     "max": 0xffffffffffffffff,
                     "step": 1,
-                    "label": "Seed (0 = random)"
+                    "label": "Seed (0 = random)",
+                    "control_after_generate": True,
                 }),
                 "include_year": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
                 "include_month": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
@@ -115,12 +116,6 @@ class InoDateTimeAsString:
 
     def __init__(self):
         pass
-
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
 
     def function(
         self, seed,

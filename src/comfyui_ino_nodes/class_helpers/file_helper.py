@@ -19,7 +19,8 @@ class IncrementBatchName:
                     "min": 0,
                     "max": 0xffffffffffffffff,
                     "step": 1,
-                    "label": "Seed (0 = random)"
+                    "label": "Seed (0 = random)",
+                    "control_after_generate": True,
                 }),
                 "name": ("STRING", {
                     "multiline": False,
@@ -39,12 +40,6 @@ class IncrementBatchName:
     FUNCTION = "function"
 
     CATEGORY = "InoFileHelper"
-
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
 
     async def function(self, enabled, seed, name, dummy_string):
         if not enabled:
@@ -67,7 +62,8 @@ class Zip:
                     "min": 0,
                     "max": 0xffffffffffffffff,
                     "step": 1,
-                    "label": "Seed (0 = random)"
+                    "label": "Seed (0 = random)",
+                    "control_after_generate": True,
                 }),
                 "to_zip": ("STRING", {
                     "multiline": False,
@@ -96,12 +92,6 @@ class Zip:
 
     CATEGORY = "InoFileHelper"
 
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
-
     async def function(self, enabled, seed, to_zip, path_to_save, zip_file_name, dummy_string):
         if not enabled:
             return "Disabled", "Node is disabled", ""
@@ -129,7 +119,8 @@ class Unzip:
                     "min": 0,
                     "max": 0xffffffffffffffff,
                     "step": 1,
-                    "label": "Seed (0 = random)"
+                    "label": "Seed (0 = random)",
+                    "control_after_generate": True,
                 }),
                 "zip_path": ("STRING", {
                     "multiline": False,
@@ -153,12 +144,6 @@ class Unzip:
     FUNCTION = "function"
 
     CATEGORY = "InoFileHelper"
-
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
 
     async def function(self, enabled, seed, zip_path, output_path, dummy_string):
         if not enabled:
@@ -185,7 +170,8 @@ class RemoveFile:
                     "min": 0,
                     "max": 0xffffffffffffffff,
                     "step": 1,
-                    "label": "Seed (0 = random)"
+                    "label": "Seed (0 = random)",
+                    "control_after_generate": True,
                 }),
                 "file_path": ("STRING", {
                     "multiline": False,
@@ -205,12 +191,6 @@ class RemoveFile:
     FUNCTION = "function"
 
     CATEGORY = "InoFileHelper"
-
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
 
     async def function(self, enabled, seed, file_path, dummy_string):
         if not enabled:
@@ -236,7 +216,8 @@ class RemoveFolder:
                     "min": 0,
                     "max": 0xffffffffffffffff,
                     "step": 1,
-                    "label": "Seed (0 = random)"
+                    "label": "Seed (0 = random)",
+                    "control_after_generate": True,
                 }),
                 "folder_path": ("STRING", {
                     "multiline": False,
@@ -256,12 +237,6 @@ class RemoveFolder:
     FUNCTION = "function"
 
     CATEGORY = "InoFileHelper"
-
-    @classmethod
-    def IS_CHANGED(cls, seed, **kwargs):
-        m = hashlib.sha256()
-        m.update(seed)
-        return m.digest().hex()
 
     async def function(self, enabled, seed, folder_path, dummy_string):
         if not enabled:
