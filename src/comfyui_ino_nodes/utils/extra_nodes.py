@@ -174,38 +174,6 @@ class InoRandomNoise:
 
         return (random_seed, final_seed, )
 
-class InoCastAnyToString:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "input_any": (any_type, {}),
-            }
-        }
-
-    RETURN_TYPES = ("STRING",)
-    FUNCTION = "function"
-    CATEGORY = "InoExtraNodes"
-
-    def function(self, input_any):
-        return (str(input_any), )
-
-class InoCastAnyToInt:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "input_any": (any_type, {}),
-            }
-        }
-
-    RETURN_TYPES = ("INT",)
-    FUNCTION = "function"
-    CATEGORY = "InoExtraNodes"
-
-    def function(self, input_any):
-        return (int(input_any), )
-
 LOCAL_NODE_CLASS = {
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
@@ -215,9 +183,6 @@ LOCAL_NODE_CLASS = {
     "InoPrintLog": InoPrintLog,
 
     "InoRandomNoise": InoRandomNoise,
-
-    "InoCastAnyToString": InoCastAnyToString,
-    "InoCastAnyToInt": InoCastAnyToInt,
 }
 LOCAL_NODE_NAME = {
     "InoRelay": "Ino Relay",
@@ -228,7 +193,4 @@ LOCAL_NODE_NAME = {
     "InoPrintLog": "Ino Print Log",
 
     "InoRandomNoise": "Ino Random Noise",
-
-    "InoCastAnyToString": "Ino Cast Any To String",
-    "InoCastAnyToInt": "Ino Cast Any To Int",
 }
