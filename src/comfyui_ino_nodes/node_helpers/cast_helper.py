@@ -91,7 +91,7 @@ class InoCastAnyToControlnet:
             }
         }
 
-    RETURN_TYPES = ("CONTROLNET",)
+    RETURN_TYPES = ("CONTROL_NET",)
     FUNCTION = "function"
     CATEGORY = "InoExtraNodes"
 
