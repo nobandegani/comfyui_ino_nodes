@@ -544,67 +544,7 @@
           "repo_type": "",
           "revision": ""
       }
-    },
-    {
-      "id": 10,
-      "name": "ChromaV50",
-      "type": "chroma",
-      "weight_type": "default",
-      "use_dual_clip": false,
-      "use_flux_encoder": false,
-      "use_flux_guidance": false,
-      "guidance": 0,
-      "use_negative_prompt": true,
-      "use_cfg": true,
-      "cfg": 4,
-      "sampler_name": "euler",
-      "scheduler_name": "simple",
-      "steps": 40,
-      "denoise": 1,
-      "tags": "",
-      "description": "",
-      "lora_compatible": "",
-      "url": "",
-      "unet": {
-          "host": "hf",
-          "model_type": "diffusion_models",
-          "model_subfolder": "flux1dev",
-          "repo_id": "",
-          "filename": "",
-          "subfolder": "",
-          "repo_type": "",
-          "revision": ""
-      },
-      "clip1": {
-          "host": "hf",
-          "model_type": "text_encoders",
-          "model_subfolder": "clipl",
-          "repo_id": "comfyanonymous/flux_text_encoders",
-          "filename": "clip_l.safetensors",
-          "subfolder": "",
-          "repo_type": "",
-          "revision": ""
-      },
-      "clip2": {
-          "host": "hf",
-          "model_type": "text_encoders",
-          "model_subfolder": "t5xxl",
-          "repo_id": "comfyanonymous/flux_text_encoders",
-          "filename": "t5xxl_fp16.safetensors",
-          "subfolder": "",
-          "repo_type": "",
-          "revision": ""
-      },
-      "vae": {
-          "host": "hf",
-          "model_type": "vae",
-          "model_subfolder": "flux1dev",
-          "repo_id": "black-forest-labs/FLUX.1-dev",
-          "filename": "ae.safetensors",
-          "subfolder": "",
-          "repo_type": "",
-          "revision": ""
-      }
     }
+    
   ]
 }
