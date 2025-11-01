@@ -82,6 +82,22 @@ class InoCastAnyToVae:
     def function(self, input_any):
         return (input_any, )
 
+class InoCastAnyToControlnet:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_any": (any_type, {}),
+            }
+        }
+
+    RETURN_TYPES = ("CONTROLNET",)
+    FUNCTION = "function"
+    CATEGORY = "InoExtraNodes"
+
+    def function(self, input_any):
+        return (input_any, )
+
 LOCAL_NODE_CLASS = {
     "InoCastAnyToString": InoCastAnyToString,
     "InoCastAnyToInt": InoCastAnyToInt,
@@ -89,6 +105,7 @@ LOCAL_NODE_CLASS = {
     "InoCastAnyToModel": InoCastAnyToModel,
     "InoCastAnyToClip": InoCastAnyToClip,
     "InoCastAnyToVae": InoCastAnyToVae,
+    "InoCastAnyToControlnet": InoCastAnyToControlnet,
 }
 LOCAL_NODE_NAME = {
     "InoCastAnyToString": "Ino Cast Any To String",
@@ -97,4 +114,5 @@ LOCAL_NODE_NAME = {
     "InoCastAnyToModel": "Ino Cast Any To Model",
     "InoCastAnyToClip": "Ino Cast Any To Clip",
     "InoCastAnyToVae": "Ino Cast Any To Vae",
+    "InoCastAnyToControlnet": "Ino Cast Any To Controlnet",
 }
