@@ -544,7 +544,110 @@
           "repo_type": "",
           "revision": ""
       }
+    },
+    {
+      "id": 10,
+      "name": "RemixV1Low",
+      "type": "wan",
+      "weight_type": "default",
+      "use_dual_clip": false,
+      "use_flux_encoder": false,
+      "use_flux_guidance": false,
+      "guidance": 0,
+      "use_negative_prompt": true,
+      "use_cfg": true,
+      "cfg": 1,
+      "sampler_name": "res_3s",
+      "scheduler_name": "beta57",
+      "steps": 25,
+      "denoise": 1,
+      "tags": "",
+      "description": "good for sfw and nsfw",
+      "lora_compatible": "",
+      "url": "https://civitai.com/models/2003153?modelVersionId=2289612",
+      "unet": {
+          "host": "civitai",
+          "model_type": "diffusion_models",
+          "model_subfolder": "wan2.2/remix",
+          "repo_id": "2003153",
+          "filename": 0,
+          "subfolder": "",
+          "repo_type": "",
+          "revision": "2289612"
+      },
+      "clip1": {
+          "host": "hf",
+          "model_type": "text_encoders",
+          "model_subfolder": "umt5",
+          "repo_id": "NSFW-API/NSFW-Wan-UMT5-XXL",
+          "filename": "nsfw_wan_umt5-xxl_fp8_scaled.safetensors",
+          "subfolder": "",
+          "repo_type": "",
+          "revision": ""
+      },
+      "clip2": {},
+      "vae": {
+          "host": "hf",
+          "model_type": "vae",
+          "model_subfolder": "wan2.2",
+          "repo_id": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+          "filename": "split_files/vae/wan_2.1_vae.safetensors",
+          "subfolder": "",
+          "repo_type": "",
+          "revision": ""
+      }
+    },
+    {
+      "id": 11,
+      "name": "RemixV1High",
+      "type": "wan",
+      "weight_type": "default",
+      "use_dual_clip": false,
+      "use_flux_encoder": false,
+      "use_flux_guidance": false,
+      "guidance": 0,
+      "use_negative_prompt": true,
+      "use_cfg": true,
+      "cfg": 1,
+      "sampler_name": "res_3s",
+      "scheduler_name": "beta57",
+      "steps": 25,
+      "denoise": 1,
+      "tags": "",
+      "description": "good for sfw and nsfw",
+      "lora_compatible": "",
+      "url": "https://civitai.com/models/2003153?modelVersionId=2289469",
+      "unet": {
+          "host": "civitai",
+          "model_type": "diffusion_models",
+          "model_subfolder": "wan2.2/remix",
+          "repo_id": "2003153",
+          "filename": 0,
+          "subfolder": "",
+          "repo_type": "",
+          "revision": "2289469"
+      },
+      "clip1": {
+          "host": "hf",
+          "model_type": "text_encoders",
+          "model_subfolder": "umt5",
+          "repo_id": "NSFW-API/NSFW-Wan-UMT5-XXL",
+          "filename": "nsfw_wan_umt5-xxl_fp8_scaled.safetensors",
+          "subfolder": "",
+          "repo_type": "",
+          "revision": ""
+      },
+      "clip2": {},
+      "vae": {
+          "host": "hf",
+          "model_type": "vae",
+          "model_subfolder": "wan2.2",
+          "repo_id": "Comfy-Org/Wan_2.1_ComfyUI_repackaged",
+          "filename": "split_files/vae/wan_2.1_vae.safetensors",
+          "subfolder": "",
+          "repo_type": "",
+          "revision": ""
+      }
     }
-    
   ]
 }
