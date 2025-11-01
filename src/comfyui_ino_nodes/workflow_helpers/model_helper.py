@@ -9,7 +9,7 @@ import node_helpers
 
 
 from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
-from ..node_helper import ino_print_log, MODEL_TYPES, any_type
+from ..node_helper import ino_print_log, MODEL_TYPES, any_type, UNET_WEIGHT_DTYPE, CLIP_TYPE
 
 #todo add progress bar
 
@@ -376,7 +376,7 @@ class InoCivitaiDownloadModel:
             if full_model_path.is_file():
                 sha_res = await InoFileHelper.get_file_hash_sha_256(full_model_path)
                 if sha_res["success"] and sha_res["sha"].lower() == file_sha.lower():
-                    rel_path = full_model_path.relative_to(model_path.parent)
+                    rel_path = full_model_path.relative_to(model_path_base)
                     await http_client.close()
                     ino_print_log("InoCivitaiDownloadFile", "File already downloaded and valid", )
                     return (True, "File is valid", model_type, full_model_path, rel_path, )
@@ -460,6 +460,86 @@ class InoHandleDownloadModel:
 
         return await loader.function(enabled=True, model_config=config)
 
+class InoHandleLoadModel:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_type": (MODEL_TYPES, {}),
+                "model_path": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "unet_weight_dtype": (UNET_WEIGHT_DTYPE, {}),
+                "clip_type": (CLIP_TYPE, {})
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", any_type, )
+    RETURN_NAMES = ("Success", "MSG", "Model",)
+
+    FUNCTION = "function"
+    CATEGORY = "InoSamplerHelper"
+
+    async def function(self, enabled, model_type:str, model_path: str, unet_weight_dtype, clip_type):
+        if not enabled:
+            return (False, "not enabled", None,)
+
+        try:
+            loaded_model = None
+            supported = True
+            if model_type == "controlnet":
+                from nodes import ControlNetLoader
+
+                model_loader = ControlNetLoader()
+                file_loader = model_loader.load_controlnet(
+                    control_net_name=model_path
+                )
+                loaded_model = file_loader[0]
+            elif model_type == "diffusion_models":
+                from nodes import UNETLoader
+
+                model_loader = UNETLoader()
+                file_loader = model_loader.load_unet(
+                    unet_name=model_path,
+                    weight_dtype=unet_weight_dtype
+                )
+                loaded_model = file_loader[0]
+            elif model_type == "text_encoders":
+                from nodes import CLIPLoader
+                model_loader = CLIPLoader()
+
+                file_loader = model_loader.load_clip(
+                    clip_name=model_path,
+                    type=clip_type,
+                    device="default"
+                )
+                loaded_model = file_loader[0]
+            elif model_type == "vae":
+                from nodes import VAELoader
+                model_loader = VAELoader()
+
+                file_loader = model_loader.load_vae(
+                    vae_name=model_path,
+                )
+                loaded_model = file_loader[0]
+            else:
+                supported = False
+
+            if not supported:
+                return (False, f"loading {model_type} models not supported yet", None, )
+
+            if loaded_model is not None:
+                return (True, f"{model_type} loaded", loaded_model,  )
+            else:
+                return (False, f"{model_type} not loaded", None,  )
+        except Exception as e:
+            return (False, f"Error: {e}", None, )
+
 class InoHandleDownloadAndLoadModel:
     """
 
@@ -476,8 +556,8 @@ class InoHandleDownloadAndLoadModel:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", any_type, )
-    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path", "loaded_model", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", any_type,)
+    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path", "loaded_model",)
 
     FUNCTION = "function"
 
@@ -485,80 +565,24 @@ class InoHandleDownloadAndLoadModel:
 
     async def function(self, enabled, config: str):
         if not enabled:
-            return (False, "not enabled", "", "", "")
+            return (False, "not enabled", "", "", "", None,)
 
         download_handler = InoHandleDownloadModel()
         download_result = await download_handler.function(enabled=True, config=config)
 
         if not download_result[0]:
-            return (False, download_result[1], "", "", "", None, )
+            return (False, download_result[1], "", "", "", None,)
 
         model_type = download_result[2]
         abs_path = download_result[3]
         rel_path = download_result[4]
 
-        loaded_model = None
-        supported = True
-        if model_type == "controlnet":
-            from nodes import ControlNetLoader
+        model_load_handler = InoHandleLoadModel()
+        model_loader = await model_load_handler.function(enabled=True, model_type=model_type, model_path=rel_path)
+        if not model_loader[0]:
+            return (False, model_loader[1], model_type, abs_path, rel_path, None, )
 
-            controlnet_loader = ControlNetLoader()
-            file_loader = controlnet_loader.load_controlnet(
-                control_net_name=rel_path
-            )
-            loaded_model = file_loader[0]
-        else:
-            supported = False
-
-        if not supported:
-            return (False, f"loading {model_type} models not supported yet", model_type, abs_path, rel_path, None,)
-
-        if loaded_model:
-            return (True, f"{model_type} loaded", model_type, abs_path, rel_path, loaded_model, )
-        else:
-            return (False, f"{model_type} not loaded", model_type, abs_path, rel_path, None, )
-
-
-
-class InoLoadControlnet:
-    """
-
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model_path": ("STRING", {"default": ""}),
-            },
-            "optional": {
-            }
-        }
-
-    RETURN_TYPES = ("BOOLEAN", "STRING", "CONTROL_NET", )
-    RETURN_NAMES = ("Success", "MSG", "ControlNet")
-
-    FUNCTION = "function"
-    CATEGORY = "InoSamplerHelper"
-
-    async def function(self, enabled, model_path: str):
-        if not enabled:
-            return (False, "not enabled", None, )
-
-        #if not Path(model_path).is_file():
-        #    return (False, "model path is not valid", None, )
-
-        from nodes import ControlNetLoader
-
-        controlnet_loader = ControlNetLoader()
-        file_loader = controlnet_loader.load_controlnet(
-            control_net_name=model_path
-        )
-        if not file_loader[0]:
-            return (False, "control net not valid", None, )
-
-        return (True, "Success", file_loader[0], )
+        return (True, f"{model_type} loaded", model_type, abs_path, rel_path, model_loader[2])
 
 class InoModelPathToCombo:
     """
@@ -595,9 +619,8 @@ LOCAL_NODE_CLASS = {
     "InoCivitaiDownloadModel": InoCivitaiDownloadModel,
 
     "InoHandleDownloadModel": InoHandleDownloadModel,
+    "InoHandleLoadModel": InoHandleLoadModel,
     "InoHandleDownloadAndLoadModel": InoHandleDownloadAndLoadModel,
-
-    "InoLoadControlnet": InoLoadControlnet,
 
     "InoModelPathToCombo": InoModelPathToCombo,
 }
@@ -610,9 +633,8 @@ LOCAL_NODE_NAME = {
     "InoCivitaiDownloadModel": "Ino Civitai Download Model",
 
     "InoHandleDownloadModel": "Ino Handle Download Model",
+    "InoHandleLoadModel": "Ino Handle Load Model",
     "InoHandleDownloadAndLoadModel": "Ino Handle Download And Load Model",
-
-    "InoLoadControlnet": "Ino Load Controlnet",
 
     "InoModelPathToCombo": "Ino Model Path To Combo",
 }
