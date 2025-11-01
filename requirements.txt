@@ -2,3 +2,6 @@ inocloudreve
 inopyutils
 openai
 aiohttp
+
+huggingface_hub
+hf_xet
