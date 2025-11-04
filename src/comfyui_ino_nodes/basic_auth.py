@@ -13,10 +13,6 @@ class InoBasicAuthClass:
         if not self.enabled:
             return await handler(request)
 
-        # Skip auth for WebSocket connections
-        if request.path == '/ws':
-            return await handler(request)
-
         # Get Authorization header
         auth_header = request.headers.get('Authorization')
 
