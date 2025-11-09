@@ -46,6 +46,7 @@ class InoCreateDownloadModelConfig:
     def function(self, enabled, host: str, model_type: str, model_subfolder: str, repo_id: str, filename: str,
                  subfolder: str, repo_type: str, revision: str):
         if not enabled:
+            ino_print_log("InoCreateDownloadModelConfig", "Attempt to run but disabled")
             return ("",)
 
         config = {}
@@ -60,6 +61,7 @@ class InoCreateDownloadModelConfig:
 
         config_str = InoJsonHelper.dict_to_string(config)["data"]
 
+        ino_print_log("InoCreateDownloadModelConfig", "config created")
         return (config_str,)
 
 class InoS3DownloadModel:
@@ -440,10 +442,12 @@ class InoHandleDownloadModel:
 
     async def function(self, enabled, config: str):
         if not enabled:
+            ino_print_log("InoHandleDownloadModel", "Attempt to run but disabled")
             return (False, "not enabled", "", "", "")
 
         config_dict = InoJsonHelper.string_to_dict(config)
         if not config_dict["success"]:
+            ino_print_log("InoHandleDownloadModel", "invalid config string")
             return (False, config_dict["msg"], "", "", "")
 
         config_dict = config_dict["data"]
@@ -456,9 +460,12 @@ class InoHandleDownloadModel:
         elif config_dict["host"] == "civitai":
             loader = InoCivitaiDownloadModel()
         else:
+            ino_print_log("InoHandleDownloadModel", "unknown host")
             return (False, "unknown host", "", "", "")
 
-        return await loader.function(enabled=True, model_config=config)
+        result = await loader.function(enabled=True, model_config=config)
+        ino_print_log("InoHandleDownloadModel", "delegated to loader completed")
+        return result
 
 class InoHandleLoadModel:
     """
@@ -487,6 +494,7 @@ class InoHandleLoadModel:
 
     async def function(self, enabled, model_type:str, model_path: str, unet_weight_dtype, clip_type):
         if not enabled:
+            ino_print_log("InoHandleLoadModel", "Attempt to run but disabled")
             return (False, "not enabled", None,)
 
         try:
@@ -531,13 +539,17 @@ class InoHandleLoadModel:
                 supported = False
 
             if not supported:
+                ino_print_log("InoHandleLoadModel", f"loading {model_type} not supported")
                 return (False, f"loading {model_type} models not supported yet", None, )
 
             if loaded_model is not None:
+                ino_print_log("InoHandleLoadModel", f"{model_type} loaded")
                 return (True, f"{model_type} loaded", loaded_model,  )
             else:
+                ino_print_log("InoHandleLoadModel", f"{model_type} not loaded")
                 return (False, f"{model_type} not loaded", None,  )
         except Exception as e:
+            ino_print_log("InoHandleLoadModel", "exception", e)
             return (False, f"Error: {e}", None, )
 
 class InoHandleDownloadAndLoadModel:
@@ -565,12 +577,14 @@ class InoHandleDownloadAndLoadModel:
 
     async def function(self, enabled, config: str):
         if not enabled:
+            ino_print_log("InoHandleDownloadAndLoadModel", "Attempt to run but disabled")
             return (False, "not enabled", "", "", "", None,)
 
         download_handler = InoHandleDownloadModel()
         download_result = await download_handler.function(enabled=True, config=config)
 
         if not download_result[0]:
+            ino_print_log("InoHandleDownloadAndLoadModel", "download failed", download_result[1])
             return (False, download_result[1], "", "", "", None,)
 
         model_type = download_result[2]
@@ -580,8 +594,10 @@ class InoHandleDownloadAndLoadModel:
         model_load_handler = InoHandleLoadModel()
         model_loader = await model_load_handler.function(enabled=True, model_type=model_type, model_path=rel_path)
         if not model_loader[0]:
+            ino_print_log("InoHandleDownloadAndLoadModel", "load failed", model_loader[1])
             return (False, model_loader[1], model_type, abs_path, rel_path, None, )
 
+        ino_print_log("InoHandleDownloadAndLoadModel", f"{model_type} downloaded and loaded")
         return (True, f"{model_type} loaded", model_type, abs_path, rel_path, model_loader[2])
 
 class InoModelPathToCombo:
@@ -608,6 +624,11 @@ class InoModelPathToCombo:
     def function(self, model_type, model_path):
         model_list = folder_paths.get_filename_list(model_type)
 
+        if not model_list:
+            ino_print_log("InoModelPathToCombo", "no models found")
+            return ("", [], )
+
+        ino_print_log("InoModelPathToCombo", "models listed")
         return (model_list[0], model_list, )
 
 LOCAL_NODE_CLASS = {
