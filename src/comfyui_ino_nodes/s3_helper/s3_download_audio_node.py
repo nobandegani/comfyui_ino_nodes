@@ -6,6 +6,8 @@ from PIL import Image, ImageOps, ImageSequence
 from pathlib import Path
 from datetime import datetime
 
+from inopyutils import ino_is_err
+
 import folder_paths
 import node_helpers
 
@@ -34,11 +36,6 @@ class InoS3DownloadAudio:
         if not enabled:
             return (False, "not enabled", "", None, )
 
-        validate_s3_config = S3Helper.validate_s3_config(s3_config)
-        if not validate_s3_config["success"]:
-            return (False, validate_s3_config["msg"], "", None, )
-        s3_config = validate_s3_config["config"]
-
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             return (False, validate_s3_key["msg"], "", None, )
@@ -49,6 +46,10 @@ class InoS3DownloadAudio:
         local_save_path: Path = Path(parent_path) / file_name
 
         s3_instance = S3Helper.get_instance(s3_config)
+        if ino_is_err(s3_instance):
+            return (s3_instance["success"], s3_instance["msg"], s3_instance, None, )
+        s3_instance = s3_instance["instance"]
+
         downloaded = await s3_instance.download_file(
             s3_key=s3_key,
             local_file_path=str(local_save_path.resolve())

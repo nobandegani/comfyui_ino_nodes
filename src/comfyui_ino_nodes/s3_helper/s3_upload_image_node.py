@@ -5,7 +5,7 @@ from datetime import datetime
 from PIL import Image, ImageOps, ImageSequence
 from PIL.PngImagePlugin import PngInfo
 import numpy as np
-from inopyutils import InoJsonHelper
+from inopyutils import InoJsonHelper, ino_ok, ino_err, ino_is_err
 
 import folder_paths
 from comfy.cli_args import args
@@ -43,11 +43,6 @@ class InoS3UploadImage:
         if not execute:
             return (images, False, "", "", "", "",)
 
-        validate_s3_config = S3Helper.validate_s3_config(s3_config)
-        if not validate_s3_config["success"]:
-            return (images, False, validate_s3_config["msg"], "", "", "",)
-        s3_config = validate_s3_config["config"]
-
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             return (images, False, validate_s3_key["msg"], "", "", )
@@ -77,6 +72,9 @@ class InoS3UploadImage:
             counter += 1
 
         s3_instance = S3Helper.get_instance(s3_config)
+        if ino_is_err(s3_instance):
+            return (images, False, s3_instance["msg"], s3_instance, "", )
+        s3_instance = s3_instance["instance"]
 
         for index in results:
             s3_full_key = s3_key + "/" + results[index]["filename"]

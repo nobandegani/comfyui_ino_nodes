@@ -4,6 +4,8 @@ from pathlib import Path
 
 import folder_paths
 
+from inopyutils import ino_ok, ino_err, ino_is_err
+
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import any_type
 
@@ -39,11 +41,6 @@ class InoS3UploadFolder:
         if not execute:
             return (False, "", "", 0, 0, 0, "", )
 
-        validate_s3_config = S3Helper.validate_s3_config(s3_config)
-        if not validate_s3_config["success"]:
-            return (False, validate_s3_config["msg"], "", 0, 0, 0, "", )
-        s3_config = validate_s3_config["config"]
-
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             return (False, validate_s3_key["msg"], "", 0, 0, 0, "", )
@@ -63,6 +60,10 @@ class InoS3UploadFolder:
             return (False, validate_local_path["msg"], "", 0, 0, 0, "", )
 
         s3_instance = S3Helper.get_instance(s3_config)
+        if ino_is_err(s3_instance):
+            return (False, s3_instance["msg"], "", 0, 0, 0, "", )
+        s3_instance = s3_instance["instance"]
+
         s3_result = await s3_instance.upload_folder(
             s3_folder_key=s3_key,
             local_folder_path=abs_path,

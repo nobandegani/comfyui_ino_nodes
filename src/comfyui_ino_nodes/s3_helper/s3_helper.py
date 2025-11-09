@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from inopyutils import InoS3Helper, InoJsonHelper
+from inopyutils import InoS3Helper, InoJsonHelper, ino_ok, ino_err, ino_is_err
 
 S3_EMPTY_CONFIG = {
     "access_key_id": "",
@@ -14,7 +14,11 @@ S3_EMPTY_CONFIG_STRING = InoJsonHelper.dict_to_string(S3_EMPTY_CONFIG)["data"]
 
 class S3Helper:
     @staticmethod
-    def get_instance(s3_config:str):
+    def get_instance(s3_config:str) -> dict:
+        validate = S3Helper.validate_s3_config(s3_config)
+        if ino_is_err(validate):
+            return validate
+
         try:
             s3_config = InoJsonHelper.string_to_dict(s3_config)["data"]
             s3_instance = InoS3Helper()
@@ -25,9 +29,9 @@ class S3Helper:
                 region_name=s3_config["region_name"],
                 bucket_name=s3_config["bucket_name"],
             )
-            return s3_instance
+            return ino_ok("success", instance=s3_instance)
         except Exception as e:
-            print(f"Failed to create S3 instance: {e} Please check your variables.")
+            return ino_err(f"Failed to create S3 instance: {e}")
 
     @staticmethod
     def validate_s3_config(s3_config:str) -> dict:
@@ -67,18 +71,10 @@ class S3Helper:
                 "config": ""
             }
 
-        s3_config_str = InoJsonHelper.dict_to_string(s3_config_dict)
-        if not s3_config_str["success"]:
-            return {
-                "success": False,
-                "msg": "Failed to convert S3 configuration to json string",
-                "config": ""
-            }
-
         return {
             "success": True,
             "msg": "S3 configuration is valid",
-            "config": s3_config_str["data"]
+            "config": s3_config_dict
         }
 
     @staticmethod
@@ -175,7 +171,7 @@ class InoS3Config:
     async def function(self, access_key_id, access_key_secret, endpoint_url, region_name, bucket_name):
         s3_config ={
             "access_key_id": access_key_id,
-            "access_keys_ecret": access_key_secret,
+            "access_key_secret": access_key_secret,
             "endpoint_url": endpoint_url,
             "region_name": region_name,
             "bucket_name": bucket_name,

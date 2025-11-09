@@ -9,6 +9,8 @@ from datetime import datetime
 import folder_paths
 import node_helpers
 
+from inopyutils import ino_ok, ino_err, ino_is_err
+
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 
 class InoS3DownloadImage:
@@ -34,11 +36,6 @@ class InoS3DownloadImage:
         if not enabled:
             return (False, "not enabled", "", None, None, )
 
-        validate_s3_config = S3Helper.validate_s3_config(s3_config)
-        if not validate_s3_config["success"]:
-            return (False, validate_s3_config["msg"], "", None, None,)
-        s3_config = validate_s3_config["config"]
-
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             return (False, validate_s3_key["msg"], "", None, None,)
@@ -49,6 +46,10 @@ class InoS3DownloadImage:
         local_save_path: Path = Path(parent_path) / file_name
 
         s3_instance = S3Helper.get_instance(s3_config)
+        if ino_is_err(s3_instance):
+            return (False, s3_instance["msg"], "", None, None,)
+        s3_instance = s3_instance["instance"]
+
         downloaded = await s3_instance.download_file(
             s3_key=s3_key,
             local_file_path=str(local_save_path.resolve())

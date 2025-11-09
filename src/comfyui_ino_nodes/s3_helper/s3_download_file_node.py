@@ -1,6 +1,8 @@
 from pathlib import Path
 import folder_paths
 
+from inopyutils import ino_ok, ino_err, ino_is_err
+
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 
 class InoS3DownloadFile:
@@ -28,11 +30,6 @@ class InoS3DownloadFile:
         if not enabled:
             return (False, "not enabled", "", "", "",)
 
-        validate_s3_config = S3Helper.validate_s3_config(s3_config)
-        if not validate_s3_config["success"]:
-            return (False, validate_s3_config["msg"], "", "", "",)
-        s3_config = validate_s3_config["config"]
-
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
             return (False, validate_s3_key["msg"], "", "", "",)
@@ -53,6 +50,10 @@ class InoS3DownloadFile:
             Path(local_save_path).parent.mkdir(parents=True, exist_ok=True)
 
         s3_instance = S3Helper.get_instance(s3_config)
+        if ino_is_err(s3_instance):
+            return (False, s3_instance["msg"], "", "", "",)
+        s3_instance = s3_instance["instance"]
+
         s3_result = await s3_instance.download_file(
             s3_key=s3_key,
             local_file_path=abs_path

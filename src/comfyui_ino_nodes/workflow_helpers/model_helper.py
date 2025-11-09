@@ -2,7 +2,7 @@ import os
 
 from pathlib import Path
 from huggingface_hub import hf_hub_download, snapshot_download
-from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper
+from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper, ino_ok, ino_err, ino_is_err
 
 import folder_paths
 import node_helpers
@@ -115,12 +115,6 @@ class InoS3DownloadModel:
                 ino_print_log("InoS3DownloadModel", "model already downloaded", )
                 return (True, "model validated", model_type, model_path, rel_path,)
 
-            validate_s3_config = S3Helper.validate_s3_config(s3_config)
-            if not validate_s3_config["success"]:
-                ino_print_log("InoS3DownloadModel", validate_s3_config["msg"], )
-                return (False, validate_s3_config["msg"], "", "", "",)
-            s3_config = validate_s3_config["config"]
-
             validate_s3_key = S3Helper.validate_s3_key(s3_key)
             if not validate_s3_key["success"]:
                 ino_print_log("InoS3DownloadModel", validate_s3_key["msg"], )
@@ -129,6 +123,10 @@ class InoS3DownloadModel:
             model_path.parent.mkdir(parents=True, exist_ok=True)
 
             s3_instance = S3Helper.get_instance(s3_config)
+            if ino_is_err(s3_instance):
+                return (False, s3_instance["msg"], "", "", "",)
+            s3_instance = s3_instance["instance"]
+
             s3_result = await s3_instance.download_file(
                 s3_key=s3_key,
                 local_file_path=model_path
