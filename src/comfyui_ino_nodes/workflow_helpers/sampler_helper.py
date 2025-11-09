@@ -23,6 +23,7 @@ def _load_models(config: str = "default", model_type: str = "models") -> Dict:
             file_path=str(json_path.resolve())
         )
         if not read_json["success"]:
+            ino_print_log("_load_models", "read_json failed")
             return read_json
         else:
             json_data = read_json["data"]
@@ -31,6 +32,7 @@ def _load_models(config: str = "default", model_type: str = "models") -> Dict:
             json_string=config,
         )
         if not json_data["success"]:
+            ino_print_log("_load_models", "string_to_dict failed")
             return json_data
         else:
             json_data = json_data["data"]
@@ -39,6 +41,7 @@ def _load_models(config: str = "default", model_type: str = "models") -> Dict:
     names = [m["name"] for m in json_data]
     ids = [m["id"] for m in json_data]
 
+    ino_print_log("_load_models", "success")
     return {
         "success": True,
         "msg": "success",
@@ -50,7 +53,9 @@ def _load_models(config: str = "default", model_type: str = "models") -> Dict:
 def get_model_by_field(models: Dict, field_name: str, field_match: str) -> Dict:
     for m in models:
         if m[field_name] == field_match:
+            ino_print_log("get_model_by_field", "match found")
             return deepcopy(m)
+    ino_print_log("get_model_by_field", "no match found")
     return {}
 
 def prepare_lora_config(lora_config: str) -> Dict:
@@ -60,11 +65,13 @@ def prepare_lora_config(lora_config: str) -> Dict:
         json_string=lora_config
     )
     if not load_json["success"]:
+        ino_print_log("prepare_lora_config", "string_to_dict failed")
         return {
             "use_lora": False,
             "lora_config": None
         }
 
+    ino_print_log("prepare_lora_config", "success")
     return {
         "use_lora": True,
         "lora_config": load_json["data"]
@@ -75,6 +82,7 @@ async def load_lora(config_str, model, clip):
 
     prepared_config = prepare_lora_config(config_str)
     if not  prepared_config["use_lora"]:
+        ino_print_log("load_lora", "use_lora is False")
         return False, model, clip, ""
 
     config_dict = prepared_config["lora_config"]
@@ -97,7 +105,8 @@ async def load_lora(config_str, model, clip):
         strength_model=config_dict["strength_model"],
         strength_clip=config_dict["strength_clip"]
     )
-    return True, lora_loaded[0], lora_loaded[1], f"{config_dict["trigger_word"]}, "
+    ino_print_log("load_lora", "lora loaded")
+    return True, lora_loaded[0], lora_loaded[1], f"{config_dict['trigger_word']}, "
 
 class InoGetModelConfig:
     """
@@ -132,6 +141,7 @@ class InoGetModelConfig:
 
     def function(self,enabled, model_name, model_id ):
         if not enabled:
+            ino_print_log("InoGetModelConfig", "not enabled")
             return (False, "not enabled", -1, "", "", "", )
 
         time_now = datetime.now(timezone.utc).isoformat()
@@ -144,8 +154,10 @@ class InoGetModelConfig:
 
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
+            ino_print_log("InoGetModelConfig", "dict_to_string failed")
             return (model_cfg_str["success"], model_cfg_str["msg"], -1, "", "", time_now)
 
+        ino_print_log("InoGetModelConfig", "success")
         return (True, "Success", model_cfg["id"], model_cfg["name"], model_cfg_str["data"], time_now)
 
 class InoGetLoraConfig:
@@ -186,6 +198,7 @@ class InoGetLoraConfig:
 
     def function(self, enabled, lora_name, lora_id, strength_model, strength_clip ):
         if not enabled:
+            ino_print_log("InoGetLoraConfig", "not enabled")
             return (-1, "", "", )
 
         models = self.load_models()["fields"]
@@ -202,8 +215,10 @@ class InoGetLoraConfig:
 
         lora_cfg_str = InoJsonHelper.dict_to_string(lora_cfg)
         if not lora_cfg_str["success"]:
+            ino_print_log("InoGetLoraConfig", "dict_to_string failed")
             return (-1, "", "",)
 
+        ino_print_log("InoGetLoraConfig", "success")
         return (lora_cfg["id"], lora_cfg["name"], lora_cfg_str["data"], )
 
 class InoCreateLoraConfig:
@@ -243,10 +258,12 @@ class InoCreateLoraConfig:
     def function(self, enabled, lora_id: int, lora_name:str, trigger_word:str, base_model, file,
                  lora_type, weight_type, trigger_words, description, tags, strength_model, strength_clip):
         if not enabled:
+            ino_print_log("InoCreateLoraConfig", "not enabled")
             return (-1, "", "", )
 
         file_dict = InoJsonHelper.string_to_dict(file)
         if not file_dict["success"]:
+            ino_print_log("InoCreateLoraConfig", "failed to parse file")
             return (-1, "failed to parse file", "",)
         file_dict = file_dict["data"]
 
@@ -266,6 +283,7 @@ class InoCreateLoraConfig:
 
         lora_config_str = InoJsonHelper.dict_to_string(lora_config)["data"]
 
+        ino_print_log("InoCreateLoraConfig", "success")
         return (lora_config["id"], lora_config["name"], lora_config_str, )
 
 class InoShowModelConfig:
@@ -337,13 +355,16 @@ class InoShowModelConfig:
 
     def function(self, enabled, config):
         if not enabled:
+            ino_print_log("InoShowModelConfig", "not enabled")
             return None
 
         load_json = InoJsonHelper.string_to_dict(config)
         if not load_json["success"]:
+            ino_print_log("InoShowModelConfig", "string_to_dict failed")
             return None
         model_cfg = load_json["data"]
 
+        ino_print_log("InoShowModelConfig", "success")
         return (
             model_cfg["name"],
             model_cfg["type"],
@@ -416,10 +437,12 @@ class InoUpdateModelConfig:
         steps = -1, denoise = -1.0
     ):
         if not enabled:
+            ino_print_log("InoUpdateModelConfig", "not enabled")
             return None
 
         load_json = InoJsonHelper.string_to_dict(config)
         if not load_json["success"]:
+            ino_print_log("InoUpdateModelConfig", "string_to_dict failed")
             return None
         model_cfg = load_json["data"]
 
@@ -458,8 +481,10 @@ class InoUpdateModelConfig:
 
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
+            ino_print_log("InoUpdateModelConfig", "dict_to_string failed")
             return (-1, "", "",)
 
+        ino_print_log("InoUpdateModelConfig", "success")
         return (config, model_cfg_str["data"], )
 
 class InoShowLoraConfig:
@@ -511,12 +536,15 @@ class InoShowLoraConfig:
 
     def function(self, enabled, config):
         if not enabled:
+            ino_print_log("InoShowLoraConfig", "not enabled")
             return None
         load_json = InoJsonHelper.string_to_dict(config)
         if not load_json["success"]:
+            ino_print_log("InoShowLoraConfig", "string_to_dict failed")
             return None
         model_cfg = load_json["data"]
 
+        ino_print_log("InoShowLoraConfig", "success")
         return (
             model_cfg["name"],
             model_cfg["base_model"],
@@ -743,6 +771,7 @@ class InoGetSamplerConfig:
                  use_cfg, cfg, sampler_name, scheduler_name, steps, denoise
         ):
         if not enabled:
+            ino_print_log("InoGetSamplerConfig", "not enabled")
             return (None, None, None, None, None, None,)
 
         update_config = InoUpdateModelConfig()
@@ -759,6 +788,7 @@ class InoGetSamplerConfig:
 
         load_json = InoJsonHelper.string_to_dict(updated_config[1])
         if not load_json["success"]:
+            ino_print_log("InoGetSamplerConfig", "string_to_dict failed")
             return (None, None, None, None, None, None,)
 
         model_cfg = load_json["data"]
@@ -797,8 +827,10 @@ class InoGetSamplerConfig:
 
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
+            ino_print_log("InoGetSamplerConfig", "dict_to_string failed")
             return (-1, "", "",)
 
+        ino_print_log("InoGetSamplerConfig", "success")
         return (get_guider[0], get_sampler[0], get_sigmas[0], config, model_cfg_str["data"], )
 
 class InoGetConditioning:
@@ -854,6 +886,7 @@ class InoGetConditioning:
         use_flux_encoder, use_flux_guidance, guidance, use_negative_prompt
     ):
         if not enabled:
+            ino_print_log("InoGetConditioning", "not enabled")
             return (None, None, None, None, )
 
         update_config = InoUpdateModelConfig()
@@ -868,6 +901,7 @@ class InoGetConditioning:
 
         load_json = InoJsonHelper.string_to_dict(updated_config[1])
         if not load_json["success"]:
+            ino_print_log("InoGetConditioning", "string_to_dict failed")
             return (None, None, None, None, None, None,)
 
         model_cfg = load_json["data"]
@@ -917,8 +951,10 @@ class InoGetConditioning:
 
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
+            ino_print_log("InoGetConditioning", "dict_to_string failed")
             return (-1, "", "",)
 
+        ino_print_log("InoGetConditioning", "success")
         return (positive_condition[0], negative_condition[0], config, model_cfg_str["data"], )
 
 class InoGetModelDownloadConfig:
@@ -958,10 +994,12 @@ class InoGetModelDownloadConfig:
 
     def function(self, enabled, config):
         if not enabled:
+            ino_print_log("InoGetModelDownloadConfig", "not enabled")
             return (False, "", "", "", "", )
 
         load_json = InoJsonHelper.string_to_dict(config)
         if not load_json["success"]:
+            ino_print_log("InoGetModelDownloadConfig", "string_to_dict failed")
             return (False, "", "", "", "", )
 
         model_cfg = load_json["data"]
@@ -971,6 +1009,7 @@ class InoGetModelDownloadConfig:
         clip2_config = InoJsonHelper.dict_to_string(model_cfg["clip2"])["data"]
         vae_config = InoJsonHelper.dict_to_string(model_cfg["vae"])["data"]
 
+        ino_print_log("InoGetModelDownloadConfig", "success")
         return (
             True,
             unet_config,
