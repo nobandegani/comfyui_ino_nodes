@@ -53,12 +53,17 @@ class S3Helper:
         s3_config_dict["region_name"] = os.getenv('S3_REGION_NAME', s3_config_dict.get("region_name", ""))
         s3_config_dict["bucket_name"] = os.getenv('S3_BUCKET_NAME', s3_config_dict.get("bucket_name", ""))
 
-        required_keys = ["access_key_id", "access_key_secret"]
-        missing_keys = [key for key in required_keys if key not in s3_config_dict or not s3_config_dict[key]]
-        if missing_keys:
+        if s3_config_dict.get("access_key_id", None) is None:
             return {
                 "success": False,
-                "msg": f"S3 configuration missing required keys: {', '.join(missing_keys)}",
+                "msg": f"S3 configuration missing access_key_id",
+                "config": ""
+            }
+
+        if s3_config_dict.get("access_key_secret", None) is None:
+            return {
+                "success": False,
+                "msg": f"S3 configuration missing access_key_secret",
                 "config": ""
             }
 
