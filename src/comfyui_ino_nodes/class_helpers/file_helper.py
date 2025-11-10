@@ -1,10 +1,11 @@
 import hashlib
+from pathlib import Path
 from inspect import cleandoc
 
 from inopyutils import file_helper, InoFileHelper
 
 
-class IncrementBatchName:
+class InoIncrementBatchName:
     """
         Increment Batch Name
     """
@@ -47,7 +48,7 @@ class IncrementBatchName:
 
         return InoFileHelper.increment_batch_name(name= name)
 
-class Zip:
+class InoZip:
     """
         Zip
     """
@@ -104,7 +105,7 @@ class Zip:
         return res["success"], res["msg"], res
 
 
-class Unzip:
+class InoUnzip:
     """
         Unzip
     """
@@ -155,7 +156,7 @@ class Unzip:
         )
         return res["success"], res["msg"], res
 
-class RemoveFile:
+class InoRemoveFile:
     """
         Remove File
     """
@@ -201,7 +202,7 @@ class RemoveFile:
         )
         return res["success"], res["msg"], res
 
-class RemoveFolder:
+class InoRemoveFolder:
     """
         Remove Folder
     """
@@ -247,17 +248,97 @@ class RemoveFolder:
         )
         return res["success"], res["msg"], res
 
+class InoCopyFiles:
+    """
+        Ino Copy Files
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "from_path": ("STRING", {"default": ""}),
+                "to_path": ("STRING", {"default": ""}),
+                "iterate_subfolders": ("BOOLEAN", {"default": True}),
+                "rename_files": ("BOOLEAN", {"default": True}),
+                "prefix_name": ("STRING", {"default": "file"}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", )
+    RETURN_NAMES = ("success", "message", "logs", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoFileHelper"
+
+    async def function(self, enabled, from_path, to_path, iterate_subfolders, rename_files, prefix_name):
+        if not enabled:
+            return ("Disabled", "Node is disabled", "", )
+
+        res = await InoFileHelper.copy_files(
+            to_path=Path(to_path),
+            from_path=Path(from_path),
+            iterate_subfolders=iterate_subfolders,
+            rename_files=rename_files,
+            prefix_name=prefix_name,
+        )
+        return (res["success"], res["msg"], res["logs"], )
+
+class InoValidateMediaFiles:
+    """
+        Validate Media Files
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "input_path": ("STRING", {"default": ""}),
+                "include_images": ("BOOLEAN", {"default": True}),
+                "include_videos": ("BOOLEAN", {"default": True}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", )
+    RETURN_NAMES = ("success", "message", "skipped_images_path", "skipped_images_unsupported_path", "skipped_videos_path", "skipped_videos_unsupported_path", "unsupported_files_path", "logs", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoFileHelper"
+
+    async def function(self, enabled, input_path, include_images, include_videos):
+        if not enabled:
+            return (False, "Node is disabled", "", "", "", "", "", "",)
+
+        res = await InoFileHelper.validate_files(
+            input_path=Path(input_path),
+            include_image=include_images,
+            include_video=include_videos,
+        )
+        return (True, res.get("msg"), res.get("skipped_images_path"), res.get("skipped_images_unsupported_path"), res.get("skipped_videos_path"), res.get("skipped_videos_unsupported_path"), res.get("unsupported_files_path"), res.get("logs"),)
+
 LOCAL_NODE_CLASS = {
-    "IncrementBatchName": IncrementBatchName,
-    "Zip": Zip,
-    "Unzip": Unzip,
-    "RemoveFile": RemoveFile,
-    "RemoveFolder": RemoveFolder,
+    "InoIncrementBatchName": InoIncrementBatchName,
+    "InoZip": InoZip,
+    "InoUnzip": InoUnzip,
+    "InoRemoveFile": InoRemoveFile,
+    "InoRemoveFolder": InoRemoveFolder,
+    "InoCopyFiles": InoCopyFiles,
+    "InoValidateMediaFiles": InoValidateMediaFiles,
 }
 LOCAL_NODE_NAME = {
-    "IncrementBatchName": "Increment Batch Name",
-    "Zip": "Zip",
-    "Unzip": "Unzip",
-    "RemoveFile": "Remove File",
-    "RemoveFolder": "Remove Folder",
+    "InoIncrementBatchName": "Ino Increment Batch Name",
+    "InoZip": "Ino Zip",
+    "InoUnzip": "Ino Unzip",
+    "InoRemoveFile": "Ino Remove File",
+    "InoRemoveFolder": "Ino Remove Folder",
+    "InoCopyFiles": "Ino Copy Files",
+    "InoValidateMediaFiles": "Ino Validate Media Files",
 }

@@ -48,6 +48,10 @@ from .src.comfyui_ino_nodes.node_helpers.cast_helper import (
     LOCAL_NODE_CLASS as CAST_HELPER_CLASS,
     LOCAL_NODE_NAME as CAST_HELPER_NAME
 )
+from .src.comfyui_ino_nodes.node_helpers.path_helper import (
+    LOCAL_NODE_CLASS as CAST_PATH_CLASS,
+    LOCAL_NODE_NAME as CAST_PATH_NAME
+)
 
 #--------------------------------- S3 helper ---------------------------------
 from .src.comfyui_ino_nodes.s3_helper import (
@@ -94,6 +98,7 @@ _node_classes.update(INT_HELPER_CLASS)
 _node_classes.update(STRING_HELPER_CLASS)
 _node_classes.update(TIME_HELPER_CLASS)
 _node_classes.update(CAST_HELPER_CLASS)
+_node_classes.update(CAST_PATH_CLASS)
 
 _node_classes.update(S3_HELPER_CLASS)
 
@@ -119,6 +124,7 @@ _node_names.update(INT_HELPER_NAME)
 _node_names.update(STRING_HELPER_NAME)
 _node_names.update(TIME_HELPER_NAME)
 _node_names.update(CAST_HELPER_NAME)
+_node_names.update(CAST_PATH_NAME)
 
 _node_names.update(S3_HELPER_NAME)
 

@@ -1,3 +1,4 @@
+import re
 
 class InoStringToggleCase:
     """
@@ -30,7 +31,8 @@ class InoStringToggleCase:
         result = str(input_string).upper() if toggle_to else str(input_string).lower()
         return (result,)
 
-class InoStringToCombo:
+
+class InoStringReplaceSimple:
     """
 
     """
@@ -39,26 +41,56 @@ class InoStringToCombo:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "input_string": ("STRING", {"default": "Test String"}),
+                "input_string": ("STRING", {"default": "Test {String}"}),
+                "replace_string": ("STRING", {"default": "Replaced"}),
             }
         }
 
-    RETURN_TYPES = ("COMBO", "COMBO",)
-    RETURN_NAMES = ("string", "list",)
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("string", )
 
     FUNCTION = "function"
 
     CATEGORY = "InoNodes"
 
-    def function(self, input_string):
-        combo: list[str] = [input_string, ]
-        return (combo[0], combo, )
+    def function(self, input_string, replace_string):
+        return (re.sub(r"\{[^}]*\}", replace_string, input_string), )
+
+class InoStringStripSimple:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_string": ("STRING", {"default": "Test {String}"}),
+                "strip_string": ("STRING", {"default": "'[]{}()-_+="}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("string", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, input_string, strip_string):
+        if input_string is None:
+            return ""
+
+        translation_table = str.maketrans("", "", strip_string)
+        return (input_string.translate(translation_table), )
 
 LOCAL_NODE_CLASS = {
     "InoStringToggleCase": InoStringToggleCase,
-    "InoStringToCombo": InoStringToCombo,
+    "InoStringReplaceSimple": InoStringReplaceSimple,
+    "InoStringStripSimple": InoStringStripSimple,
 }
 LOCAL_NODE_NAME = {
     "InoStringToggleCase": "Ino String Toggle Case",
-    "InoStringToCombo": "Ino String To Combo",
+    "InoStringReplaceSimple": "Ino String Replace Simple",
+    "InoStringStripSimple": "Ino String Strip Simple",
 }
