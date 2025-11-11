@@ -14,6 +14,7 @@ from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import any_type
 
 class InoS3UploadAudio:
+    # todo add bool, to save file as input file name, or after saving it in temp, to include the _00001
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -58,7 +59,7 @@ class InoS3UploadAudio:
             return (audio, False, validate_s3_key["msg"], "", "", "",)
 
         if date_time_as_name:
-            file_name = datetime.now().strftime("%Y%m%d%H%M%S")
+            file_name = datetime.now().strftime("%Y%m%d%H%M%S%f")
 
         save_as = "mp3"
         file = f"{file_name}.{save_as}"
@@ -100,6 +101,6 @@ class InoS3UploadAudio:
         if not s3_result["success"]:
             return (audio, False, s3_result["msg"], "", "", "",)
 
-        os.remove(full_path)
+        #os.remove(full_path)
 
         return (audio, True, "Success", s3_result, file, s3_full_key, )

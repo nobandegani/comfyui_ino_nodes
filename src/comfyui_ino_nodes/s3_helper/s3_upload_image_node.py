@@ -48,7 +48,7 @@ class InoS3UploadImage:
             return (images, False, validate_s3_key["msg"], "", "", )
 
         if date_time_as_name:
-            file_name = datetime.now().strftime("%Y%m%d%H%M%S")
+            file_name = datetime.now().strftime("%Y%m%d%H%M%S%f")
 
         parent_path = folder_paths.get_temp_directory()
 
@@ -62,14 +62,17 @@ class InoS3UploadImage:
                 metadata = PngInfo()
 
             filename_with_batch_num = filename.replace("%batch_num%", str(batch_number))
-            file = f"{filename_with_batch_num}_{counter:05}_.png"
-            full_path = os.path.join(full_output_folder, file)
+            file = f"{filename_with_batch_num}_{counter:05}"
+            file_w_ext = file + ".png"
+            full_path = os.path.join(full_output_folder, file_w_ext)
             img.save(full_path, pnginfo=metadata, compress_level=compress_level)
             results[batch_number] = {
                 "filename": file,
+                "filename_w_ext": file_w_ext,
                 "full_path": full_path,
             }
             counter += 1
+            img.close()
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
@@ -77,17 +80,17 @@ class InoS3UploadImage:
         s3_instance = s3_instance["instance"]
 
         for index in results:
-            s3_full_key = s3_key + "/" + results[index]["filename"]
+            s3_full_key = s3_key + "/" + results[index]["filename_w_ext"]
             s3_result = await s3_instance.upload_file(
                 s3_key=s3_full_key,
                 local_file_path=results[index]["full_path"],
                 # bucket_name=bucket_name,
             )
-            if s3_result["success"]:
-                os.remove(results[index]["full_path"])
-                results[index]["s3_success"] = s3_result["success"]
-                results[index]["s3_msg"] = s3_result["msg"]
-                results[index]["s3_key"] = s3_full_key
+            #if s3_result["success"]:
+            #    os.remove(results[index]["full_path"])
+            results[index]["s3_success"] = s3_result["success"]
+            results[index]["s3_msg"] = s3_result["msg"]
+            results[index]["s3_key"] = s3_full_key
 
         result_str = InoJsonHelper.dict_to_string(results)['data']
 

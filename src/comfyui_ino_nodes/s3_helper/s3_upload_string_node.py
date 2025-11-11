@@ -14,6 +14,7 @@ from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import any_type
 
 class InoS3UploadString:
+    #todo add bool, to save file as input file name, or after saving it in temp, to include the _00001
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -58,15 +59,16 @@ class InoS3UploadString:
             return (string, False, validate_s3_key["msg"], "", "", "",)
 
         if date_time_as_name:
-            file_name = datetime.now().strftime("%Y%m%d%H%M%S")
+            file_name = datetime.now().strftime("%Y%m%d%H%M%S%f")
 
         parent_path = folder_paths.get_temp_directory()
 
         full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(file_name, parent_path, 0, 0)
 
         filename_with_batch_num = filename.replace("%batch_num%", "0")
-        file = f"{filename_with_batch_num}_{counter:05}_.{save_as}"
-        full_path = os.path.join(full_output_folder, file)
+        file = f"{filename_with_batch_num}_{counter:05}"
+        file_w_ext= f"{file}.{save_as}"
+        full_path = os.path.join(full_output_folder, file_w_ext)
 
         if save_as == "json":
             save_file = await InoJsonHelper.save_string_as_json_async(string, full_path)
@@ -81,7 +83,7 @@ class InoS3UploadString:
             return (string, False, s3_instance["msg"], "", "", "", )
         s3_instance = s3_instance["instance"]
 
-        s3_full_key = f"{s3_key.rstrip('/')}/{file}"
+        s3_full_key = f"{s3_key.rstrip('/')}/{file_name}.{save_as}"
         s3_result = await s3_instance.upload_file(
             s3_key=s3_full_key,
             local_file_path=full_path,
@@ -90,6 +92,6 @@ class InoS3UploadString:
         if not s3_result["success"]:
             return (string, False, s3_result["msg"], "", "", "",)
 
-        os.remove(full_path)
+        #os.remove(full_path)
 
-        return (string, True, "Success", s3_result, file, s3_full_key, )
+        return (string, True, "Success", s3_result, file_w_ext, s3_full_key, )

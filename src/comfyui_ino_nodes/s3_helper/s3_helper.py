@@ -19,8 +19,9 @@ class S3Helper:
         if ino_is_err(validate):
             return validate
 
+        s3_config = validate["config"]
+
         try:
-            s3_config = InoJsonHelper.string_to_dict(s3_config)["data"]
             s3_instance = InoS3Helper()
             s3_instance.init(
                 aws_access_key_id=s3_config["access_key_id"],
