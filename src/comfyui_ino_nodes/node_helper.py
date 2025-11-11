@@ -6,8 +6,9 @@ class AnyType(str):
 any_type = AnyType("*")
 
 import os
-_is_debug = os.getenv('COMFYUI_INO_DEBUG', 0) == 1
+_is_debug = os.getenv('COMFYUI_INO_DEBUG') == "1"
 IS_DEBUG  = _is_debug
+print(f"COMFYUI_INO_DEBUG: {_is_debug}")
 
 def ino_print_log(prefix:str = "", msg:str="unknown", e = None):
     if IS_DEBUG:
