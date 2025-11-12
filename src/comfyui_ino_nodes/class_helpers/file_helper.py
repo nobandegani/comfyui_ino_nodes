@@ -244,7 +244,7 @@ class InoRemoveFolder:
             return "Disabled", "Node is disabled", ""
 
         res = await InoFileHelper.remove_folder(
-            folder_path=folder_path
+            folder_path=Path(folder_path)
         )
         return res["success"], res["msg"], res
 

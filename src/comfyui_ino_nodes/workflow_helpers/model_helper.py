@@ -598,7 +598,7 @@ class InoHandleDownloadAndLoadModel:
         ino_print_log("InoHandleDownloadAndLoadModel", f"{model_type} downloaded and loaded")
         return (True, f"{model_type} loaded", model_type, abs_path, rel_path, model_loader[2])
 
-class InoModelPathToCombo:
+class InoGetModelPathAsString:
     """
 
     """
@@ -608,26 +608,19 @@ class InoModelPathToCombo:
         return {
             "required": {
                 "model_type": (MODEL_TYPES, {}),
-                "model_path": ("STRING", {"default": ""}),
             }
         }
 
-    RETURN_TYPES = ("COMBO", "COMBO",)
-    RETURN_NAMES = ("string", "list",)
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("string", )
 
     FUNCTION = "function"
 
     CATEGORY = "InoNodes"
 
-    def function(self, model_type, model_path):
-        model_list = folder_paths.get_filename_list(model_type)
-
-        if not model_list:
-            ino_print_log("InoModelPathToCombo", "no models found")
-            return ("", [], )
-
-        ino_print_log("InoModelPathToCombo", "models listed")
-        return (model_list[0], model_list, )
+    def function(self, model_type,):
+        model_path = Path(folder_paths.get_input_directory()).parent / "models" / model_type
+        return (str(model_path.resolve()), )
 
 LOCAL_NODE_CLASS = {
     "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
@@ -640,8 +633,7 @@ LOCAL_NODE_CLASS = {
     "InoHandleDownloadModel": InoHandleDownloadModel,
     "InoHandleLoadModel": InoHandleLoadModel,
     "InoHandleDownloadAndLoadModel": InoHandleDownloadAndLoadModel,
-
-    "InoModelPathToCombo": InoModelPathToCombo,
+    "InoGetModelPathAsString": InoGetModelPathAsString
 }
 LOCAL_NODE_NAME = {
     "InoCreateModelFileConfig": "Ino Create Model File Config",
@@ -655,5 +647,5 @@ LOCAL_NODE_NAME = {
     "InoHandleLoadModel": "Ino Handle Load Model",
     "InoHandleDownloadAndLoadModel": "Ino Handle Download And Load Model",
 
-    "InoModelPathToCombo": "Ino Model Path To Combo",
+    "InoGetModelPathAsString": "Ino Get Model Path As String"
 }
