@@ -64,6 +64,70 @@ class InoCreateDownloadModelConfig:
         ino_print_log("InoCreateDownloadModelConfig", "config created")
         return (config_str,)
 
+class InoHttpDownloadModel:
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_config": ("STRING", {"default": "{}"}),
+                "model_type": (MODEL_TYPES, {}),
+                "model_subfolder": ("STRING", {"default": "flux1dev"}),
+                "url": ("STRING", {"default": "https://download.pl"}),
+            },
+            "optional": {
+            }
+        }
+
+    CATEGORY = "InoModelHelper"
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
+    FUNCTION = "function"
+
+    async def function(self, enabled, model_config, model_type="", model_subfolder="", url=""):
+        if not enabled:
+            ino_print_log("InoHttpDownloadModel", "Attempt to run but disabled")
+            return (False, "", "", "", "",)
+
+        try:
+            if isinstance(model_config, str):
+                input_config = InoJsonHelper.string_to_dict(model_config)
+                if input_config["success"]:
+                    model_config = input_config["data"]
+
+            if isinstance(model_config, dict):
+                model_type = model_config.get("model_type", model_type)
+                model_subfolder = model_config.get("model_subfolder", model_subfolder)
+                url = model_config.get("filename", url)
+
+            parent_path = Path(folder_paths.get_input_directory()).parent
+            model_path_base: Path = parent_path / "models" / model_type
+            model_path:Path = model_path_base / model_subfolder / Path(url).name
+            rel_path = Path(model_path).relative_to(model_path_base)
+
+            need_download = not model_path.is_file()
+            if not need_download:
+                ino_print_log("InoHttpDownloadModel", "model already downloaded", )
+                return (True, "model validated", model_type, model_path, rel_path,)
+
+            model_path.parent.mkdir(parents=True, exist_ok=True)
+
+            http_instance = InoHttpHelper()
+
+            http_result = await http_instance.download(
+                url=url,
+                dest_path=model_path,
+            )
+            if ino_is_err(http_result):
+                return (False, "failed to download", model_type, model_path, rel_path,)
+
+            ino_print_log("InoHttpDownloadModel", "file downloaded successfully", )
+            return (http_result["success"], http_result["msg"], model_type, model_path, rel_path, )
+        except Exception as e:
+            ino_print_log("InoHttpDownloadModel", "", e)
+            return (False, f"Error: {e}", "", "", "",)
+
 class InoS3DownloadModel:
 
     @classmethod
@@ -625,6 +689,7 @@ class InoGetModelPathAsString:
 LOCAL_NODE_CLASS = {
     "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
 
+    "InoHttpDownloadModel": InoHttpDownloadModel,
     "InoS3DownloadModel": InoS3DownloadModel,
     "InoHuggingFaceDownloadModel": InoHuggingFaceDownloadModel,
     "InoHuggingFaceDownloadRepo": InoHuggingFaceDownloadRepo,
@@ -638,6 +703,7 @@ LOCAL_NODE_CLASS = {
 LOCAL_NODE_NAME = {
     "InoCreateModelFileConfig": "Ino Create Model File Config",
 
+    "InoHttpDownloadModel": "Ino Http Download Model",
     "InoS3DownloadModel": "Ino S3 Download Model",
     "InoHuggingFaceDownloadModel": "Ino Hugging Face Download Model",
     "InoHuggingFaceDownloadRepo": "Ino Hugging Face Download Repo",
