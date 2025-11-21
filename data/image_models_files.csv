@@ -1,0 +1,7 @@
+id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,repo_type,revision
+1,Flux1dev,fp16,hf,diffusion_models,flux1dev,black-forest-labs/FLUX.1-dev,flux1-dev.safetensors
+5,GetPhat-V11,fp16,civitai,diffusion_models,flux1dev,861840,0,,,2060393
+6,JibMixFlux-V12,fp16,civitai,diffusion_models,flux1dev,686814,0,,,2319074
+7,FuxCapacity-V40,fp16,civitai,diffusion_models,flux1dev,679262,0,,,2298051
+8,UltraFineTune-V4,fp16,civitai,diffusion_models,flux1dev,978314,0,,,1413133
+9,FluxedUp-V51,fp16,civitai,diffusion_models,flux1dev,847101,0,,,2278561
