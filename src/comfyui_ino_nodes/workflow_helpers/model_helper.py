@@ -220,7 +220,7 @@ class InoHuggingFaceDownloadModel:
                 "token": ("STRING", {"default": ""}),
                 "repo_type": ("STRING", {"default": ""}),
                 "revision": ("STRING", {"default": ""}),
-                "ignore_repo_dir": ("BOOLEAN", {"default": True}),
+                "ignore_repo_dir": ("BOOLEAN", {"default": False}),
             }
         }
 
@@ -229,7 +229,7 @@ class InoHuggingFaceDownloadModel:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, model_config, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision="", ignore_repo_dir=True):
+    async def function(self, enabled, model_config, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision="", ignore_repo_dir=False):
         if not enabled:
             ino_print_log("InoHuggingFaceDownloadFile", "Attempt to run but disabled")
             return (False, "", "", "", "",)
