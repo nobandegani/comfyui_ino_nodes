@@ -21,10 +21,34 @@ def ino_print_log(prefix:str = "", msg:str="unknown", e = None):
         print(message)
 
 MODEL_TYPES = (
-    "audio_encoders", "checkpoints", "clip", "clip_vision", "controlnet", "diffusers", "diffusion_models",
-    "embeddings", "face_restore", "loras", "sams", "sam", "sam2", "style_models","text_encoders", "transformers",
-    "llm", "Joy_caption", "prompt_generator", "Diffueraser", "ultralytics",
-    "tts", "unet", "upscale_models", "vae", "vibevoice", "wav2vec2"
+    "audio_encoders",
+    "checkpoints",
+    "clip",
+    "clip_vision",
+    "controlnet",
+    "detection",
+    "Diffueraser",
+    "diffusers",
+    "diffusion_models",
+    "embeddings",
+    "face_restore",
+    "Joy_caption",
+    "llm",
+    "loras",
+    "prompt_generator",
+    "sam",
+    "sam2",
+    "sams",
+    "style_models",
+    "text_encoders",
+    "transformers",
+    "tts",
+    "ultralytics",
+    "unet",
+    "upscale_models",
+    "vae",
+    "vibevoice",
+    "wav2vec2"
 )
 
 UNET_WEIGHT_DTYPE=["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
