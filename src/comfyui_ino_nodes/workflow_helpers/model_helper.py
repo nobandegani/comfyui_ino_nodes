@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from pathlib import Path
 from huggingface_hub import hf_hub_download, snapshot_download
@@ -218,7 +219,8 @@ class InoHuggingFaceDownloadModel:
             "optional": {
                 "token": ("STRING", {"default": ""}),
                 "repo_type": ("STRING", {"default": ""}),
-                "revision": ("STRING", {"default": ""})
+                "revision": ("STRING", {"default": ""}),
+                "ignore_repo_dir": ("BOOLEAN", {"default": True}),
             }
         }
 
@@ -227,7 +229,7 @@ class InoHuggingFaceDownloadModel:
     RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
     FUNCTION = "function"
 
-    async def function(self, enabled, model_config, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision=""):
+    async def function(self, enabled, model_config, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision="", ignore_repo_dir=True):
         if not enabled:
             ino_print_log("InoHuggingFaceDownloadFile", "Attempt to run but disabled")
             return (False, "", "", "", "",)
@@ -271,6 +273,9 @@ class InoHuggingFaceDownloadModel:
 
         try:
             result = hf_hub_download(repo_id, filename, **args)
+            if ignore_repo_dir:
+                shutil.move(result, model_path)
+                result = f"{model_path}/{Path(result).name}"
             rel_path = Path(result).relative_to(model_path_base)
             ino_print_log("InoHuggingFaceDownloadFile", "file downloaded successfully", )
             return (True, "Successfull", model_type, result, rel_path)
