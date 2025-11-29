@@ -1,4 +1,0 @@
-id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,repo_type,revision
-1,Flux1dev-vae,fp16,hf,vae,flux1dev,black-forest-labs/FLUX.1-dev,ae.safetensors
-2,Wan-21-vae,fp16,hf,vae,wan2.1,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,split_files/vae/wan_2.1_vae.safetensors
-3,Wan-22-vae,fp16,hf,vae,wan2.1,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,split_files/vae/wan2.2_vae.safetensors
