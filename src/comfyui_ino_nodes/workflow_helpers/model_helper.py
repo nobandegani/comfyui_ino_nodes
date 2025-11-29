@@ -8,9 +8,9 @@ from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper, ino_ok, ino_
 import folder_paths
 import node_helpers
 
-
 from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import ino_print_log, MODEL_TYPES, any_type, UNET_WEIGHT_DTYPE, CLIP_TYPE
+from ..node_helper import get_list_from_csv, get_model_from_csv
 
 #todo add progress bar
 
@@ -64,6 +64,130 @@ class InoCreateDownloadModelConfig:
 
         ino_print_log("InoCreateDownloadModelConfig", "config created")
         return (config_str,)
+
+class InoGetImageModelDownloadConfig:
+    """
+
+    """
+    MODELS_LIST = get_list_from_csv(False, "image_models_files", True)
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model": (s.MODELS_LIST, {}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("ModelConfig",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoModelHelper"
+
+    def function(self, enabled, model):
+        if not enabled:
+            return ("",)
+
+        model_dict = get_model_from_csv(False, "image_models_files", model)
+        return (str(model_dict),)
+
+class InoGetVideoModelDownloadConfig:
+    """
+
+    """
+    MODELS_LIST = get_list_from_csv(False, "video_models_files", True)
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model": (s.MODELS_LIST, {}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("ModelConfig",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoModelHelper"
+
+    def function(self, enabled, model):
+        if not enabled:
+            return ("",)
+
+        model_dict = get_model_from_csv(False, "video_models_files", model)
+        return (str(model_dict),)
+
+class InoGetVaeDownloadConfig:
+    """
+
+    """
+    MODELS_LIST = get_list_from_csv(False, "vae_files", True)
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model": (s.MODELS_LIST, {}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("ModelConfig",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoModelHelper"
+
+    def function(self, enabled, model):
+        if not enabled:
+            return ("",)
+
+        model_dict = get_model_from_csv(False, "vae_files", model)
+        return (str(model_dict),)
+
+class InoGetClipDownloadConfig:
+    """
+
+    """
+    MODELS_LIST = get_list_from_csv(False, "clip_files", True)
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model": (s.MODELS_LIST, {}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("ModelConfig",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoModelHelper"
+
+    def function(self, enabled, model):
+        if not enabled:
+            return ("",)
+
+        model_dict = get_model_from_csv(False, "clip_files", model)
+        return (str(model_dict),)
 
 class InoHttpDownloadModel:
 
@@ -693,6 +817,10 @@ class InoGetModelPathAsString:
 
 LOCAL_NODE_CLASS = {
     "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
+    "InoGetImageModelDownloadConfig": InoGetImageModelDownloadConfig,
+    "InoGetVideoModelDownloadConfig": InoGetVideoModelDownloadConfig,
+    "InoGetVaeDownloadConfig": InoGetVaeDownloadConfig,
+    "InoGetClipDownloadConfig": InoGetClipDownloadConfig,
 
     "InoHttpDownloadModel": InoHttpDownloadModel,
     "InoS3DownloadModel": InoS3DownloadModel,
@@ -707,6 +835,10 @@ LOCAL_NODE_CLASS = {
 }
 LOCAL_NODE_NAME = {
     "InoCreateModelFileConfig": "Ino Create Model File Config",
+    "InoGetImageModelDownloadConfig": "Ino Get Image Model Download Config",
+    "InoGetVideoModelDownloadConfig": "Ino Get Video Model Download Config",
+    "InoGetVaeDownloadConfig": "Ino Get Vae Download Config",
+    "InoGetClipDownloadConfig": "Ino Get Clip Download Config",
 
     "InoHttpDownloadModel": "Ino Http Download Model",
     "InoS3DownloadModel": "Ino S3 Download Model",
