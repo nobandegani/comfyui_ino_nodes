@@ -94,7 +94,9 @@ class InoGetImageModelDownloadConfig:
             return ("",)
 
         model_dict = get_model_from_csv(False, "image_models_files", model)
-        return (str(model_dict),)
+
+        data = InoJsonHelper.dict_to_string(model_dict)["data"]
+        return (data,)
 
 class InoGetVideoModelDownloadConfig:
     """
@@ -125,7 +127,9 @@ class InoGetVideoModelDownloadConfig:
             return ("",)
 
         model_dict = get_model_from_csv(False, "video_models_files", model)
-        return (str(model_dict),)
+
+        data = InoJsonHelper.dict_to_string(model_dict)["data"]
+        return (data,)
 
 class InoGetVaeDownloadConfig:
     """
@@ -156,7 +160,9 @@ class InoGetVaeDownloadConfig:
             return ("",)
 
         model_dict = get_model_from_csv(False, "vae_files", model)
-        return (str(model_dict),)
+
+        data = InoJsonHelper.dict_to_string(model_dict)["data"]
+        return (data,)
 
 class InoGetClipDownloadConfig:
     """
@@ -187,7 +193,9 @@ class InoGetClipDownloadConfig:
             return ("",)
 
         model_dict = get_model_from_csv(False, "clip_files", model)
-        return (str(model_dict),)
+
+        data = InoJsonHelper.dict_to_string(model_dict)["data"]
+        return (data,)
 
 class InoHttpDownloadModel:
 
