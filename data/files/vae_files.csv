@@ -3,3 +3,5 @@ id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,r
 2,Comfy-wan-21-fp16,fp16,hf,vae,comfy-wan,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,wan_2.1_vae.safetensors,split_files/vae
 3,Comfy-wan-22-fp16,fp16,hf,vae,comfy-wan,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,wan2.2_vae.safetensors,split_files/vae
 4,Comfy-flux-2-fp16,fp16,hf,vae,comfy-flux2,Comfy-Org/flux2-dev,flux2-vae.safetensors,split_files/vae,,
+5,Wv-wan-21-bf16,bf16,hf,vae,wv-wan,Kijai/WanVideo_comfy,Wan2_1_VAE_bf16.safetensors,,,
+6,Wv-wan-22-bf16,bf16,hf,vae,wv-wan,Kijai/WanVideo_comfy,Wan2_2_VAE_bf16.safetensors,,,

@@ -4,3 +4,5 @@ id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,r
 3,umt-5-nsfw-fp8,fp8,hf,text_encoders,umt5,NSFW-API/NSFW-Wan-UMT5-XXL,nsfw_wan_umt5-xxl_fp8_scaled.safetensors
 4,umt-5-nsfw-fp16,fp16,hf,text_encoders,umt5,NSFW-API/NSFW-Wan-UMT5-XXL,nsfw_wan_umt5-xxl_bf16.safetensors
 5,Comfy-Mistral-3-bf16,bf16,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_bf16.safetensors,split_files/text_encoders,,
+6,Wv-umt5-bf16,bf16,hf,text_encoders,wv-umt5,Kijai/WanVideo_comfy,umt5-xxl-enc-bf16.safetensors,,,
+7,Wv-umt5-fp8,fp8,hf,text_encoders,wv-umt5,Kijai/WanVideo_comfy,umt5-xxl-enc-fp8_e4m3fn.safetensors,,,
