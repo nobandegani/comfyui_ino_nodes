@@ -10,3 +10,5 @@ id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,r
 9,SmoothMixWan-V2-T2V-Low,fp8,civitai,diffusion_models,wan2.2/smooth,1995784,0,,,2324440
 10,kj-wan-22-TI2V-5B-fp8,fp8,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy_fp8_scaled,Wan2_2-TI2V-5B_fp8_e4m3fn_scaled_KJ.safetensors,TI2V,,
 7,Comfy-Wan-22-5B-14B,fp16,hf,diffusion_models,comfy-wan-22,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,wan2.2_ti2v_5B_fp16.safetensors,split_files/diffusion_models,,
+11,kj-wan-21-I2V-14B-SteadyDancer-fp16,fp16,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy,Wan21_I2V_SteadyDancer_fp16.safetensors,SteadyDancer,,
+12,kj-wan-21-I2V-14B-SteadyDancer-fp8,fp8,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy_fp8_scaled,Wan21_SteadyDancer_fp8_e4m3fn_scaled_KJ.safetensors,SteadyDancer,,

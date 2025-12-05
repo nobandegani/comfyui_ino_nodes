@@ -7,4 +7,6 @@ id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,r
 6,kj-umt5-bf16,bf16,hf,text_encoders,kj-umt5,Kijai/WanVideo_comfy,umt5-xxl-enc-bf16.safetensors,,,
 7,kj-umt5-fp8,fp8,hf,text_encoders,kj-umt5,Kijai/WanVideo_comfy,umt5-xxl-enc-fp8_e4m3fn.safetensors,,,
 8,Comfy-umt-5-fp16,fp16,hf,text_encoders,comfy-umt5,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,umt5_xxl_fp16.safetensors,split_files/text_encoders,,
-8,Comfy-umt-5-fp8,fp8,hf,text_encoders,comfy-umt5,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,umt5_xxl_fp8_e4m3fn_scaled.safetensors,split_files/text_encoders,,
+9,Comfy-umt-5-fp8,fp8,hf,text_encoders,comfy-umt5,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,umt5_xxl_fp8_e4m3fn_scaled.safetensors,split_files/text_encoders,,
+10,Comfy-qwen-25-vl-7b-fp8,fp8,hf,text_encoders,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_2.5_vl_7b_fp8_scaled.safetensors,split_files/text_encoders,,
+11,Comfy-qwen-25-vl-7b-fp16,fp16,hf,text_encoders,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_2.5_vl_7b.safetensors,split_files/text_encoders,,
