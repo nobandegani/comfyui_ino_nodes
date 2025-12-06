@@ -12,3 +12,7 @@ id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,r
 7,Comfy-Wan-22-5B-14B,fp16,hf,diffusion_models,comfy-wan-22,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,wan2.2_ti2v_5B_fp16.safetensors,split_files/diffusion_models,,
 11,kj-wan-21-I2V-14B-SteadyDancer-fp16,fp16,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy,Wan21_I2V_SteadyDancer_fp16.safetensors,SteadyDancer,,
 12,kj-wan-21-I2V-14B-SteadyDancer-fp8,fp8,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy_fp8_scaled,Wan21_SteadyDancer_fp8_e4m3fn_scaled_KJ.safetensors,SteadyDancer,,
+13,kj-wan-22-I2V-14B-high-fp16,fp16,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy,Wan2_2-I2V-A14B-HIGH_bf16.safetensors,"",,
+14,kj-wan-22-I2V-14B-low-fp16,fp16,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy,Wan2_2-I2V-A14B-LOW_bf16.safetensors,"",,
+15,kj-wan-22-T2V-14B-high-fp8,fp8,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy_fp8_scaled,Wan2_2-T2V-A14B_HIGH_fp8_e4m3fn_scaled_KJ.safetensors,T2V,,
+16,kj-wan-22-T2V-14B-low-fp8,fp8,hf,diffusion_models,kj-wan,Kijai/WanVideo_comfy_fp8_scaled,Wan2_2-T2V-A14B-LOW_fp8_e4m3fn_scaled_KJ.safetensors,T2V,,
