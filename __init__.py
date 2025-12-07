@@ -6,6 +6,10 @@ from .src.comfyui_ino_nodes.class_helpers.file_helper import (
     LOCAL_NODE_CLASS as FILE_HELPER_CLASS,
     LOCAL_NODE_NAME as FILE_HELPER_NAME
 )
+from .src.comfyui_ino_nodes.class_helpers.media_helper import (
+    LOCAL_NODE_CLASS as MEDIA_HELPER_CLASS,
+    LOCAL_NODE_NAME as MEDIA_HELPER_NAME
+)
 from .src.comfyui_ino_nodes.class_helpers.http_helper import (
     LOCAL_NODE_CLASS as HTTP_HELPER_CLASS,
     LOCAL_NODE_NAME as HTTP_HELPER_NAME
@@ -87,6 +91,7 @@ from .src.comfyui_ino_nodes.basic_auth import LOCAL_NODE_CLASS as BASIC_AUTH_CLA
 
 _node_classes ={}
 _node_classes.update(FILE_HELPER_CLASS)
+_node_classes.update(MEDIA_HELPER_CLASS)
 _node_classes.update(HTTP_HELPER_CLASS)
 _node_classes.update(JSON_HELPER_CLASS)
 _node_classes.update(OPENAPI_HELPER_CLASS)
@@ -113,6 +118,7 @@ _node_classes.update(SAMPLER_HELPER_CLASS)
 
 _node_names = {}
 _node_names.update(FILE_HELPER_NAME)
+_node_names.update(MEDIA_HELPER_NAME)
 _node_names.update(HTTP_HELPER_NAME)
 _node_names.update(JSON_HELPER_NAME)
 _node_names.update(OPENAPI_HELPER_NAME)
