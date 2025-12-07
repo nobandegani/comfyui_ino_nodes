@@ -1,6 +1,6 @@
 from inopyutils import InoMediaHelper
 
-class InoConvertVideo:
+class InoConvertVideoToMP4:
     """
 
     """
@@ -12,13 +12,12 @@ class InoConvertVideo:
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "input_path": ("STRING", {"multiline": False,"default": "" }),
                 "output_path": ("STRING", {"multiline": False, "default": ""}),
+            },
+            "optional": {
                 "change_fps": ("BOOLEAN", {"default": True}),
                 "fps": ("INT", {"default": 30, "min": 1, "max": 1000}),
                 "change_resolution": ("BOOLEAN", {"default": True}),
                 "max_resolution": ("INT", {"default": 2560}),
-            },
-            "optional": {
-                "dummy_string": ("STRING", {}),
             }
         }
 
@@ -38,8 +37,8 @@ class InoConvertVideo:
         return (convert["success"], convert["msg"], convert, )
 
 LOCAL_NODE_CLASS = {
-    "InoConvertVideo": InoConvertVideo,
+    "InoConvertVideoToMP4": InoConvertVideoToMP4,
 }
 LOCAL_NODE_NAME = {
-    "InoConvertVideo": "Ino Convert Video",
+    "InoConvertVideoToMP4": "Ino Convert Video To MP4",
 }
