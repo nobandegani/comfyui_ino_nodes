@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from inopyutils import InoMediaHelper
 
 class InoConvertVideoToMP4:
@@ -32,7 +34,14 @@ class InoConvertVideoToMP4:
         if not enabled:
             return (False, "Node is disabled", "",)
 
-        convert = await InoMediaHelper.video_convert_ffmpeg(input_path, output_path, change_resolution, change_fps, max_resolution, fps)
+        convert = await InoMediaHelper.video_convert_ffmpeg(
+            input_path=Path(input_path),
+            output_path=Path(output_path),
+            change_res=change_resolution,
+            change_fps=change_fps, 
+            max_res=max_resolution,
+            max_fps=fps
+        )
 
         return (convert["success"], convert["msg"], convert, )
 
