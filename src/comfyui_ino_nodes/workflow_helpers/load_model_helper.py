@@ -102,6 +102,105 @@ class InoControlnetLoadModel:
             ino_print_log("InoHandleLoadModel", "exception", e)
             return (False, f"Error: {e}", None, )
 
+class InoClipLoadModel:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_path": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "clip_type": (CLIP_TYPE, {})
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "CLIP", )
+    RETURN_NAMES = ("Success", "MSG", "CLIP",)
+
+    FUNCTION = "function"
+    CATEGORY = "InoSamplerHelper"
+
+    async def function(self, enabled, model_path: str, clip_type:str):
+        if not enabled:
+            ino_print_log("InoHandleLoadModel", "Attempt to run but disabled")
+            return (False, "not enabled", None,)
+
+        try:
+            loaded_model = None
+            from nodes import CLIPLoader
+            model_loader = CLIPLoader()
+
+            file_loader = model_loader.load_clip(
+                clip_name=model_path,
+                type=clip_type,
+                device="default"
+            )
+            loaded_model = file_loader[0]
+
+            if loaded_model is not None:
+                ino_print_log("InoHandleLoadModel", f"clip loaded")
+                return (True, f"clip loaded", loaded_model,  )
+            else:
+                ino_print_log("InoHandleLoadModel", f"clip not loaded")
+                return (False, f"clip not loaded", None,  )
+        except Exception as e:
+            ino_print_log("InoHandleLoadModel", "exception", e)
+            return (False, f"Error: {e}", None, )
+
+class InoDiffusionLoadModel:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_path": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "unet_weight_dtype": (UNET_WEIGHT_DTYPE, {}),
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "MODEL", )
+    RETURN_NAMES = ("Success", "MSG", "MODEL",)
+
+    FUNCTION = "function"
+    CATEGORY = "InoSamplerHelper"
+
+    async def function(self, enabled, model_path: str, unet_weight_dtype:str):
+        if not enabled:
+            ino_print_log("InoHandleLoadModel", "Attempt to run but disabled")
+            return (False, "not enabled", None,)
+
+        try:
+            loaded_model = None
+            from nodes import UNETLoader
+
+            model_loader = UNETLoader()
+            file_loader = model_loader.load_unet(
+                unet_name=model_path,
+                weight_dtype=unet_weight_dtype
+            )
+            loaded_model = file_loader[0]
+
+            if loaded_model is not None:
+                ino_print_log("InoHandleLoadModel", f"clip loaded")
+                return (True, f"clip loaded", loaded_model,  )
+            else:
+                ino_print_log("InoHandleLoadModel", f"clip not loaded")
+                return (False, f"clip not loaded", None,  )
+        except Exception as e:
+            ino_print_log("InoHandleLoadModel", "exception", e)
+            return (False, f"Error: {e}", None, )
+
 class InoHandleLoadModel:
     """
 
@@ -134,44 +233,7 @@ class InoHandleLoadModel:
 
         try:
             loaded_model = None
-            supported = True
-            if model_type == "controlnet":
-                from nodes import ControlNetLoader
-
-                model_loader = ControlNetLoader()
-                file_loader = model_loader.load_controlnet(
-                    control_net_name=model_path
-                )
-                loaded_model = file_loader[0]
-            elif model_type == "diffusion_models":
-                from nodes import UNETLoader
-
-                model_loader = UNETLoader()
-                file_loader = model_loader.load_unet(
-                    unet_name=model_path,
-                    weight_dtype=unet_weight_dtype
-                )
-                loaded_model = file_loader[0]
-            elif model_type == "text_encoders":
-                from nodes import CLIPLoader
-                model_loader = CLIPLoader()
-
-                file_loader = model_loader.load_clip(
-                    clip_name=model_path,
-                    type=clip_type,
-                    device="default"
-                )
-                loaded_model = file_loader[0]
-            elif model_type == "vae":
-                from nodes import VAELoader
-                model_loader = VAELoader()
-
-                file_loader = model_loader.load_vae(
-                    vae_name=model_path,
-                )
-                loaded_model = file_loader[0]
-            else:
-                supported = False
+            supported = False
 
             if not supported:
                 ino_print_log("InoHandleLoadModel", f"loading {model_type} not supported")
@@ -261,11 +323,22 @@ class InoGetModelPathAsString:
 
 
 LOCAL_NODE_CLASS = {
+    "InoVaeLoadModel": InoVaeLoadModel,
+    "InoControlnetLoadModel": InoControlnetLoadModel,
+    "InoClipLoadModel": InoClipLoadModel,
+    "InoDiffusionLoadModel": InoDiffusionLoadModel,
+
     "InoHandleLoadModel": InoHandleLoadModel,
     "InoHandleDownloadAndLoadModel": InoHandleDownloadAndLoadModel,
+
     "InoGetModelPathAsString": InoGetModelPathAsString
 }
 LOCAL_NODE_NAME = {
+    "InoVaeLoadModel": "Ino Vae Load Model",
+    "InoControlnetLoadModel": "Ino Controlnet Load Model",
+    "InoClipLoadModel": "Ino Clip Load Model",
+    "InoDiffusionLoadModel": "Ino Diffusion Load Model",
+
     "InoHandleLoadModel": "Ino Handle Load Model",
     "InoHandleDownloadAndLoadModel": "Ino Handle Download And Load Model",
 
