@@ -192,11 +192,68 @@ class InoDiffusionLoadModel:
             loaded_model = file_loader[0]
 
             if loaded_model is not None:
-                ino_print_log("InoHandleLoadModel", f"clip loaded")
-                return (True, f"clip loaded", loaded_model,  )
+                ino_print_log("InoHandleLoadModel", f"diffusion loaded")
+                return (True, f"diffusion loaded", loaded_model,  )
             else:
-                ino_print_log("InoHandleLoadModel", f"clip not loaded")
-                return (False, f"clip not loaded", None,  )
+                ino_print_log("InoHandleLoadModel", f"diffusion not loaded")
+                return (False, f"diffusion not loaded", None,  )
+        except Exception as e:
+            ino_print_log("InoHandleLoadModel", "exception", e)
+            return (False, f"Error: {e}", None, )
+
+class InoLoraLoadModel:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model_path": ("STRING", {"default": ""}),
+                "model": ("MODEL", {}),
+                "clip": ("CLIP", {}),
+            },
+            "optional": {
+                "strength_model": ("FLOAT", {"default": 1, "step": 0.01}),
+                "strength_clip": ("FLOAT", {"default": 1, "step": 0.01}),
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "MODEL", "CLIP", )
+    RETURN_NAMES = ("Success", "MSG", "MODEL", "CLIP", )
+
+    FUNCTION = "function"
+    CATEGORY = "InoSamplerHelper"
+
+    async def function(self, enabled, model_path: str, model, clip, strength_model, strength_clip):
+        if not enabled:
+            ino_print_log("InoHandleLoadModel", "Attempt to run but disabled")
+            return (False, "not enabled", None,)
+
+        try:
+            loaded_model = None
+            loaded_clip = None
+            from nodes import LoraLoader
+
+            model_loader = LoraLoader()
+            file_loader = model_loader.load_lora(
+                model=model,
+                clip=clip,
+                lora_name=model_path,
+                strength_model=strength_model,
+                strength_clip=strength_clip
+            )
+            loaded_model = file_loader[0]
+            loaded_clip = file_loader[1]
+
+            if loaded_model is not None and loaded_clip is not None:
+                ino_print_log("InoHandleLoadModel", f"lora loaded")
+                return (True, f"lora loaded", loaded_model,  loaded_clip)
+            else:
+                ino_print_log("InoHandleLoadModel", f"lora not loaded")
+                return (False, f"lora not loaded", None,  )
         except Exception as e:
             ino_print_log("InoHandleLoadModel", "exception", e)
             return (False, f"Error: {e}", None, )
