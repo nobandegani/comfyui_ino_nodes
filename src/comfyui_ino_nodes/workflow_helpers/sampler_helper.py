@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from inopyutils import InoJsonHelper
 
 from comfy.samplers import SAMPLER_NAMES, SCHEDULER_NAMES
-from .model_helper import InoHuggingFaceDownloadModel, InoCivitaiDownloadModel, InoHandleDownloadModel
+from .download_model_helper import InoHuggingFaceDownloadModel, InoCivitaiDownloadModel, InoHandleDownloadModel
 
 from ..node_helper import any_type, ino_print_log
 
