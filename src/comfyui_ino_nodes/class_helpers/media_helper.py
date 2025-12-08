@@ -38,7 +38,7 @@ class InoConvertVideoToMP4:
             input_path=Path(input_path),
             output_path=Path(output_path),
             change_res=change_resolution,
-            change_fps=change_fps, 
+            change_fps=change_fps,
             max_res=max_resolution,
             max_fps=fps
         )

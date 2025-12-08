@@ -54,11 +54,9 @@ MODEL_TYPES = (
     "wav2vec2"
 )
 
-UNET_WEIGHT_DTYPE=["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
+UNET_WEIGHT_DTYPE= ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
 
-CLIP_TYPE= ["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "mochi", "ltxv", "pixart", "cosmos", "lumina2", "wan", "hidream", "chroma", "ace", "omnigen2", "qwen_image", "hunyuan_image"]
-
-
+CLIP_TYPE= ["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "mochi", "ltxv", "pixart", "cosmos", "lumina2", "wan", "hidream", "chroma", "ace", "omnigen2", "qwen_image", "hunyuan_image", "flux2", "ovis"]
 
 def _load_csv_as_dict(is_config: bool, model_type: str) -> list:
     base_dir = Path(__file__).resolve().parent.parent.parent

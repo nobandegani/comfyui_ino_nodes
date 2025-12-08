@@ -74,9 +74,13 @@ from .src.comfyui_ino_nodes.workflow_helpers.lora_helper import (
     LOCAL_NODE_CLASS as LORA_HELPER_CLASS,
     LOCAL_NODE_NAME as LORA_HELPER_NAME
 )
-from .src.comfyui_ino_nodes.workflow_helpers.model_helper import (
-    LOCAL_NODE_CLASS as MODEL_HELPER_CLASS,
-    LOCAL_NODE_NAME as MODEL_HELPER_NAME
+from .src.comfyui_ino_nodes.workflow_helpers.download_model_helper import (
+    LOCAL_NODE_CLASS as DOWNLOAD_MODEL_HELPER_CLASS,
+    LOCAL_NODE_NAME as DOWNLOAD_MODEL_HELPER_NAME
+)
+from .src.comfyui_ino_nodes.workflow_helpers.load_model_helper import (
+    LOCAL_NODE_CLASS as LOAD_MODEL_HELPER_CLASS,
+    LOCAL_NODE_NAME as LOAD_MODEL_HELPER_NAME
 )
 from .src.comfyui_ino_nodes.workflow_helpers.prompt_helper import (
     LOCAL_NODE_CLASS as PROMPT_HELPER_CLASS,
@@ -110,11 +114,10 @@ _node_classes.update(S3_HELPER_CLASS)
 _node_classes.update(EXTRA_CLASS)
 
 _node_classes.update(LORA_HELPER_CLASS)
-_node_classes.update(MODEL_HELPER_CLASS)
+_node_classes.update(DOWNLOAD_MODEL_HELPER_CLASS)
+_node_classes.update(LOAD_MODEL_HELPER_CLASS)
 _node_classes.update(PROMPT_HELPER_CLASS)
 _node_classes.update(SAMPLER_HELPER_CLASS)
-
-
 
 _node_names = {}
 _node_names.update(FILE_HELPER_NAME)
@@ -137,7 +140,8 @@ _node_names.update(S3_HELPER_NAME)
 _node_names.update(EXTRA_NAME)
 
 _node_names.update(LORA_HELPER_NAME)
-_node_names.update(MODEL_HELPER_NAME)
+_node_names.update(DOWNLOAD_MODEL_HELPER_NAME)
+_node_names.update(LOAD_MODEL_HELPER_NAME)
 _node_names.update(PROMPT_HELPER_NAME)
 _node_names.update(SAMPLER_HELPER_NAME)
 
