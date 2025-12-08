@@ -1,4 +1,6 @@
+import os
 from pathlib import Path
+
 from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper, ino_ok, ino_err, ino_is_err
 
 import folder_paths
@@ -221,8 +223,8 @@ class InoLoadLoraClipModel:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "MODEL", "CLIP", )
-    RETURN_NAMES = ("Success", "MSG", "MODEL", "CLIP", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "MODEL", "CLIP", )
+    RETURN_NAMES = ("Success", "MSG", "Name", "TriggerWord", "MODEL", "CLIP", )
 
     FUNCTION = "function"
     CATEGORY = "InoSamplerHelper"
@@ -230,9 +232,12 @@ class InoLoadLoraClipModel:
     async def function(self, enabled, model_path: str, model, clip, strength_model, strength_clip):
         if not enabled:
             ino_print_log("InoHandleLoadModel", "Attempt to run but disabled")
-            return (False, "not enabled", None,)
+            return (False, "not enabled", "", "", None, None, )
 
         try:
+            lora_name = os.path.splitext(os.path.basename(model_path))[0]
+            lora_trigger = lora_name.split("_", 1)[0]
+
             loaded_model = None
             loaded_clip = None
             from nodes import LoraLoader
@@ -250,13 +255,13 @@ class InoLoadLoraClipModel:
 
             if loaded_model is not None and loaded_clip is not None:
                 ino_print_log("InoHandleLoadModel", f"lora loaded")
-                return (True, f"lora loaded", loaded_model,  loaded_clip)
+                return (True, f"lora loaded", lora_name, lora_trigger, loaded_model,  loaded_clip)
             else:
                 ino_print_log("InoHandleLoadModel", f"lora not loaded")
-                return (False, f"lora not loaded", None,  )
+                return (False, f"lora not loaded", "", "", None, None, )
         except Exception as e:
             ino_print_log("InoHandleLoadModel", "exception", e)
-            return (False, f"Error: {e}", None, )
+            return (False, f"Error: {e}", "", "", None, None, )
 
 class InoLoadLoraModel:
     """
@@ -276,8 +281,8 @@ class InoLoadLoraModel:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "MODEL", "CLIP", )
-    RETURN_NAMES = ("Success", "MSG", "MODEL", "CLIP", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "MODEL", "CLIP", )
+    RETURN_NAMES = ("Success", "MSG", "Name", "TriggerWord", "MODEL", "CLIP", )
 
     FUNCTION = "function"
     CATEGORY = "InoSamplerHelper"
@@ -285,9 +290,12 @@ class InoLoadLoraModel:
     async def function(self, enabled, model_path: str, model, strength_model):
         if not enabled:
             ino_print_log("InoHandleLoadModel", "Attempt to run but disabled")
-            return (False, "not enabled", None,)
+            return (False, "not enabled", "", "", None, )
 
         try:
+            lora_name = os.path.splitext(os.path.basename(model_path))[0]
+            lora_trigger = lora_name.split("_", 1)[0]
+
             loaded_model = None
             from nodes import LoraLoaderModelOnly
 
@@ -301,13 +309,13 @@ class InoLoadLoraModel:
 
             if loaded_model is not None:
                 ino_print_log("InoHandleLoadModel", f"lora loaded")
-                return (True, f"lora loaded", loaded_model,)
+                return (True, f"lora loaded", lora_name, lora_trigger, loaded_model,)
             else:
                 ino_print_log("InoHandleLoadModel", f"lora not loaded")
-                return (False, f"lora not loaded", None,  )
+                return (False, f"lora not loaded", "", "", None, )
         except Exception as e:
             ino_print_log("InoHandleLoadModel", "exception", e)
-            return (False, f"Error: {e}", None, )
+            return (False, f"Error: {e}", "", "", None, )
 
 class InoHandleLoadModel:
     """
