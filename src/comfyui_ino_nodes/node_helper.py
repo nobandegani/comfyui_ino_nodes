@@ -30,8 +30,7 @@ MODEL_TYPES = (
     "clip_vision",
     "controlnet",
     "detection",
-    "Diffueraser",
-    "DiffuEraservae",
+    "DiffuEraser"
     "diffusers",
     "diffusion_models",
     "embeddings",
