@@ -31,6 +31,7 @@ MODEL_TYPES = (
     "controlnet",
     "detection",
     "Diffueraser",
+    "DiffuEraservae",
     "diffusers",
     "diffusion_models",
     "embeddings",
@@ -51,7 +52,7 @@ MODEL_TYPES = (
     "upscale_models",
     "vae",
     "vibevoice",
-    "wav2vec2"
+    "wav2vec2",
 )
 
 UNET_WEIGHT_DTYPE= ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
