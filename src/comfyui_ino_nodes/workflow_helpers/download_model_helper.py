@@ -196,6 +196,39 @@ class InoGetClipDownloadConfig:
         data = InoJsonHelper.dict_to_string(model_dict)["data"]
         return (data,)
 
+class InoGetControlnetDownloadConfig:
+    """
+
+    """
+    MODELS_LIST = get_list_from_csv(False, "controlnet_files", True)
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model": (s.MODELS_LIST, {}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("ModelConfig",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoModelHelper"
+
+    def function(self, enabled, model):
+        if not enabled:
+            return ("",)
+
+        model_dict = get_model_from_csv(False, "controlnet_files", model)
+
+        data = InoJsonHelper.dict_to_string(model_dict)["data"]
+        return (data,)
+
 class InoHttpDownloadModel:
 
     @classmethod
@@ -671,6 +704,7 @@ LOCAL_NODE_CLASS = {
     "InoGetVideoModelDownloadConfig": InoGetVideoModelDownloadConfig,
     "InoGetVaeDownloadConfig": InoGetVaeDownloadConfig,
     "InoGetClipDownloadConfig": InoGetClipDownloadConfig,
+    "InoGetControlnetDownloadConfig": InoGetControlnetDownloadConfig,
 
     "InoHttpDownloadModel": InoHttpDownloadModel,
     "InoS3DownloadModel": InoS3DownloadModel,
@@ -686,6 +720,7 @@ LOCAL_NODE_NAME = {
     "InoGetVideoModelDownloadConfig": "Ino Get Video Model Download Config",
     "InoGetVaeDownloadConfig": "Ino Get Vae Download Config",
     "InoGetClipDownloadConfig": "Ino Get Clip Download Config",
+    "InoGetControlnetDownloadConfig": "Ino Get Controlnet Download Config",
 
     "InoHttpDownloadModel": "Ino Http Download Model",
     "InoS3DownloadModel": "Ino S3 Download Model",

@@ -1,0 +1,3 @@
+id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,repo_type,revision
+1,Comfy-qwen-image-instantx-inpainting-fp16,fp16,hf,controlnet,comfy-qwen,Comfy-Org/Qwen-Image-InstantX-ControlNets,Qwen-Image-InstantX-ControlNet-Inpainting.safetensors,split_files/controlnet,,
+1,Comfy-qwen-image-instantx-union-fp16,fp16,hf,controlnet,comfy-qwen,Comfy-Org/Qwen-Image-InstantX-ControlNets,Qwen-Image-InstantX-ControlNet-Union.safetensors,split_files/controlnet,,
