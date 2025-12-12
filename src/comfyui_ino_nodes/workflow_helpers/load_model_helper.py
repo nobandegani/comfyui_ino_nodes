@@ -281,8 +281,8 @@ class InoLoadLoraModel:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "MODEL", "CLIP", )
-    RETURN_NAMES = ("Success", "MSG", "Name", "TriggerWord", "MODEL", "CLIP", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "MODEL", )
+    RETURN_NAMES = ("Success", "MSG", "Name", "TriggerWord", "MODEL",)
 
     FUNCTION = "function"
     CATEGORY = "InoSamplerHelper"
@@ -309,7 +309,7 @@ class InoLoadLoraModel:
 
             if loaded_model is not None:
                 ino_print_log("InoHandleLoadModel", f"lora loaded")
-                return (True, f"lora loaded", lora_name, lora_trigger, loaded_model,)
+                return (True, f"lora loaded", lora_name, lora_trigger, loaded_model, )
             else:
                 ino_print_log("InoHandleLoadModel", f"lora not loaded")
                 return (False, f"lora not loaded", "", "", None, )
