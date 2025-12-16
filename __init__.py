@@ -156,6 +156,21 @@ __all__ = [
     "WEB_DIRECTORY",
 ]
 
+from comfy_api.latest import ComfyExtension, io
+from .src.comfyui_ino_nodes.node_helpers.bool_helper import InoBooleanEqual
+
+class InoNodes(ComfyExtension):
+    # must be declared as async
+    async def get_node_list(self) -> list[type[io.ComfyNode]]:
+        return [
+            InoBooleanEqual,
+            # Add more nodes here
+        ]
+
+# can be declared async or not, both will work
+async def comfy_entrypoint() -> InoNodes:
+    return InoNodes()
+
 __author__ = """InoNodes"""
 __email__ = "contact@inoland.net"
 __version__ = "1.1.5"

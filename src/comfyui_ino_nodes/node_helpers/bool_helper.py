@@ -1,26 +1,24 @@
-class InoBooleanEqual:
-    """
-        reverse boolean
-    """
+from comfy_api.latest import ComfyExtension, io
+
+class InoBooleanEqual(io.ComfyNode):
+    @classmethod
+    def define_schema(cls) -> io.Schema:
+        return io.Schema(
+            node_id="InoBooleanEqual",
+            display_name="Ino Boolean Equal",
+            category="InoNodes",
+            inputs=[
+                io.Boolean.Input("input",default=True),
+                io.Boolean.Input("compare", default=True),
+            ],
+            outputs=[
+                io.Boolean.Output()
+            ]
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input": ("BOOLEAN", {"default": True}),
-                "compare": ("BOOLEAN", {"default": True}),
-            }
-        }
-
-    RETURN_TYPES = ("BOOLEAN",)
-    RETURN_NAMES = ("boolean",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, input, compare):
-        return (input == compare,)
+    def execute(cls, input, compare) -> io.NodeOutput:
+        return io.NodeOutput(input == compare)
 
 class InoNotBoolean:
     """
