@@ -20,60 +20,52 @@ class InoBooleanEqual(io.ComfyNode):
     def execute(cls, input, compare) -> io.NodeOutput:
         return io.NodeOutput(input == compare)
 
-class InoNotBoolean:
+class InoNotBoolean(io.ComfyNode):
+    @classmethod
+    def define_schema(cls) -> io.Schema:
+        return io.Schema(
+            node_id="InoNotBoolean",
+            display_name="Ino Not Boolean",
+            category="InoNodes",
+            inputs=[
+                io.Boolean.Input("boolean", default=True),
+            ],
+            outputs=[
+                io.Boolean.Output()
+            ]
+        )
+
+    @classmethod
+    def execute(cls, boolean: bool) -> io.NodeOutput:
+        return io.NodeOutput(not boolean)
+
+
+class InoBoolToSwitch(io.ComfyNode):
     """
-        reverse boolean
+    Convert bool to int, 2 for true, 1 for false. When disabled returns -1.
     """
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "boolean": ("BOOLEAN", {"default": True}),
-            }
-        }
-
-    RETURN_TYPES = ("BOOLEAN",)
-    RETURN_NAMES = ("boolean",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, boolean):
-        return (not boolean,)
-
-
-class InoBoolToSwitch:
-    """
-        Convert bool to int, 2 for true, 1 for false
-    """
+    def define_schema(cls) -> io.Schema:
+        return io.Schema(
+            node_id="InoBoolToSwitch",
+            display_name="Ino Bool To Switch",
+            category="InoNodes",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Boolean.Input("input_bool"),
+            ],
+            outputs=[
+                io.Int.Output()
+            ]
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "input_bool": ("BOOLEAN", {})
-            }
-        }
-
-    RETURN_TYPES = ("INT",)
-    RETURN_NAMES = ("INT",)
-
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(self, enabled, input_bool):
+    def execute(cls, enabled: bool, input_bool: bool) -> io.NodeOutput:
         if not enabled:
-            return -1
-
-        if input_bool:
-            result = 2
-        else:
-            result = 1
-
-        return (result,)
+            return io.NodeOutput(-1)
+        result = 2 if input_bool else 1
+        return io.NodeOutput(result)
 
 class InoConditionBooleanMulti:
     @classmethod
