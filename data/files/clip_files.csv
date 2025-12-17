@@ -10,3 +10,4 @@ id,name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,r
 9,Comfy-umt-5-fp8,fp8,hf,text_encoders,comfy-umt5,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,umt5_xxl_fp8_e4m3fn_scaled.safetensors,split_files/text_encoders,,
 10,Comfy-qwen-25-vl-7b-fp8,fp8,hf,text_encoders,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_2.5_vl_7b_fp8_scaled.safetensors,split_files/text_encoders,,
 11,Comfy-qwen-25-vl-7b-fp16,fp16,hf,text_encoders,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_2.5_vl_7b.safetensors,split_files/text_encoders,,
+12,Comfy-Mistral-3-fp8,fp8,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_fp8.safetensors,split_files/text_encoders,,
