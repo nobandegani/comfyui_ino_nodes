@@ -45,7 +45,7 @@ class InoGetLoraPathNameTriggerWord:
         }
 
     RETURN_TYPES = ("STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("string", "string", "string",)
+    RETURN_NAMES = ("lora_id", "lora_name", "lora_trigger_word",)
 
     FUNCTION = "function"
 
