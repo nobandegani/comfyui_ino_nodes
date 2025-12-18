@@ -1,5 +1,7 @@
 import folder_paths
 
+from pathlib import Path
+
 class InoGetComfyPath:
     """
 
@@ -29,10 +31,39 @@ class InoGetComfyPath:
             final_path = folder_paths.get_temp_directory()
         return (final_path,)
 
+class InoGetLoraPathNameTriggerWord:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "lora_path": ("STRING", {}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("string", "string", "string",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, lora_path, ):
+        lora_path = Path(lora_path)
+        lora_id = lora_path.parent.name
+        lora_name = lora_path.stem
+        trigger_word = lora_name.split('_')[0]
+
+        return ( lora_id, lora_name, trigger_word, )
 
 LOCAL_NODE_CLASS = {
     "InoGetComfyPath": InoGetComfyPath,
+    "InoGetLoraPathNameTriggerWord": InoGetLoraPathNameTriggerWord
 }
 LOCAL_NODE_NAME = {
     "InoGetComfyPath": "Ino Get Comfy Path",
+    "InoGetLoraPathNameTriggerWord": "Ino Get Lora Path Name Trigger Word",
 }
