@@ -1,4 +1,6 @@
 import re
+import hashlib
+import base64
 
 class InoStringToggleCase:
     """
@@ -84,13 +86,58 @@ class InoStringStripSimple:
         translation_table = str.maketrans("", "", strip_string)
         return (input_string.translate(translation_table), )
 
+class InoStringToAlphabeticString:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_string": ("STRING", {"default": "mjp043n85se4z"}),
+                "length": ("INT", {"default": 8}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("string", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, input_string, length):
+        if input_string is None:
+            return ""
+
+        alphabet = "abcdefghijklmnopqrstuvwxyz"
+        digest = hashlib.sha256(input_string.encode()).digest()
+        b32 = base64.b32encode(digest).decode().lower().rstrip("=")
+
+        result_chars = []
+        for ch in b32:
+            if 'a' <= ch <= 'z':
+                idx = ord(ch) - ord('a')
+            else:  # '2'..'7'
+                idx = (ord(ch) - ord('2')) % 26
+            result_chars.append(alphabet[idx])
+            if len(result_chars) == length:
+                break
+
+        alphbetic_string = "".join(result_chars)
+
+        return (alphbetic_string, )
+
 LOCAL_NODE_CLASS = {
     "InoStringToggleCase": InoStringToggleCase,
     "InoStringReplaceSimple": InoStringReplaceSimple,
     "InoStringStripSimple": InoStringStripSimple,
+    "InoStringToAlphabeticString": InoStringToAlphabeticString,
 }
 LOCAL_NODE_NAME = {
     "InoStringToggleCase": "Ino String Toggle Case",
     "InoStringReplaceSimple": "Ino String Replace Simple",
     "InoStringStripSimple": "Ino String Strip Simple",
+    "InoStringToAlphabeticString": "Ino String To Alphabetic String",
 }
