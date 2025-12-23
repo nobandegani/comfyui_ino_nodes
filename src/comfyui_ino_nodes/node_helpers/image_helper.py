@@ -1,7 +1,12 @@
 import torch
+import os
+
 from torchvision.transforms import InterpolationMode
 import torchvision.transforms.functional as TorchFunctional
 from datetime import datetime, timezone, timedelta
+
+import folder_paths
+from comfy_api.latest import ComfyExtension, io
 
 class InoSaveImages:
     """
@@ -196,14 +201,63 @@ class InoImageResizeByLongerSideAndCropV2:
 
         return (cropped_image[0],)
 
+class InoLoadImagesFromFolder(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoLoadImagesFromFolder",
+            display_name="Ino Load Images From Folder",
+            category="InoNodes",
+            inputs=[
+                io.Combo.Input(
+                    "parent_folder",
+                    options=["input", "output", "temp"]
+                ),
+                io.String.Input(
+                    "folder",
+                )
+            ],
+            outputs=[
+                io.Image.Output(
+                    display_name="images",
+                    is_output_list=True,
+                    tooltip="List of loaded images",
+                ),
+                io.Int.Output(
+                    display_name="number of images",
+                )
+            ],
+        )
+
+    @classmethod
+    def execute(cls, parent_folder, folder):
+        from comfy_extras.nodes_dataset import load_and_process_images
+        if parent_folder == "input":
+            sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
+        elif parent_folder == "output":
+            sub_input_dir = os.path.join(folder_paths.get_output_directory(), folder)
+        else:
+            sub_input_dir = os.path.join(folder_paths.get_temp_directory(), folder)
+
+        valid_extensions = [".png", ".jpg", ".jpeg", ".webp"]
+        image_files = [
+            f
+            for f in os.listdir(sub_input_dir)
+            if any(f.lower().endswith(ext) for ext in valid_extensions)
+        ]
+
+        output_tensor = load_and_process_images(image_files, sub_input_dir)
+        return io.NodeOutput(output_tensor, len(output_tensor))
 
 LOCAL_NODE_CLASS = {
     "InoSaveImages": InoSaveImages,
     "InoImageResizeByLongerSideV1": InoImageResizeByLongerSideV1,
     "InoImageResizeByLongerSideAndCropV2": InoImageResizeByLongerSideAndCropV2,
+    "InoLoadImagesFromFolder": InoLoadImagesFromFolder,
 }
 LOCAL_NODE_NAME = {
     "InoSaveImages": "Ino Save Images",
     "InoImageResizeByLongerSideV1": "Ino Image Resize By Longer Side V1",
     "InoImageResizeByLongerSideAndCropV2": "Ino Image Resize By Longer Side And Crop V2",
+    "InoLoadImagesFromFolder": "Ino Load Images From Folder",
 }
