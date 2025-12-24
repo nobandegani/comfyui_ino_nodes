@@ -58,6 +58,32 @@ class InoStringReplaceSimple:
     def function(self, input_string, replace_string):
         return (re.sub(r"\{[^}]*\}", replace_string, input_string), )
 
+class InoStringReplaceSimple2:
+    """
+
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "input_string": ("STRING", {"default": "Test string"}),
+                "replace_from": ("STRING", {"default": "Test"}),
+                "replace_to": ("STRING", {"default": "Example"}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", )
+    RETURN_NAMES = ("string", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, input_string, replace_from, replace_to):
+        result = input_string.replace(replace_from, replace_to)
+        return (result, )
+
 class InoStringStripSimple:
     """
 
@@ -132,12 +158,14 @@ class InoStringToAlphabeticString:
 LOCAL_NODE_CLASS = {
     "InoStringToggleCase": InoStringToggleCase,
     "InoStringReplaceSimple": InoStringReplaceSimple,
+    "InoStringReplaceSimple2": InoStringReplaceSimple2,
     "InoStringStripSimple": InoStringStripSimple,
     "InoStringToAlphabeticString": InoStringToAlphabeticString,
 }
 LOCAL_NODE_NAME = {
     "InoStringToggleCase": "Ino String Toggle Case",
     "InoStringReplaceSimple": "Ino String Replace Simple",
+    "InoStringReplaceSimple2": "Ino String Replace Simple2",
     "InoStringStripSimple": "Ino String Strip Simple",
     "InoStringToAlphabeticString": "Ino String To Alphabetic String",
 }
