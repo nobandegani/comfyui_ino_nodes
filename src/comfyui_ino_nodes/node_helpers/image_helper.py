@@ -215,6 +215,18 @@ class InoLoadImagesFromFolder(io.ComfyNode):
                 ),
                 io.String.Input(
                     "folder",
+                ),
+                io.Int.Input(
+                    "load_cap",
+                    default=0,
+                    min=0,
+                    max=10000
+                ),
+                io.Int.Input(
+                    "skip_from_first",
+                    default=0,
+                    min=0,
+                    max=10000
                 )
             ],
             outputs=[
@@ -230,7 +242,7 @@ class InoLoadImagesFromFolder(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, parent_folder, folder):
+    def execute(cls, parent_folder, folder, load_cap, skip_from_first):
         from comfy_extras.nodes_dataset import load_and_process_images
         if parent_folder == "input":
             sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
@@ -246,6 +258,17 @@ class InoLoadImagesFromFolder(io.ComfyNode):
             if any(f.lower().endswith(ext) for ext in valid_extensions)
         ]
 
+        image_files = sorted(image_files)
+
+        skip_from_first = max(0, int(skip_from_first))
+        load_cap = max(0, int(load_cap))
+
+        if skip_from_first:
+            image_files = image_files[skip_from_first:]
+
+        if load_cap > 0:
+            image_files = image_files[:load_cap]
+        
         output_tensor = load_and_process_images(image_files, sub_input_dir)
         return io.NodeOutput(output_tensor, len(output_tensor))
 
