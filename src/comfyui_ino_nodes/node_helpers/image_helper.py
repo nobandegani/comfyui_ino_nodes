@@ -268,7 +268,7 @@ class InoLoadImagesFromFolder(io.ComfyNode):
 
         if load_cap > 0:
             image_files = image_files[:load_cap]
-        
+
         output_tensor = load_and_process_images(image_files, sub_input_dir)
         return io.NodeOutput(output_tensor, len(output_tensor))
 
