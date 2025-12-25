@@ -288,6 +288,42 @@ class InoCopyFiles:
         )
         return (res["success"], res["msg"], res["logs"], )
 
+class InoCountFiles:
+    """
+        Count File
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "folder_path": ("STRING", {
+                    "default": ""
+                }),
+                "recursive": ("BOOLEAN", {"default": True}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "INT", )
+    RETURN_NAMES = ("success", "message", "count", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoFileHelper"
+
+    async def function(self, enabled, folder_path, recursive):
+        if not enabled:
+            return (False, "Node is disabled", "")
+
+        res = await InoFileHelper.count_files(
+            path=Path(folder_path),
+            recursive=recursive
+        )
+        return (res["success"], res["msg"], res["count"], )
+
 class InoValidateMediaFiles:
     """
         Validate Media Files
@@ -331,6 +367,7 @@ LOCAL_NODE_CLASS = {
     "InoRemoveFile": InoRemoveFile,
     "InoRemoveFolder": InoRemoveFolder,
     "InoCopyFiles": InoCopyFiles,
+    "InoCountFiles": InoCountFiles,
     "InoValidateMediaFiles": InoValidateMediaFiles,
 }
 LOCAL_NODE_NAME = {
@@ -340,5 +377,6 @@ LOCAL_NODE_NAME = {
     "InoRemoveFile": "Ino Remove File",
     "InoRemoveFolder": "Ino Remove Folder",
     "InoCopyFiles": "Ino Copy Files",
+    "InoCountFiles": "Ino Count Files",
     "InoValidateMediaFiles": "Ino Validate Media Files",
 }
