@@ -1,5 +1,6 @@
 import torch
 import os
+from pathlib import Path
 
 from torchvision.transforms import InterpolationMode
 import torchvision.transforms.functional as TorchFunctional
@@ -7,6 +8,9 @@ from datetime import datetime, timezone, timedelta
 
 import folder_paths
 from comfy_api.latest import ComfyExtension, io
+
+from inopyutils import InoJsonHelper, ino_is_err
+
 
 class InoSaveImages:
     """
@@ -272,15 +276,140 @@ class InoLoadImagesFromFolder(io.ComfyNode):
         output_tensor = load_and_process_images(image_files, sub_input_dir)
         return io.NodeOutput(output_tensor, len(output_tensor))
 
+class InoCropImageByBox(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoCropImageByBox",
+            display_name="Ino Crop Image By Box",
+            category="InoNodes",
+            inputs=[
+                io.Image.Input(
+                    "image"
+                ),
+                io.Int.Input(
+                    "x",
+                    default=0,
+                    min=0,
+                    max=10000
+                ),
+                io.Int.Input(
+                    "y",
+                    default=0,
+                    min=0,
+                    max=10000
+                )
+            ],
+            outputs=[
+                io.Image.Output(
+                    display_name="images",
+                    tooltip="Image",
+                ),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, image, x, y):
+        height = image.shape[1]
+        width = image.shape[2]
+
+        crop_size = min(width, height)
+        half = crop_size / 2
+
+        crop_x = x - half
+        crop_y = y - half
+
+        crop_x = max(0, crop_x)
+        crop_y = max(0, crop_y)
+
+        from comfy_extras.nodes_images import ImageCrop
+
+        image_cropper = ImageCrop()
+        print(f"image-> size: {crop_size}, crop_x: {crop_x}, crop_y: {crop_y}")
+        cropped_image, = image_cropper.crop(image, int(crop_size), int(crop_size), int(crop_x), int(crop_y))
+
+        return io.NodeOutput(cropped_image, )
+
+class InoOnImageListCompleted(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoOnImageListCompleted",
+            display_name="Ino On Image List Completed",
+            category="InoNodes",
+            inputs=[
+                io.Image.Input("input_image"),
+                io.Combo.Input(
+                    "parent_folder",
+                    options=["input", "output", "temp"]
+                ),
+                io.String.Input(
+                    "folder",
+                ),
+                io.Int.Input(
+                    "count",
+                    default=0,
+                    min=0,
+                    max=10000
+                )
+            ],
+            outputs=[
+                io.Image.Output(
+                    "output_image"
+                ),
+                io.Int.Output(
+                    display_name="current",
+                )
+            ],
+        )
+
+    @classmethod
+    def fingerprint_inputs(cls, **kwargs):
+        return datetime.now(timezone.utc).isoformat()
+
+    @classmethod
+    async def execute(cls, input_image, parent_folder, folder, count):
+        if parent_folder == "input":
+            sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
+        elif parent_folder == "output":
+            sub_input_dir = os.path.join(folder_paths.get_output_directory(), folder)
+        else:
+            sub_input_dir = os.path.join(folder_paths.get_temp_directory(), folder)
+
+        counter_path:Path = Path(sub_input_dir) / "counter.json"
+
+        counter_json = {"counter": 1}
+        if counter_path.exists():
+            counter_file = await InoJsonHelper.read_json_from_file_async(
+                str(counter_path.resolve()),
+            )
+            if ino_is_err(counter_file):
+                return io.NodeOutput(input_image, 0)
+            counter_json = counter_file["data"]
+            counter_json["counter"] = int(counter_json["counter"]) + 1
+
+        counter_file = await InoJsonHelper.save_json_as_json_async(
+            counter_json,
+            str(counter_path.resolve()),
+        )
+        if ino_is_err(counter_file):
+            return io.NodeOutput(input_image, 0)
+
+        return io.NodeOutput(input_image, counter_json["counter"])
+
 LOCAL_NODE_CLASS = {
     "InoSaveImages": InoSaveImages,
     "InoImageResizeByLongerSideV1": InoImageResizeByLongerSideV1,
     "InoImageResizeByLongerSideAndCropV2": InoImageResizeByLongerSideAndCropV2,
     "InoLoadImagesFromFolder": InoLoadImagesFromFolder,
+    "InoOnImageListCompleted": InoOnImageListCompleted,
+    "InoCropImageByBox": InoCropImageByBox,
 }
 LOCAL_NODE_NAME = {
     "InoSaveImages": "Ino Save Images",
     "InoImageResizeByLongerSideV1": "Ino Image Resize By Longer Side V1",
     "InoImageResizeByLongerSideAndCropV2": "Ino Image Resize By Longer Side And Crop V2",
     "InoLoadImagesFromFolder": "Ino Load Images From Folder",
+    "InoOnImageListCompleted": "Ino On Image List Completed",
+    "InoCropImageByBox": "Ino Crop Image By Box",
 }
