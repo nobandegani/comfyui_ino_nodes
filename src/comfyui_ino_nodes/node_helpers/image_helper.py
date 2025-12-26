@@ -298,6 +298,20 @@ class InoCropImageByBox(io.ComfyNode):
                     default=0,
                     min=0,
                     max=10000
+                ),
+                io.Float.Input(
+                    "shift_x",
+                    default=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1
+                ),
+                io.Float.Input(
+                    "shift_y",
+                    default=0.5,
+                    min=0,
+                    max=1,
+                    step=0.1
                 )
             ],
             outputs=[
@@ -309,26 +323,34 @@ class InoCropImageByBox(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, image, x, y):
-        height = image.shape[1]
-        width = image.shape[2]
+    def execute(cls, image, x, y, shift_x, shift_y):
+        height = int(image.shape[1])
+        width = int(image.shape[2])
 
-        crop_size = min(width, height)
-        half = crop_size / 2
+        crop_size: int = int(min(width, height))
 
-        crop_x = x - half
-        crop_y = y - half
+        x = float(x)
+        y = float(y)
+        shift_x = float(shift_x)
+        shift_y = float(shift_y)
 
-        crop_x = max(0, crop_x)
-        crop_y = max(0, crop_y)
+        crop_x = int(round(x - (crop_size * shift_x)))
+        crop_y = int(round(y - (crop_size * shift_y)))
 
-        from comfy_extras.nodes_images import ImageCrop
+        crop_x = max(0, min(crop_x, width - crop_size))
+        crop_y = max(0, min(crop_y, height - crop_size))
 
-        image_cropper = ImageCrop()
-        print(f"image-> size: {crop_size}, crop_x: {crop_x}, crop_y: {crop_y}")
-        cropped_image, = image_cropper.crop(image, int(crop_size), int(crop_size), int(crop_x), int(crop_y))
+        to_x: int = crop_x + crop_size
+        to_y: int = crop_y + crop_size
 
-        return io.NodeOutput(cropped_image, )
+        img = image[:, crop_y:to_y, crop_x:to_x, :]
+
+        print(
+            f"image_shape={tuple(image.shape)} crop_size={crop_size} "
+            f"crop_x={crop_x} crop_y={crop_y} to_x={to_x} to_y={to_y} "
+            f"out_shape={tuple(img.shape)}"
+        )
+        return io.NodeOutput(img, )
 
 class InoOnImageListCompleted(io.ComfyNode):
     @classmethod
