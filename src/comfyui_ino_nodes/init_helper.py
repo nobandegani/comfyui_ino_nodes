@@ -13,17 +13,17 @@ async def init_models():
 
     huggingface_downloader = InoHuggingFaceDownloadModel()
 
-    wan_animate_model_bf16 = handle_download_model.function(
+    wan_animate_model_bf16 = await handle_download_model.function(
         enabled=True,
         config=video_model_config_loader.function(True, "comfy-Wan-22-Animate-14B-bf16"),
     )
 
-    wan_22_clip_bf16 = handle_download_model.function(
+    wan_22_clip_bf16 = await handle_download_model.function(
         enabled=True,
         config=clip_model_config_loader.function(True, "kj-umt5-bf16"),
     )
 
-    wan_21_vae_bf16 = handle_download_model.function(
+    wan_21_vae_bf16 = await handle_download_model.function(
         enabled=True,
         config=vae_model_config_loader.function(True, "kj-wan-21-bf16"),
     )
