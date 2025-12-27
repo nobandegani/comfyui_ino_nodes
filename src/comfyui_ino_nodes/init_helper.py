@@ -3,6 +3,8 @@ import asyncio
 from .workflow_helpers.download_model_helper import InoHuggingFaceDownloadModel
 
 async def init_models():
+    print("Init models started.")
+
     huggingface_downloader = InoHuggingFaceDownloadModel()
 
     wan_animate_yolo = await huggingface_downloader.function(
@@ -29,3 +31,5 @@ async def init_models():
         repo_id="Kijai/vitpose_comfy",
         filename="onnx/vitpose_h_wholebody_model.onnx",
     )
+
+    print("Init models finished.")
