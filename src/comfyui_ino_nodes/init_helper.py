@@ -13,9 +13,10 @@ async def init_models():
 
     huggingface_downloader = InoHuggingFaceDownloadModel()
 
+    """
     _, wan_animate_model_bf16, _ = await handle_download_model.function(
         enabled=True,
-        config=video_model_config_loader.function(True, "comfy-Wan-22-Animate-14B-bf16"),
+        config=video_model_config_loader.function(True, "comfy-wan-22-animate-14B-bf16"),
     )
     print(f"wan_animate_model_bf16: {wan_animate_model_bf16}")
 
@@ -30,6 +31,13 @@ async def init_models():
         config=vae_model_config_loader.function(True, "kj-wan-21-bf16"),
     )
     print(f"wan_21_vae_bf16: {wan_21_vae_bf16}")
+
+    _, wan_21_vae_bf16, _ = await handle_download_model.function(
+        enabled=True,
+        config=vae_model_config_loader.function(True, "kj-wan-21-bf16"),
+    )
+    print(f"wan_21_vae_bf16: {wan_21_vae_bf16}")
+    """
 
     _, wan_animate_yolo, _ = await huggingface_downloader.function(
         enabled=True,
