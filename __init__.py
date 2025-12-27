@@ -91,8 +91,6 @@ from .src.comfyui_ino_nodes.workflow_helpers.sampler_helper import (
     LOCAL_NODE_NAME as SAMPLER_HELPER_NAME
 )
 
-from .src.comfyui_ino_nodes.basic_auth import LOCAL_NODE_CLASS as BASIC_AUTH_CLASS, LOCAL_NODE_NAME as BASIC_AUTH_NAME
-
 _node_classes ={}
 _node_classes.update(FILE_HELPER_CLASS)
 _node_classes.update(MEDIA_HELPER_CLASS)
@@ -159,3 +157,19 @@ __all__ = [
 __author__ = """InoNodes"""
 __email__ = "contact@inoland.net"
 __version__ = "1.1.5"
+
+from .src.comfyui_ino_nodes.basic_auth import LOCAL_NODE_CLASS as BASIC_AUTH_CLASS, LOCAL_NODE_NAME as BASIC_AUTH_NAME
+from .src.comfyui_ino_nodes.basic_auth import InoBasicAuthClass
+
+# Register the middleware
+try:
+    import server
+    app = server.PromptServer.instance.app
+    middleware = InoBasicAuthClass()
+    app.middlewares.insert(0, middleware.handle)
+    print(f"Successfully registered basic auth middleware.")
+except Exception as e:
+    print(f"Failed to register basic auth middleware: {e}")
+
+from .src.comfyui_ino_nodes.init_helper import init_models
+init_models()

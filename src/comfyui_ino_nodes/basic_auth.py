@@ -65,13 +65,3 @@ LOCAL_NODE_CLASS = {
 LOCAL_NODE_NAME = {
     "InoBasicAuthNode": "Ino Basic Auth Node"
 }
-
-# Register the middleware
-try:
-    import server
-    app = server.PromptServer.instance.app
-    middleware = InoBasicAuthClass()
-    app.middlewares.insert(0, middleware.handle)
-    print(f"Successfully registered basic auth middleware.")
-except Exception as e:
-    print(f"Failed to register basic auth middleware: {e}")
