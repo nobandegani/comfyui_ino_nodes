@@ -39,6 +39,46 @@ async def init_models():
     print(f"wan_21_vae_bf16: {wan_21_vae_bf16}")
     """
 
+    _, yolo_face_8m, _ = await huggingface_downloader.function(
+        enabled=True,
+        model_config="{}",
+        model_type="ultralytics",
+        model_subfolder="bbox",
+        repo_id="Bingsu/adetailer",
+        filename="face_yolov8m.pt",
+    )
+    print(f"yolo_face_8m: {yolo_face_8m}")
+
+    _, yolo_11x, _ = await huggingface_downloader.function(
+        enabled=True,
+        model_config="{}",
+        model_type="ultralytics",
+        model_subfolder="segm",
+        repo_id="Ultralytics/YOLO11",
+        filename="yolo11x-seg.pt",
+    )
+    print(f"yolo_11x: {yolo_11x}")
+
+    _, yolo_person_12l, _ = await huggingface_downloader.function(
+        enabled=True,
+        model_config="{}",
+        model_type="ultralytics",
+        model_subfolder="segm",
+        repo_id="RyanJames/yolo12l-person-seg",
+        filename="yolo12l-person-seg.pt",
+    )
+    print(f"yolo_person_12l: {yolo_person_12l}")
+
+    _, yolo_person_8m, _ = await huggingface_downloader.function(
+        enabled=True,
+        model_config="{}",
+        model_type="ultralytics",
+        model_subfolder="segm",
+        repo_id="Bingsu/adetailer",
+        filename="person_yolov8m-seg.pt",
+    )
+    print(f"yolo_person_8m: {yolo_person_8m}")
+
     _, wan_animate_yolo, _ = await huggingface_downloader.function(
         enabled=True,
         model_config="{}",
