@@ -148,14 +148,10 @@ NODE_DISPLAY_NAME_MAPPINGS = _node_names
 
 WEB_DIRECTORY = "./web"
 
-from .src.comfyui_ino_nodes.init_helper import init_models
-#init_models()
-
 __all__ = [
     "NODE_CLASS_MAPPINGS",
     "NODE_DISPLAY_NAME_MAPPINGS",
     "WEB_DIRECTORY",
-    "init_models"
 ]
 
 __author__ = """InoNodes"""
@@ -175,5 +171,6 @@ try:
 except Exception as e:
     print(f"Failed to register basic auth middleware: {e}")
 
-
+from .src.comfyui_ino_nodes.init_helper import init_models
+init_models()
 
