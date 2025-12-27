@@ -171,6 +171,7 @@ try:
 except Exception as e:
     print(f"Failed to register basic auth middleware: {e}")
 
+import asyncio
 from .src.comfyui_ino_nodes.init_helper import init_models
-init_models()
+asyncio.run(init_models())
 
