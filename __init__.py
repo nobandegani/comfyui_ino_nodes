@@ -171,24 +171,3 @@ try:
 except Exception as e:
     print(f"Failed to register basic auth middleware: {e}")
 
-import asyncio
-from .src.comfyui_ino_nodes.init_helper import init_models
-
-_init_task: asyncio.Task | None = None
-
-def ensure_models_init() -> asyncio.Task:
-    global _init_task
-    if _init_task is not None:
-        return _init_task
-
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        _init_task = asyncio.run(init_models())
-        return _init_task
-
-    _init_task = loop.create_task(init_models())
-    return _init_task
-
-ensure_models_init()
-
