@@ -178,7 +178,7 @@ class InoGetDateTimeAsBase64(io.ComfyNode):
 
     @classmethod
     def fingerprint_inputs(cls, **kwargs):
-        return True
+        return InoUtilHelper.get_date_time_utc_base64()
 
     @classmethod
     def execute(cls,) -> io.NodeOutput:
