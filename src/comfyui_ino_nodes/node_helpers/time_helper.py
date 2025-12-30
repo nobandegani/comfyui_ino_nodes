@@ -1,5 +1,9 @@
 from datetime import datetime, timezone, timedelta
 
+from inopyutils import InoUtilHelper
+
+from comfy_api.latest import ComfyExtension, io
+
 class InoDateTimeAsStringSimple:
     """
         Date Time As String
@@ -154,13 +158,37 @@ class InoDateTimeAsString:
         else:
             return ("", )
 
+class InoGetDateTimeAsBase64(io.ComfyNode):
+    """
+
+    """
+
+    @classmethod
+    def define_schema(cls) -> io.Schema:
+        return io.Schema(
+            node_id="InoGetDateTimeAsBase64",
+            display_name="Ino Get Date Time As Base64",
+            category="InoNodes",
+            inputs=[
+            ],
+            outputs=[
+                io.String.Output()
+            ]
+        )
+
+    @classmethod
+    def execute(cls,) -> io.NodeOutput:
+        return io.NodeOutput(InoUtilHelper.get_date_time_utc_base64())
+
 LOCAL_NODE_CLASS = {
     "InoDateTimeAsStringSimple": InoDateTimeAsStringSimple,
     "InoGetDateTimeDuration": InoGetDateTimeDuration,
     "InoDateTimeAsString": InoDateTimeAsString,
+    "InoGetDateTimeAsBase64": InoGetDateTimeAsBase64,
 }
 LOCAL_NODE_NAME = {
     "InoDateTimeAsStringSimple": "Ino Date Time As String Simple",
     "InoGetDateTimeDuration": "Ino Get Date Time Duration",
     "InoDateTimeAsString": "Ino Date Time As String",
+    "InoGetDateTimeAsBase64": "Ino Get Date Time As Base64",
 }
