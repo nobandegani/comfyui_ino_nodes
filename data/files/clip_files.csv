@@ -10,4 +10,7 @@ comfy-umt-5-fp16,fp16,hf,text_encoders,comfy-umt5,Comfy-Org/Wan_2.2_ComfyUI_Repa
 comfy-umt-5-fp8,fp8,hf,text_encoders,comfy-umt5,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,umt5_xxl_fp8_e4m3fn_scaled.safetensors,split_files/text_encoders,,
 comfy-qwen-25-vl-7b-fp8,fp8,hf,text_encoders,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_2.5_vl_7b_fp8_scaled.safetensors,split_files/text_encoders,,
 comfy-qwen-25-vl-7b-fp16,fp16,hf,text_encoders,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_2.5_vl_7b.safetensors,split_files/text_encoders,,
-comfy-Mistral-3-fp8,fp8,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_fp8.safetensors,split_files/text_encoders,,
+comfy-mistral-3-fp8,fp8,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_fp8.safetensors,split_files/text_encoders,,
+comfy-qwen-3-8b-fp16,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b.safetensors,split_files/text_encoders,,
+comfy-qwen-3-8b-fp8,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b_fp8mixed.safetensors,split_files/text_encoders,,
+comfy-qwen-3-8b-fp4,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b_fp4mixed.safetensors,split_files/text_encoders,,

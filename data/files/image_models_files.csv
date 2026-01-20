@@ -5,11 +5,12 @@ JibMixFlux-V12,fp16,civitai,diffusion_models,flux1dev,686814,0,,,2319074
 FuxCapacity-V40,fp16,civitai,diffusion_models,flux1dev,679262,0,,,2298051
 UltraFineTune-V4,fp16,civitai,diffusion_models,flux1dev,978314,0,,,1413133
 FluxedUp-V51,fp16,civitai,diffusion_models,flux1dev,847101,0,,,2278561
-comfy-flux-2-fp8,fp8,hf,diffusion_models,comfy-flux2,Comfy-Org/flux2-dev,flux2_dev_fp8mixed.safetensors,split_files/diffusion_models,,
+comfy-flux-2-dev-fp8,fp8,hf,diffusion_models,comfy-flux2,Comfy-Org/flux2-dev,flux2_dev_fp8mixed.safetensors,split_files/diffusion_models,,
 comfy-qwen-edit-2509-bf16,bf16,hf,diffusion_models,comfy-qwen,Comfy-Org/Qwen-Image-Edit_ComfyUI,qwen_image_edit_2509_bf16.safetensors,split_files/diffusion_models,,
 comfy-qwen-edit-2509-fp8,fp8,hf,diffusion_models,comfy-qwen,Comfy-Org/Qwen-Image-Edit_ComfyUI,qwen_image_edit_2509_fp8_e4m3fn.safetensors,split_files/diffusion_models,,
 comfy-qwen-edit-fp8,fp8,hf,diffusion_models,comfy-qwen,Comfy-Org/Qwen-Image-Edit_ComfyUI,qwen_image_edit_fp8_e4m3fn.safetensors,split_files/diffusion_models,,
 comfy-qwen-edit-bf16,bf16,hf,diffusion_models,comfy-qwen,Comfy-Org/Qwen-Image-Edit_ComfyUI,qwen_image_edit_bf16.safetensors,split_files/diffusion_models,,
 comfy-qwen-bf16,bf16,hf,diffusion_models,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_image_bf16.safetensors,split_files/diffusion_models,,
 comfy-qwen-fp8,fp8,hf,diffusion_models,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_image_fp8_e4m3fn.safetensors,split_files/diffusion_models,,
-bfl-flux-2-fp16,fp16,hf,diffusion_models,comfy-flux2,black-forest-labs/FLUX.2-dev,flux2-dev.safetensors,"",,
+bfl-flux-2-dev-fp16,fp16,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-dev,flux2-dev.safetensors,"",,
+bfl-flux-2-klein-fp8,fp8,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-base-9b-fp8,flux-2-klein-base-9b-fp8.safetensors,"",,
