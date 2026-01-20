@@ -14,3 +14,4 @@ comfy-mistral-3-fp8,fp8,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral
 comfy-qwen-3-8b-fp16,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b.safetensors,split_files/text_encoders,,
 comfy-qwen-3-8b-fp8,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b_fp8mixed.safetensors,split_files/text_encoders,,
 comfy-qwen-3-8b-fp4,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b_fp4mixed.safetensors,split_files/text_encoders,,
+comfy-Mistral-3-fp8,fp8,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_fp8.safetensors,split_files/text_encoders,,

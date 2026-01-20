@@ -15,3 +15,4 @@ comfy-qwen-fp8,fp8,hf,diffusion_models,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,q
 bfl-flux-2-dev-fp16,fp16,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-dev,flux2-dev.safetensors,"",,
 bfl-flux-2-klein-9b-fp8,fp8,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-base-9b-fp8,flux-2-klein-base-9b-fp8.safetensors,"",,
 bfl-flux-2-klein-9b-fp16,fp16,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-base-9b-fp8,flux-2-klein-base-9b-fp8.safetensors,"",,
+bfl-flux-2-fp16,fp16,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-dev,flux2-dev.safetensors,"",,
