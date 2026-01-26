@@ -17,4 +17,7 @@ bfl-flux-2-klein-base-9b-fp8,fp8,hf,diffusion_models,bfl-flux2,black-forest-labs
 bfl-flux-2-klein-base-9b-fp16,fp16,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-base-9B,flux-2-klein-base-9b.safetensors,"",,
 bfl-flux-2-fp16,fp16,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-dev,flux2-dev.safetensors,"",,
 bfl-flux-2-klein-9b-fp16,fp16,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-9B,flux-2-klein-9b.safetensors,"",,
-bfl-flux-2-klein-9b-fp8,fp8,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-9b-fp8,black-forest-labs/FLUX.2-klein-9b-fp8,"",,
+bfl-flux-2-klein-9b-fp8,fp8,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-9b-fp8,flux-2-klein-9b-fp8.safetensors,"",,
+bfl-flux-2-dev-mixed-nvfp4,nvfp4,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-dev-NVFP4,flux2-dev-nvfp4-mixed.safetensors,"",,
+bfl-flux-2-klein-9b-nvfp4,nvfp4,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-9b-nvfp4,flux-2-klein-9b-nvfp4.safetensors,"",,
+bfl-flux-2-klein-base-9b-nvfp4,nvfp4,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-base-9b-nvfp4,flux-2-klein-base-9b-nvfp4.safetensors,"",,
