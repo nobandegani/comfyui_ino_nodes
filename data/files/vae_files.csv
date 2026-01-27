@@ -7,4 +7,3 @@ kj-wan-21-bf16,bf16,hf,vae,kj-wan,Kijai/WanVideo_comfy,Wan2_1_VAE_bf16.safetenso
 kj-wan-22-bf16,bf16,hf,vae,kj-wan,Kijai/WanVideo_comfy,Wan2_2_VAE_bf16.safetensors,,,
 comfy-qwen,fp16,hf,vae,comfy-qwen,Comfy-Org/Qwen-Image_ComfyUI,qwen_image_vae.safetensors,split_files/vae,,
 comfy-flux-2-klein-fp16,fp16,hf,vae,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,flux2-vae.safetensors,split_files/vae,,
-comfy-flux-2-fp16,fp16,hf,vae,comfy-flux2,Comfy-Org/flux2-dev,flux2-vae.safetensors,split_files/vae,,

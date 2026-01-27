@@ -3,7 +3,7 @@ comfy-flux1-clip-fp16,fp16,hf,text_encoders,comfy-flux1,comfyanonymous/flux_text
 comfy-flux1-t5xxl-fp16,fp16,hf,text_encoders,comfy-flux1,comfyanonymous/flux_text_encoders,t5xxl_fp16.safetensors
 nsfw-umt-5-fp8,fp8,hf,text_encoders,umt5,NSFW-API/NSFW-Wan-UMT5-XXL,nsfw_wan_umt5-xxl_fp8_scaled.safetensors
 nsfw-umt-5-fp16,fp16,hf,text_encoders,umt5,NSFW-API/NSFW-Wan-UMT5-XXL,nsfw_wan_umt5-xxl_bf16.safetensors
-comfy-Mistral-3-bf16,bf16,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_bf16.safetensors,split_files/text_encoders,,
+comfy-mistral-3-bf16,bf16,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_bf16.safetensors,split_files/text_encoders,,
 kj-umt-5-bf16,bf16,hf,text_encoders,kj-umt5,Kijai/WanVideo_comfy,umt5-xxl-enc-bf16.safetensors,,,
 kj-umt-5-fp8,fp8,hf,text_encoders,kj-umt5,Kijai/WanVideo_comfy,umt5-xxl-enc-fp8_e4m3fn.safetensors,,,
 comfy-umt-5-fp16,fp16,hf,text_encoders,comfy-umt5,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,umt5_xxl_fp16.safetensors,split_files/text_encoders,,
@@ -14,4 +14,4 @@ comfy-mistral-3-fp8,fp8,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral
 comfy-qwen-3-8b-fp16,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b.safetensors,split_files/text_encoders,,
 comfy-qwen-3-8b-fp8,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b_fp8mixed.safetensors,split_files/text_encoders,,
 comfy-qwen-3-8b-fp4,fp16,hf,text_encoders,comfy-flux2,Comfy-Org/vae-text-encorder-for-flux-klein-9b,qwen_3_8b_fp4mixed.safetensors,split_files/text_encoders,,
-comfy-Mistral-3-fp8,fp8,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_fp8.safetensors,split_files/text_encoders,,
+comfy-mistral-3-mixed-fp4,fp4,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_fp4_mixed.safetensors,split_files/text_encoders,,
