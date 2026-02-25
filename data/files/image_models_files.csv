@@ -20,3 +20,4 @@ bfl-flux-2-klein-9b-fp8,fp8,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX
 bfl-flux-2-dev-mixed-nvfp4,nvfp4,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-dev-NVFP4,flux2-dev-nvfp4-mixed.safetensors,"",,
 bfl-flux-2-klein-9b-nvfp4,nvfp4,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-9b-nvfp4,flux-2-klein-9b-nvfp4.safetensors,"",,
 bfl-flux-2-klein-base-9b-nvfp4,nvfp4,hf,diffusion_models,bfl-flux2,black-forest-labs/FLUX.2-klein-base-9b-nvfp4,flux-2-klein-base-9b-nvfp4.safetensors,"",,
+civit-flux-2-klein-base-9b-snofs-bf16,bf16,civitai,diffusion_models,civit-flux2,2416142,0,"",,2716480
