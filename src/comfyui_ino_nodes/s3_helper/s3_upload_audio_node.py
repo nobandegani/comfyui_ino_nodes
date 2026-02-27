@@ -9,6 +9,8 @@ from inopyutils import ino_ok, ino_err, ino_is_err
 
 import folder_paths
 from comfy.cli_args import args
+from comfy_api.latest import IO
+
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import any_type
@@ -67,13 +69,15 @@ class InoS3UploadAudio:
         from comfy_extras.nodes_audio import SaveAudioMP3
 
         audio_saver = SaveAudioMP3()
-        save_audio = audio_saver.execute(
+        save_audio: IO.NodeOutput = audio_saver.execute(
             audio=audio,
             filename_prefix=file_name,
             format="mp3",
             quality="128k"
         )
-        print(f"save_audio: {save_audio}")
+
+        print(f"save_audio: filename:{save_audio.ui.get('filename_prefix')}")
+
         if not isinstance(save_audio, dict):
             return (audio, False, "Audio saved, but failed to get filename", "", "", "",)
 
