@@ -76,8 +76,9 @@ class InoS3UploadAudio:
             quality="128k"
         )
 
-        file_name = save_audio.ui.as_dict()["audio"][0].get("filename_prefix", None)
-        if file_name is None:
+        try:
+            file_name = save_audio.ui.as_dict()["audio"][0]["filename"]
+        except:
             return (audio, False, "Audio saved, but failed to get filename", "", "", "",)
 
         #if len(save_audio["ui"]["audio"]) != 1:
