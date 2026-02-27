@@ -67,12 +67,10 @@ class InoS3UploadAudio:
         from comfy_extras.nodes_audio import SaveAudioMP3
 
         audio_saver = SaveAudioMP3()
-        save_audio = audio_saver.save_mp3(
+        save_audio = audio_saver.execute(
             audio=audio,
             filename_prefix=file_name,
             format="mp3",
-            prompt=None,
-            extra_pnginfo=None,
             quality="128k"
         )
 
