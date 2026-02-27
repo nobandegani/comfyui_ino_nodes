@@ -75,8 +75,8 @@ class InoS3UploadAudio:
             format="mp3",
             quality="128k"
         )
-
-        print(f"save_audio: filename:{save_audio.ui.get('filename_prefix')}")
+        print(f"save_audio: args:{save_audio.args}")
+        print(f"save_audio: ui:{save_audio.ui}")
 
         if not isinstance(save_audio, dict):
             return (audio, False, "Audio saved, but failed to get filename", "", "", "",)
