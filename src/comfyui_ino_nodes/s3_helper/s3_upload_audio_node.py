@@ -75,16 +75,13 @@ class InoS3UploadAudio:
             format="mp3",
             quality="128k"
         )
-        print(f"save_audio: args:{save_audio.args}")
-        print(f"save_audio: ui:{save_audio.ui}")
 
-        if not isinstance(save_audio, dict):
+        file_name = save_audio.ui.as_dict()["audio"][0].get("filename_prefix", None)
+        if file_name is None:
             return (audio, False, "Audio saved, but failed to get filename", "", "", "",)
 
-        if len(save_audio["ui"]["audio"]) != 1:
-            return (audio, False, "Audio saved, but there is more than one file", "", "", "",)
-
-        file_name = save_audio["ui"]["audio"][0]["filename"]
+        #if len(save_audio["ui"]["audio"]) != 1:
+        #    return (audio, False, "Audio saved, but there is more than one file", "", "", "",)
 
         parent_path = folder_paths.get_output_directory()
         full_path:Path = Path(parent_path) / file_name
