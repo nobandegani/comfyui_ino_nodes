@@ -2,7 +2,7 @@ name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,repo
 comfy-flux1-clip-fp16,fp16,hf,text_encoders,comfy-flux1,comfyanonymous/flux_text_encoders,clip_l.safetensors
 comfy-flux1-t5xxl-fp16,fp16,hf,text_encoders,comfy-flux1,comfyanonymous/flux_text_encoders,t5xxl_fp16.safetensors
 nsfw-umt-5-fp8,fp8,hf,text_encoders,umt5,NSFW-API/NSFW-Wan-UMT5-XXL,nsfw_wan_umt5-xxl_fp8_scaled.safetensors
-nsfw-umt-5-fp16,fp16,hf,text_encoders,umt5,NSFW-API/NSFW-Wan-UMT5-XXL,nsfw_wan_umt5-xxl_bf16.safetensors
+nsfw-umt-5-bf16,bf16,hf,text_encoders,umt5,NSFW-API/NSFW-Wan-UMT5-XXL,nsfw_wan_umt5-xxl_bf16.safetensors
 comfy-flux-2-dev-mistral-3-bf16,bf16,hf,text_encoders,comfy-flux2,Comfy-Org/flux2-dev,mistral_3_small_flux2_bf16.safetensors,split_files/text_encoders,,
 kj-umt-5-bf16,bf16,hf,text_encoders,kj-umt5,Kijai/WanVideo_comfy,umt5-xxl-enc-bf16.safetensors,,,
 kj-umt-5-fp8,fp8,hf,text_encoders,kj-umt5,Kijai/WanVideo_comfy,umt5-xxl-enc-fp8_e4m3fn.safetensors,,,
