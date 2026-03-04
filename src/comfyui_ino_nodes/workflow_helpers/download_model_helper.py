@@ -229,6 +229,39 @@ class InoGetControlnetDownloadConfig:
         data = InoJsonHelper.dict_to_string(model_dict)["data"]
         return (data,)
 
+class InoGetLoraDownloadConfig:
+    """
+
+    """
+    MODELS_LIST = get_list_from_csv(False, "lora_files", True)
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "model": (s.MODELS_LIST, {}),
+            },
+            "optional": {
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("ModelConfig",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoModelHelper"
+
+    def function(self, enabled, model):
+        if not enabled:
+            return ("",)
+
+        model_dict = get_model_from_csv(False, "lora_files", model)
+
+        data = InoJsonHelper.dict_to_string(model_dict)["data"]
+        return (data,)
+
 class InoHttpDownloadModel:
 
     @classmethod
