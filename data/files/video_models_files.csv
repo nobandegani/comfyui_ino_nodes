@@ -1,6 +1,6 @@
 name,weight_type,host,model_type,model_subfolder,repo_id,filename,subfolder,repo_type,revision
-civit-remix-V21-I2V-Low-fp16,fp16,civitai,diffusion_models,civit-wan-22,2003153,1,,,2567410
-civit-remix-V21-I2V-High-fp16,fp16,civitai,diffusion_models,civit-wan-22,2003153,1,,,2567309
+civit-remix-v21-I2V-low-fp16,fp16,civitai,diffusion_models,civit-wan-22,2003153,1,,,2567410
+civit-remix-v21-I2V-high-fp16,fp16,civitai,diffusion_models,civit-wan-22,2003153,1,,,2567309
 comfy-wan-22-T2V-14B-high-fp16,fp16,hf,diffusion_models,comfy-wan-22,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,wan2.2_t2v_high_noise_14B_fp16.safetensors,split_files/diffusion_models,,
 comfy-wan-22-T2V-14B-low-fp16,fp16,hf,diffusion_models,comfy-wan-22,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,wan2.2_t2v_low_noise_14B_fp16.safetensors,split_files/diffusion_models,,
 comfy-wan-22-T2V-14B-high-fp8,fp8,hf,diffusion_models,comfy-wan-22,Comfy-Org/Wan_2.2_ComfyUI_Repackaged,wan2.2_t2v_high_noise_14B_fp8_scaled.safetensors,split_files/diffusion_models,,
