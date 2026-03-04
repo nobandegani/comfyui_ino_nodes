@@ -738,6 +738,7 @@ LOCAL_NODE_CLASS = {
     "InoGetVaeDownloadConfig": InoGetVaeDownloadConfig,
     "InoGetClipDownloadConfig": InoGetClipDownloadConfig,
     "InoGetControlnetDownloadConfig": InoGetControlnetDownloadConfig,
+    "InoGetLoraDownloadConfig": InoGetLoraDownloadConfig,
 
     "InoHttpDownloadModel": InoHttpDownloadModel,
     "InoS3DownloadModel": InoS3DownloadModel,
@@ -754,6 +755,7 @@ LOCAL_NODE_NAME = {
     "InoGetVaeDownloadConfig": "Ino Get Vae Download Config",
     "InoGetClipDownloadConfig": "Ino Get Clip Download Config",
     "InoGetControlnetDownloadConfig": "Ino Get Controlnet Download Config",
+    "InoGetLoraDownloadConfig": "Ino Get Lora Download Config",
 
     "InoHttpDownloadModel": "Ino Http Download Model",
     "InoS3DownloadModel": "Ino S3 Download Model",
