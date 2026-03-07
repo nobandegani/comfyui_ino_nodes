@@ -15,5 +15,9 @@ kj-wan-22-I2V-14B-low-fp16,fp16,hf,diffusion_models,kj-wan-22,Kijai/WanVideo_com
 kj-wan-22-T2V-14B-high-fp8,fp8,hf,diffusion_models,kj-wan-22,Kijai/WanVideo_comfy_fp8_scaled,Wan2_2-T2V-A14B_HIGH_fp8_e4m3fn_scaled_KJ.safetensors,T2V,,
 kj-wan-22-T2V-14B-low-fp8,fp8,hf,diffusion_models,kj-wan-22,Kijai/WanVideo_comfy_fp8_scaled,Wan2_2-T2V-A14B-LOW_fp8_e4m3fn_scaled_KJ.safetensors,T2V,,
 kj-wan-22-animate-14B-fp8,fp8,hf,diffusion_models,kj-wan-22,Kijai/WanVideo_comfy_fp8_scaled,Wan2_2-Animate-14B_fp8_scaled_e4m3fn_KJ_v2.safetensors,Wan22Animate,,
-civit-remix-V21-I2V-Low-fp8,fp8,civitai,diffusion_models,civit-wan-22,2003153,0,,,2567410
-civit-remix-V21-I2V-High-fp8,fp8,civitai,diffusion_models,civit-wan-22,2003153,0,,,2567309
+civit-remix-V21-I2V-low-fp8,fp8,civitai,diffusion_models,civit-wan-22,2003153,0,,,2567410
+civit-remix-V21-I2V-high-fp8,fp8,civitai,diffusion_models,civit-wan-22,2003153,0,,,2567309
+civit-nsfw-V2-I2V-high-fp8,fp8,civitai,diffusion_models,civit-wan-22,2053259,0,,,2477552
+civit-nsfw-V2-I2V-low-fp8,fp8,civitai,diffusion_models,civit-wan-22,2053259,0,,,2477555
+civit-nsfw-nolight-svi-I2V-high-fp8,fp8,civitai,diffusion_models,civit-wan-22,2053259,0,,,2606405
+civit-nsfw-nolight-svi-I2V-low-fp8,fp8,civitai,diffusion_models,civit-wan-22,2053259,0,,,2606408
