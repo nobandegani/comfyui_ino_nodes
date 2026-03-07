@@ -3,7 +3,7 @@ import shutil
 
 from pathlib import Path
 from huggingface_hub import hf_hub_download, snapshot_download
-from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper, ino_ok, ino_err, ino_is_err
+from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper, ino_ok, ino_err, ino_is_err, InoCivitHelper
 
 import folder_paths
 
@@ -316,6 +316,10 @@ class InoHttpDownloadModel:
             http_result = await http_instance.download(
                 url=url,
                 dest_path=model_path,
+                resume=True,
+                allow_redirects=True,
+                mkdirs=True,
+                connection=6
             )
             if ino_is_err(http_result):
                 return (False, "failed to download", model_type, model_path, rel_path,)
@@ -598,85 +602,23 @@ class InoCivitaiDownloadModel:
             if model_path.is_file():
                 model_path = model_path.parent
 
-            token = os.getenv("CIVITAI_TOKEN", token)
+            civit_client = InoCivitHelper()
 
-            headers = {
-                "Authorization": f"Bearer {token}"
-            }
-
-            http_client = InoHttpHelper(
-                timeout_total=None,
-                timeout_sock_read=None,
-                timeout_connect=30.0,
-                timeout_sock_connect=30.0,
-                retries=5,
-                backoff_factor=1.0,
-                default_headers=headers
+            download_model = await civit_client.download_model(
+                model_path=model_path,
+                model_id=int(model_id),
+                model_version=int(model_version),
+                file_id=file_id,
             )
+            if ino_is_err(download_model):
+                return (False, download_model["msg"], model_type, "", "",)
 
-            if model_version:
-                url = f"https://civitai.com/api/v1/model-versions/{model_version}"
-            else:
-                await http_client.close()
-                ino_print_log("InoCivitaiDownloadFile", "model_version is required, using model_id not implemented yet")
-                return (False, "model_version is required, using model_id not implemented yet", "", "", "",)
+            await civit_client.close()
 
-            download_url = await http_client.get(
-                url=url
-            )
-            if not download_url["success"]:
-                await http_client.close()
-                ino_print_log("InoCivitaiDownloadFile", "failed to get download url", download_url["msg"])
-                return (False, download_url["msg"], "", "", "",)
+            abs_path = download_model["local_file_path"]
+            rel_path = Path(abs_path).relative_to(model_path_base)
 
-            try:
-                file_name = download_url["data"]["files"][file_id]["name"]
-                file_sha = download_url["data"]["files"][file_id]["hashes"]["SHA256"]
-            except Exception as e:
-                await http_client.close()
-                ino_print_log("InoCivitaiDownloadFile", "failed to get file name or sha", e)
-                return (False, "failed to get file name or sha", "", "", "",)
-
-            full_model_path = model_path / file_name
-
-            if full_model_path.is_file():
-                sha_res = await InoFileHelper.get_file_hash_sha_256(full_model_path)
-                if sha_res["success"] and sha_res["sha"].lower() == file_sha.lower():
-                    rel_path = full_model_path.relative_to(model_path_base)
-                    await http_client.close()
-                    ino_print_log("InoCivitaiDownloadFile", "File already downloaded and valid", )
-                    return (True, "File is valid", model_type, full_model_path, rel_path, )
-                else:
-                    full_model_path.unlink()
-
-            if not download_url["data"]["downloadUrl"]:
-                await http_client.close()
-                ino_print_log("InoCivitaiDownloadFile", "downloadUrl is empty", )
-                return (False, "downloadUrl is empty", "", "", "",)
-
-            download_url = download_url["data"]["files"][file_id]["downloadUrl"]
-
-            download_file = await http_client.download(
-                url=download_url,
-                dest_path=model_path,
-                chunk_size=chunk_size * 1024 * 1024,
-                resume=True,
-                overwrite=False,
-                allow_redirects=True,
-                mkdirs=True,
-                verify_size=True,
-            )
-
-            if not download_file["success"] and download_file["success"] != "OK":
-                await http_client.close()
-                ino_print_log("InoCivitaiDownloadFile", "failed to download file", download_file["msg"])
-                return (download_file["success"], download_file["msg"], "", "", "",)
-
-            rel_path = Path(download_file["path"]).relative_to(model_path_base)
-
-            await http_client.close()
-            ino_print_log("InoCivitaiDownloadFile", "File downloaded successfully", )
-            return (download_file["success"], "File is downloaded", model_type, download_file["path"], rel_path, )
+            return (True, download_model["msg"], model_type, abs_path, rel_path, )
         except Exception as e:
             ino_print_log("InoCivitaiDownloadFile", "", e)
             return (False, e, "", "", "",)
