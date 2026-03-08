@@ -556,6 +556,8 @@ class InoHuggingFaceDownloadRepo:
             return (False, f"Error: {e}", "", )
 
 class InoCivitaiDownloadModel:
+    changed:bool = False
+
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -582,6 +584,7 @@ class InoCivitaiDownloadModel:
     async def function(self, enabled, model_config, model_type="", model_subfolder="", model_version="", token="", model_id="", file_id=0, chunk_size=8):
         if not enabled:
             ino_print_log("InoCivitaiDownloadFile", "Attempt to run but disabled")
+            self.changed = False
             return (False, "", "", "", "", )
 
         try:
@@ -614,6 +617,7 @@ class InoCivitaiDownloadModel:
                 file_id=file_id,
             )
             if ino_is_err(download_model):
+                self.changed = True
                 return (False, download_model["msg"], model_type, "", "",)
 
             await civit_client.close()
@@ -621,10 +625,16 @@ class InoCivitaiDownloadModel:
             abs_path = download_model["local_file_path"]
             rel_path = Path(abs_path).relative_to(model_path_base)
 
+            self.changed = False
             return (True, download_model["msg"], model_type, abs_path, rel_path, )
         except Exception as e:
+            self.changed = True
             ino_print_log("InoCivitaiDownloadFile", "", e)
             return (False, e, "", "", "",)
+
+    @classmethod
+    def IS_CHANGED(s):
+        return s.changed
 
 class InoHandleDownloadModel:
     """
