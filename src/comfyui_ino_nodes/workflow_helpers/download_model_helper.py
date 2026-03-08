@@ -7,6 +7,8 @@ from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper, ino_ok, ino_
 
 import folder_paths
 
+from comfy_api.latest import ComfyExtension, io, ui
+
 from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import ino_print_log, MODEL_TYPES
 from ..node_helper import get_list_from_csv, get_model_from_csv
@@ -331,7 +333,6 @@ class InoHttpDownloadModel:
             return (False, f"Error: {e}", "", "", "",)
 
 class InoS3DownloadModel:
-
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -602,7 +603,9 @@ class InoCivitaiDownloadModel:
             if model_path.is_file():
                 model_path = model_path.parent
 
-            civit_client = InoCivitHelper()
+            token = os.getenv("CIVITAI_TOKEN")
+
+            civit_client = InoCivitHelper(token=token)
 
             download_model = await civit_client.download_model(
                 model_path=model_path,
