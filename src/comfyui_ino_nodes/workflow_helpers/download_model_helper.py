@@ -640,6 +640,7 @@ class InoHandleDownloadModel:
     """
 
     """
+    changed:bool = False
 
     @classmethod
     def INPUT_TYPES(s):
@@ -662,11 +663,13 @@ class InoHandleDownloadModel:
     async def function(self, enabled, config: str):
         if not enabled:
             ino_print_log("InoHandleDownloadModel", "Attempt to run but disabled")
+            self.changed = False
             return (False, "not enabled", "", "", "")
 
         config_dict = InoJsonHelper.string_to_dict(config)
         if not config_dict["success"]:
             ino_print_log("InoHandleDownloadModel", "invalid config string")
+            self.changed = True
             return (False, config_dict["msg"], "", "", "")
 
         config_dict = config_dict["data"]
@@ -680,11 +683,17 @@ class InoHandleDownloadModel:
             loader = InoCivitaiDownloadModel()
         else:
             ino_print_log("InoHandleDownloadModel", "unknown host")
+            self.changed = True
             return (False, "unknown host", "", "", "")
 
         result = await loader.function(enabled=True, model_config=config)
+        self.changed = result[0]
         ino_print_log("InoHandleDownloadModel", "delegated to loader completed")
         return result
+
+    @classmethod
+    def IS_CHANGED(s):
+        return s.changed
 
 LOCAL_NODE_CLASS = {
     "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
