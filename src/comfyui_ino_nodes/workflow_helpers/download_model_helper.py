@@ -687,7 +687,7 @@ class InoHandleDownloadModel:
             return (False, "unknown host", "", "", "")
 
         result = await loader.function(enabled=True, model_config=config)
-        self.changed = result[0]
+        self.changed = not bool(result[0])
         ino_print_log("InoHandleDownloadModel", "delegated to loader completed")
         return result
 
