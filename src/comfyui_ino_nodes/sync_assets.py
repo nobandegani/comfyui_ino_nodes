@@ -89,6 +89,9 @@ class FileSyncer:
         seen_folders: set[str] = set(existing_folders)
         folders_to_add: list[str] = []
 
+        if "all" in self.comfy_models:
+            self.comfy_models = list(self.global_comfy_models.keys())
+
         for model in self.comfy_models:
             model_folders = self.global_comfy_models.get(model)
             if model_folders is None:
