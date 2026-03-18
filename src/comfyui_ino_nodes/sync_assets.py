@@ -8,9 +8,6 @@ from inopyutils import InoS3Helper, InoHttpHelper, InoFileHelper, ino_err, ino_o
 class FileSyncer:
     def __init__(self):
         self.global_comfy_models: dict[str, list[str]] = {
-            "all": [
-                "comfyui/models"
-            ],
             "flux-2-dev": [
                 "comfyui/models/diffusion_models/flux-2-dev",
                 "comfyui/models/text_encoders/Flux2",
@@ -39,8 +36,11 @@ class FileSyncer:
             "vibe-voice": [
                 "comfyui/models/vibevoice"
             ],
-            "qwen-llm": [
+            "qwen-llm-1": [
                 "comfyui/models/prompt_generator",
+            ],
+            "qwen-llm-2": [
+                "comfyui/models/LLM/Qwen-VL",
             ]
         }
 
