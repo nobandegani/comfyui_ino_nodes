@@ -26,6 +26,14 @@ class FileSyncer:
                 "comfyui/models/text_encoders/Wan",
                 "comfyui/models/vae/Wan"
             ],
+            "wan-22-animate": [
+                "comfyui/models/diffusion_models/wan-22-animate",
+                "comfyui/models/text_encoders/Wan",
+                "comfyui/models/vae/Wan"
+            ],
+            "wan-loras": [
+                "comfyui/models/loras/wan"
+            ],
             "yolo": [
                 "comfyui/models/detection",
                 "comfyui/models/ultralytics",
