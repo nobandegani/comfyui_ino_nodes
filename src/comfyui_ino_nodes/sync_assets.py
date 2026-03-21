@@ -24,12 +24,14 @@ class FileSyncer:
             "wan-22-i2v": [
                 "comfyui/models/diffusion_models/wan-22-i2v",
                 "comfyui/models/text_encoders/Wan",
-                "comfyui/models/vae/Wan"
+                "comfyui/models/vae/Wan",
+                "comfyui/models/clip_vision"
             ],
             "wan-22-animate": [
                 "comfyui/models/diffusion_models/wan-22-animate",
                 "comfyui/models/text_encoders/Wan",
-                "comfyui/models/vae/Wan"
+                "comfyui/models/vae/Wan",
+                "comfyui/models/clip_vision"
             ],
             "wan-loras": [
                 "comfyui/models/loras/wan"
