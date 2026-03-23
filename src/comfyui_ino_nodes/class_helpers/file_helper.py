@@ -360,6 +360,44 @@ class InoValidateMediaFiles:
         )
         return (True, res.get("msg"), res.get("skipped_images_path"), res.get("skipped_images_unsupported_path"), res.get("skipped_videos_path"), res.get("skipped_videos_unsupported_path"), res.get("unsupported_files_path"), res.get("logs"),)
 
+class InoRemoveDuplicateFiles:
+    """
+        Count File
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "folder_path": ("STRING", {
+                    "default": ""
+                }),
+                "recursive": ("BOOLEAN", {"default": True}),
+            },
+            "optional": {
+                "chunk_size": ("INT", {"default": 32, "min": 8, "max": 1024, "step": 8,}),
+            }
+        }
+
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "INT", )
+    RETURN_NAMES = ("success", "message", "removed_list", "removed_count", )
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoFileHelper"
+
+    async def function(self, enabled, folder_path, recursive, chunk_size):
+        if not enabled:
+            return (False, "Node is disabled", "")
+
+        res = await InoFileHelper.remove_duplicate_files(
+            input_path=Path(folder_path),
+            recursive=recursive,
+            chunk_size=chunk_size
+        )
+        return (res["success"], res["msg"], res["removed"], res["removed_count"], )
+
 LOCAL_NODE_CLASS = {
     "InoIncrementBatchName": InoIncrementBatchName,
     "InoZip": InoZip,
@@ -369,6 +407,7 @@ LOCAL_NODE_CLASS = {
     "InoCopyFiles": InoCopyFiles,
     "InoCountFiles": InoCountFiles,
     "InoValidateMediaFiles": InoValidateMediaFiles,
+    "InoRemoveDuplicateFiles": InoRemoveDuplicateFiles,
 }
 LOCAL_NODE_NAME = {
     "InoIncrementBatchName": "Ino Increment Batch Name",
@@ -379,4 +418,5 @@ LOCAL_NODE_NAME = {
     "InoCopyFiles": "Ino Copy Files",
     "InoCountFiles": "Ino Count Files",
     "InoValidateMediaFiles": "Ino Validate Media Files",
+    "InoRemoveDuplicateFiles": "Ino Remove Duplicate Files",
 }
