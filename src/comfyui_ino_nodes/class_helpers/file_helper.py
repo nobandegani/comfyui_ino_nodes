@@ -342,8 +342,8 @@ class InoValidateMediaFiles:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", )
-    RETURN_NAMES = ("success", "message", "skipped_images_path", "skipped_images_unsupported_path", "skipped_videos_path", "skipped_videos_unsupported_path", "unsupported_files_path", "logs", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", )
+    RETURN_NAMES = ("success", "message", "output_path", "skipped_images_path", "skipped_images_unsupported_path", "skipped_videos_path", "skipped_videos_unsupported_path", "unsupported_files_path", "logs", )
 
     FUNCTION = "function"
 
@@ -358,7 +358,7 @@ class InoValidateMediaFiles:
             include_image=include_images,
             include_video=include_videos,
         )
-        return (True, res.get("msg"), res.get("skipped_images_path"), res.get("skipped_images_unsupported_path"), res.get("skipped_videos_path"), res.get("skipped_videos_unsupported_path"), res.get("unsupported_files_path"), res.get("logs"),)
+        return (True, res.get("msg"), input_path, res.get("skipped_images_path"), res.get("skipped_images_unsupported_path"), res.get("skipped_videos_path"), res.get("skipped_videos_unsupported_path"), res.get("unsupported_files_path"), res.get("logs"),)
 
 class InoRemoveDuplicateFiles:
     """
