@@ -80,10 +80,10 @@ class InoVllmRunSyncImage:
             return (False, -1, "not enabled", "", "", "", )
 
         try:
-            img_array = (image[0].cpu().numpy() * 255).astype(np.uint8)
-            pil_img = Image.fromarray(img_array)
+            i = 255. * image[0].cpu().numpy()
+            img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
             buf = io.BytesIO()
-            pil_img.save(buf, format="JPEG", quality=90)
+            img.save(buf, format="JPEG", quality=90)
             image_bytes = buf.getvalue()
         except Exception as e:
             return (False, -1, f"image failed: {e}", 0, 0, "", )
