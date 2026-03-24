@@ -2,7 +2,7 @@ import hashlib
 import random
 import os
 
-from inopyutils import InoJsonHelper, InoHttpHelper, InoRunpodHelper
+from inopyutils import InoJsonHelper, InoHttpHelper, InoRunpodHelper, ino_is_err
 
 from custom_nodes.comfyui_ino_nodes.src.comfyui_ino_nodes.node_helper import ino_print_log
 
@@ -42,11 +42,12 @@ class InoVllmRunSyncText:
                 temperature=temperature,
                 max_tokens=max_tokens,
             )
+            if ino_is_err(response):
+                return (False, -1, response["msg"], 0, 0, "",)
 
-            return (response["success"], response["id"], response["status"], response["delay_time"], response["execution_time"], response["response"], )
+            return (True, response["id"], response["status"], response["delay_time"], response["execution_time"], response["response"], )
         except Exception as e:
-            ino_print_log("InoOpenaiResponses","",e)
-            return (False, -1, "Openai response failed", str(e), "", "", )
+            return (False, -1, "response failed", 0, 0, "", )
 
 
 LOCAL_NODE_CLASS = {
