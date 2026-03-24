@@ -85,11 +85,16 @@ class InoVllmRunSyncImage:
             parent_path = folder_paths.get_temp_directory()
             i = 255. * image[0].cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-            file_w_ext = file_name + ".png"
+            file_w_ext = file_name + ".jpg"
             full_path = os.path.join(parent_path, file_w_ext)
             img.save(full_path,)
             img.close()
-            
+
+            with open(full_path, "rb") as f:
+                image_bytes = f.read()
+
+            image_str = f"data:image/jpeg;base64,{image_bytes}"
+
         except Exception as e:
             return (False, -1, f"image failed: {e}", 0, 0, "", )
 
@@ -101,7 +106,7 @@ class InoVllmRunSyncImage:
                 user_prompt=user_prompt,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                image=image_bytes
+                image=image_str
             )
             if ino_is_err(response):
                 return (False, -1, response["msg"], 0, 0, "",)
