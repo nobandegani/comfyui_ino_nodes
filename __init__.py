@@ -22,6 +22,10 @@ from .src.comfyui_ino_nodes.class_helpers.openai_helper import (
     LOCAL_NODE_CLASS as OPENAPI_HELPER_CLASS,
     LOCAL_NODE_NAME as OPENAPI_HELPER_NAME
 )
+from .src.comfyui_ino_nodes.class_helpers.runpod_helper import (
+    LOCAL_NODE_CLASS as RUNPOD_HELPER_CLASS,
+    LOCAL_NODE_NAME as RUNPOD_HELPER_NAME
+)
 
 #--------------------------------- Node helpers ---------------------------------
 from .src.comfyui_ino_nodes.node_helpers.bool_helper import (
@@ -97,6 +101,7 @@ _node_classes.update(MEDIA_HELPER_CLASS)
 _node_classes.update(HTTP_HELPER_CLASS)
 _node_classes.update(JSON_HELPER_CLASS)
 _node_classes.update(OPENAPI_HELPER_CLASS)
+_node_classes.update(RUNPOD_HELPER_CLASS)
 
 _node_classes.update(BOOL_HELPER_CLASS)
 _node_classes.update(FLOAT_HELPER_CLASS)
@@ -123,6 +128,7 @@ _node_names.update(MEDIA_HELPER_NAME)
 _node_names.update(HTTP_HELPER_NAME)
 _node_names.update(JSON_HELPER_NAME)
 _node_names.update(OPENAPI_HELPER_NAME)
+_node_names.update(RUNPOD_HELPER_NAME)
 
 _node_names.update(BOOL_HELPER_NAME)
 _node_names.update(FLOAT_HELPER_NAME)
