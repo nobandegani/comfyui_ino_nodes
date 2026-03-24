@@ -33,7 +33,6 @@ class InoVllmRunSyncText:
             return (False, -1, "not enabled", "", "", "", )
 
         try:
-
             response = InoRunpodHelper.serverless_vllm_runsync(
                 url=url,
                 api_key=api_key,
@@ -47,7 +46,7 @@ class InoVllmRunSyncText:
 
             return (True, response["id"], response["status"], response["delay_time"], response["execution_time"], response["response"], )
         except Exception as e:
-            return (False, -1, "response failed", 0, 0, "", )
+            return (False, -1, f"response failed: {e}", 0, 0, "", )
 
 
 LOCAL_NODE_CLASS = {
