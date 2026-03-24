@@ -1,6 +1,10 @@
 import hashlib
+import io
 import random
 import os
+
+import numpy as np
+from PIL import Image
 
 from inopyutils import InoJsonHelper, InoHttpHelper, InoRunpodHelper, ino_is_err
 
@@ -76,7 +80,11 @@ class InoVllmRunSyncImage:
             return (False, -1, "not enabled", "", "", "", )
 
         try:
-            image = None
+            img_array = (image[0].cpu().numpy() * 255).astype(np.uint8)
+            pil_img = Image.fromarray(img_array)
+            buf = io.BytesIO()
+            pil_img.save(buf, format="JPEG", quality=90)
+            image_bytes = buf.getvalue()
         except Exception as e:
             return (False, -1, f"image failed: {e}", 0, 0, "", )
 
@@ -88,7 +96,7 @@ class InoVllmRunSyncImage:
                 user_prompt=user_prompt,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                image=image
+                image=image_bytes
             )
             if ino_is_err(response):
                 return (False, -1, response["msg"], 0, 0, "",)
@@ -99,7 +107,9 @@ class InoVllmRunSyncImage:
 
 LOCAL_NODE_CLASS = {
     "InoVllmRunSyncText": InoVllmRunSyncText,
+    "InoVllmRunSyncImage": InoVllmRunSyncImage,
 }
 LOCAL_NODE_NAME = {
     "InoVllmRunSyncText": "Ino Vllm Run Sync Text",
+    "InoVllmRunSyncImage": "Ino Vllm Run Sync Image",
 }
