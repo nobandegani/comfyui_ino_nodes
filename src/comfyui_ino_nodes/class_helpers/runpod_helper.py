@@ -33,7 +33,7 @@ class InoVllmRunSyncText:
             return (False, -1, "not enabled", "", "", "", )
 
         try:
-            response = InoRunpodHelper.serverless_vllm_runsync(
+            response = await InoRunpodHelper.serverless_vllm_runsync(
                 url=url,
                 api_key=api_key,
                 system_prompt=system_prompt,
