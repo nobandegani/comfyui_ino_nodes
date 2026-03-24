@@ -1,12 +1,13 @@
-import hashlib
 import io
-import random
 import os
+from datetime import datetime
 
 import numpy as np
 from PIL import Image
 
-from inopyutils import InoJsonHelper, InoHttpHelper, InoRunpodHelper, ino_is_err
+import folder_paths
+
+from inopyutils import InoRunpodHelper, ino_is_err
 
 from custom_nodes.comfyui_ino_nodes.src.comfyui_ino_nodes.node_helper import ino_print_log
 
@@ -80,11 +81,15 @@ class InoVllmRunSyncImage:
             return (False, -1, "not enabled", "", "", "", )
 
         try:
+            file_name = datetime.now().strftime("%Y%m%d%H%M%S%f")
+            parent_path = folder_paths.get_temp_directory()
             i = 255. * image[0].cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-            buf = io.BytesIO()
-            img.save(buf, format="JPEG", quality=90)
-            image_bytes = buf.getvalue()
+            file_w_ext = file_name + ".png"
+            full_path = os.path.join(parent_path, file_w_ext)
+            img.save(full_path,)
+            img.close()
+            
         except Exception as e:
             return (False, -1, f"image failed: {e}", 0, 0, "", )
 
