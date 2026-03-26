@@ -34,7 +34,7 @@ class InoS3DownloadImage:
 
     async def function(self, enabled, s3_key, s3_config, bucket_name):
         from nodes import EmptyImage
-        empty_image, _ = EmptyImage().generate(512, 512)
+        empty_image = EmptyImage().generate(512, 512)[0]
         if not enabled:
             return (False, "not enabled", "", empty_image, None, )
 
