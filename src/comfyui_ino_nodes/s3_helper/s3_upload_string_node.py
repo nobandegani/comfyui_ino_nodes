@@ -5,7 +5,7 @@ from datetime import datetime
 from PIL import Image, ImageOps, ImageSequence
 from PIL.PngImagePlugin import PngInfo
 import numpy as np
-from inopyutils import InoJsonHelper, InoFileHelper, ino_ok, ino_err, ino_is_err
+from inopyutils import InoJsonHelper, InoFileHelper, ino_ok, ino_err, ino_is_err, InoUtilHelper
 
 import folder_paths
 from comfy.cli_args import args
@@ -59,7 +59,7 @@ class InoS3UploadString:
             return (string, False, validate_s3_key["msg"], "", "", "",)
 
         if date_time_as_name:
-            file_name = datetime.now().strftime("%Y%m%d%H%M%S%f")
+            file_name = InoUtilHelper.get_date_time_utc_base64()
 
         parent_path = folder_paths.get_temp_directory()
 

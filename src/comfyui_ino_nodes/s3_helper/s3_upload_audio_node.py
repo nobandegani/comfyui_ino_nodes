@@ -5,7 +5,7 @@ from datetime import datetime
 from PIL import Image, ImageOps, ImageSequence
 from PIL.PngImagePlugin import PngInfo
 import numpy as np
-from inopyutils import ino_ok, ino_err, ino_is_err
+from inopyutils import ino_ok, ino_err, ino_is_err, InoUtilHelper
 
 import folder_paths
 from comfy.cli_args import args
@@ -61,7 +61,7 @@ class InoS3UploadAudio:
             return (audio, False, validate_s3_key["msg"], "", "", "",)
 
         if date_time_as_name:
-            file_name = datetime.now().strftime("%Y%m%d%H%M%S%f")
+            file_name = InoUtilHelper.get_date_time_utc_base64()
 
         save_as = "mp3"
         file = f"{file_name}.{save_as}"

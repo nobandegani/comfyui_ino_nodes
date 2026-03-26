@@ -9,7 +9,7 @@ from datetime import datetime
 import folder_paths
 import node_helpers
 
-from inopyutils import ino_ok, ino_err, ino_is_err
+from inopyutils import ino_ok, ino_err, ino_is_err, InoUtilHelper
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 
@@ -44,7 +44,8 @@ class InoS3DownloadImage:
 
         parent_path = folder_paths.get_temp_directory()
 
-        file_name = f'{datetime.now().strftime("%Y%m%d%H%M%S")}{Path(s3_key).suffix}'
+        random_str = InoUtilHelper.get_date_time_utc_base64()
+        file_name = f'{random_str}{Path(s3_key).suffix}'
         local_save_path: Path = Path(parent_path) / file_name
 
         s3_instance = S3Helper.get_instance(s3_config)
