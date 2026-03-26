@@ -33,12 +33,14 @@ class InoS3DownloadImage:
     FUNCTION = "function"
 
     async def function(self, enabled, s3_key, s3_config, bucket_name):
+        from nodes import EmptyImage
+        empty_image, _ = EmptyImage().generate(512, 512)
         if not enabled:
-            return (False, "not enabled", "", None, None, )
+            return (False, "not enabled", "", empty_image, None, )
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, validate_s3_key["msg"], "", None, None,)
+            return (False, validate_s3_key["msg"], "", empty_image, None,)
 
         parent_path = folder_paths.get_temp_directory()
 
@@ -47,7 +49,7 @@ class InoS3DownloadImage:
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (False, s3_instance["msg"], "", None, None,)
+            return (False, s3_instance["msg"], "", empty_image, None,)
         s3_instance = s3_instance["instance"]
 
         downloaded = await s3_instance.download_file(
@@ -55,7 +57,7 @@ class InoS3DownloadImage:
             local_file_path=str(local_save_path.resolve())
         )
         if not downloaded["success"]:
-            return (downloaded["success"], downloaded["msg"], downloaded, None, None, )
+            return (downloaded["success"], downloaded["msg"], downloaded, empty_image, None, )
 
         img = node_helpers.pillow(Image.open, downloaded["local_file"])
 
