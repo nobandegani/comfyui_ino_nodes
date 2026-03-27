@@ -1,3 +1,5 @@
+import base64
+import io as std_io
 import torch
 import os
 from pathlib import Path
@@ -5,6 +7,8 @@ from pathlib import Path
 from torchvision.transforms import InterpolationMode
 import torchvision.transforms.functional as TorchFunctional
 from datetime import datetime, timezone, timedelta
+from PIL import Image
+import numpy as np
 
 import folder_paths
 from comfy_api.latest import ComfyExtension, io
@@ -419,6 +423,43 @@ class InoOnImageListCompleted(io.ComfyNode):
 
         return io.NodeOutput(input_image, counter_json["counter"])
 
+class InoImageToBase64:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "image": ("IMAGE",),
+                "format": (["png", "jpeg", "webp"], {"default": "png"}),
+            }
+        }
+
+    CATEGORY = "InoNodes"
+    RETURN_TYPES = ("BOOLEAN", "STRING",)
+    RETURN_NAMES = ("success", "base64_string",)
+    FUNCTION = "function"
+
+    def function(self, enabled, image, format="png"):
+        if not enabled:
+            return (False, "")
+
+        try:
+            # IMAGE tensor is (B, H, W, C) float32 [0,1] — take first image
+            img_np = (image[0].cpu().numpy() * 255).astype(np.uint8)
+            pil_image = Image.fromarray(img_np)
+
+            mime_map = {"png": "image/png", "jpeg": "image/jpeg", "webp": "image/webp"}
+            mime = mime_map[format]
+
+            buffer = std_io.BytesIO()
+            pil_image.save(buffer, format=format.upper())
+            b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+            return (True, f"data:{mime};base64,{b64}")
+        except Exception as e:
+            return (False, str(e))
+
+
 LOCAL_NODE_CLASS = {
     "InoSaveImages": InoSaveImages,
     "InoImageResizeByLongerSideV1": InoImageResizeByLongerSideV1,
@@ -426,6 +467,7 @@ LOCAL_NODE_CLASS = {
     "InoLoadImagesFromFolder": InoLoadImagesFromFolder,
     "InoOnImageListCompleted": InoOnImageListCompleted,
     "InoCropImageByBox": InoCropImageByBox,
+    "InoImageToBase64": InoImageToBase64,
 }
 LOCAL_NODE_NAME = {
     "InoSaveImages": "Ino Save Images",
@@ -434,4 +476,5 @@ LOCAL_NODE_NAME = {
     "InoLoadImagesFromFolder": "Ino Load Images From Folder",
     "InoOnImageListCompleted": "Ino On Image List Completed",
     "InoCropImageByBox": "Ino Crop Image By Box",
+    "InoImageToBase64": "Ino Image To Base64",
 }
