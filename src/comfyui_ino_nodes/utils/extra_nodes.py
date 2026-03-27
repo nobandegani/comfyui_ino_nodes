@@ -207,6 +207,8 @@ class InoSwitchOnBool(io.ComfyNode):
     def execute(cls, switch, on_true, on_false) -> io.NodeOutput:
         return io.NodeOutput(on_true if switch else on_false)
 
+MISSING = object()
+
 class InoSwitchOnInt(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -218,9 +220,10 @@ class InoSwitchOnInt(io.ComfyNode):
             is_experimental=True,
             inputs=[
                 io.Int.Input("switch", default=0, min=-1),
-                io.MatchType.Input("on_below_0", template=template, lazy=True),
-                io.MatchType.Input("on_above_9", template=template, lazy=True),
-                *[io.MatchType.Input(f"input_{i}", template=template, lazy=True) for i in range(10)],
+                io.MatchType.Input("input_0", template=template, lazy=True),
+                *[io.MatchType.Input(f"input_{i}", template=template, optional=True, lazy=True) for i in range(1, 10)],
+                io.MatchType.Input("on_below_0", template=template, optional=True, lazy=True),
+                io.MatchType.Input("on_above_9", template=template, optional=True, lazy=True),
             ],
             outputs=[
                 io.MatchType.Output(template=template, display_name="output"),
@@ -228,23 +231,34 @@ class InoSwitchOnInt(io.ComfyNode):
         )
 
     @classmethod
-    def check_lazy_status(cls, switch, on_below_0=None, on_above_9=None, **kwargs):
-        if switch < 0 and on_below_0 is None:
-            return ["on_below_0"]
-        if switch > 9 and on_above_9 is None:
-            return ["on_above_9"]
-        if 0 <= switch <= 9:
+    def check_lazy_status(cls, switch, on_below_0=MISSING, on_above_9=MISSING, **kwargs):
+        # None = connected but lazy, not yet evaluated → need to request
+        # MISSING = not connected at all → skip, use fallback
+        needed = []
+        if switch < 0:
+            if on_below_0 is None:
+                needed.append("on_below_0")
+        elif switch > 9:
+            if on_above_9 is None:
+                needed.append("on_above_9")
+        else:
             key = f"input_{switch}"
-            if kwargs.get(key) is None:
-                return [key]
+            if kwargs.get(key, MISSING) is None:
+                needed.append(key)
+        # Always need input_0 as fallback
+        if kwargs.get("input_0", MISSING) is None:
+            needed.append("input_0")
+        return needed if needed else None
 
     @classmethod
-    def execute(cls, switch, on_below_0=None, on_above_9=None, **kwargs) -> io.NodeOutput:
+    def execute(cls, switch, on_below_0=MISSING, on_above_9=MISSING, **kwargs) -> io.NodeOutput:
+        fallback = kwargs.get("input_0", None)
         if switch < 0:
-            return io.NodeOutput(on_below_0)
+            return io.NodeOutput(on_below_0 if on_below_0 is not MISSING else fallback)
         if switch > 9:
-            return io.NodeOutput(on_above_9)
-        return io.NodeOutput(kwargs.get(f"input_{switch}"))
+            return io.NodeOutput(on_above_9 if on_above_9 is not MISSING else fallback)
+        result = kwargs.get(f"input_{switch}", MISSING)
+        return io.NodeOutput(result if result is not MISSING else fallback)
 
 LOCAL_NODE_CLASS = {
     "InoRelay": InoRelay,
