@@ -1,5 +1,5 @@
 inocloudreve
-inopyutils==1.7.15
+inopyutils==1.7.16
 openai
 aiohttp
 
