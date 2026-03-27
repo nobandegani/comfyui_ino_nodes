@@ -1,5 +1,8 @@
 import asyncio
 
+from comfy_api.latest import ComfyExtension, io
+from comfy_api.latest import _io
+
 from ..node_helper import any_type, ino_print_log
 
 #todo add show any
@@ -174,6 +177,75 @@ class InoRandomNoise:
 
         return (random_seed, final_seed, )
 
+class InoSwitchOnBool(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        template = io.MatchType.Template("switch")
+        return io.Schema(
+            node_id="InoSwitchOnBool",
+            display_name="Ino Switch On Bool",
+            category="logic",
+            is_experimental=True,
+            inputs=[
+                io.Boolean.Input("switch"),
+                io.MatchType.Input("on_false", template=template, lazy=True),
+                io.MatchType.Input("on_true", template=template, lazy=True),
+            ],
+            outputs=[
+                io.MatchType.Output(template=template, display_name="output"),
+            ],
+        )
+
+    @classmethod
+    def check_lazy_status(cls, switch, on_false=None, on_true=None):
+        if switch and on_true is None:
+            return ["on_true"]
+        if not switch and on_false is None:
+            return ["on_false"]
+
+    @classmethod
+    def execute(cls, switch, on_true, on_false) -> io.NodeOutput:
+        return io.NodeOutput(on_true if switch else on_false)
+
+class InoSwitchOnInt(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        template = io.MatchType.Template("switch")
+        return io.Schema(
+            node_id="InoSwitchOnInt",
+            display_name="Ino Switch On Int",
+            category="InoNodes",
+            is_experimental=True,
+            inputs=[
+                io.Int.Input("switch", default=0, min=-1),
+                io.MatchType.Input("on_below_0", template=template, lazy=True),
+                io.MatchType.Input("on_above_9", template=template, lazy=True),
+                *[io.MatchType.Input(f"input_{i}", template=template, lazy=True) for i in range(10)],
+            ],
+            outputs=[
+                io.MatchType.Output(template=template, display_name="output"),
+            ],
+        )
+
+    @classmethod
+    def check_lazy_status(cls, switch, on_below_0=None, on_above_9=None, **kwargs):
+        if switch < 0 and on_below_0 is None:
+            return ["on_below_0"]
+        if switch > 9 and on_above_9 is None:
+            return ["on_above_9"]
+        if 0 <= switch <= 9:
+            key = f"input_{switch}"
+            if kwargs.get(key) is None:
+                return [key]
+
+    @classmethod
+    def execute(cls, switch, on_below_0=None, on_above_9=None, **kwargs) -> io.NodeOutput:
+        if switch < 0:
+            return io.NodeOutput(on_below_0)
+        if switch > 9:
+            return io.NodeOutput(on_above_9)
+        return io.NodeOutput(kwargs.get(f"input_{switch}"))
+
 LOCAL_NODE_CLASS = {
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
@@ -183,6 +255,9 @@ LOCAL_NODE_CLASS = {
     "InoPrintLog": InoPrintLog,
 
     "InoRandomNoise": InoRandomNoise,
+
+    "InoSwitchOnBool": InoSwitchOnBool,
+    "InoSwitchOnInt": InoSwitchOnInt
 }
 LOCAL_NODE_NAME = {
     "InoRelay": "Ino Relay",
@@ -193,4 +268,7 @@ LOCAL_NODE_NAME = {
     "InoPrintLog": "Ino Print Log",
 
     "InoRandomNoise": "Ino Random Noise",
+
+    "InoSwitchOnBool": "Ino Switch On Bool",
+    "InoSwitchOnInt": "Ino Switch On Int"
 }
