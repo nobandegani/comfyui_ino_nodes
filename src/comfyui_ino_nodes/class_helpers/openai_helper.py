@@ -91,9 +91,67 @@ class InoOpenaiResponses:
             return (False, -1, "Openai response failed", str(e), "", "", )
 
 
+class InoOpenaiChatCompletions:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "user_prompt": ("STRING", {"default": ""}),
+            },
+            "optional": {
+                "openai_api_key": ("STRING", {"default": ""}),
+                "base_url": ("STRING", {"default": "https://api.openai.com/v1"}),
+                "model": ("STRING", {"default": "gpt-5"}),
+                "system_prompt": ("STRING", {"default": ""}),
+                "image_url": ("STRING", {"default": ""}),
+                "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1}),
+                "max_tokens": ("INT", {"default": 1024, "min": 1, "max": 128000}),
+            }
+        }
+
+    CATEGORY = "InoOpenaiHelper"
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("success", "response", "finish_reason", "error",)
+    FUNCTION = "function"
+
+    async def function(self, enabled, user_prompt, openai_api_key="", base_url="https://api.openai.com/v1",
+                       model="gpt-5", system_prompt="", image_url="", temperature=0.7, max_tokens=1024):
+        if not enabled:
+            ino_print_log("InoOpenaiChatCompletions", "Node is disabled")
+            return (False, "", "", "not enabled")
+
+        try:
+            api_key = openai_api_key if openai_api_key else os.getenv('OPENAI_TOKEN', '')
+            image = image_url if image_url else None
+
+            result = await InoOpenAIHelper.chat_completions(
+                api_key=api_key,
+                base_url=base_url,
+                model=model,
+                user_prompt=user_prompt,
+                system_prompt=system_prompt,
+                image=image,
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+
+            if result.get("success"):
+                return (True, result.get("response", ""), result.get("finish_reason", ""), "none")
+            else:
+                error_msg = result.get("message", "unknown error")
+                ino_print_log("InoOpenaiChatCompletions", "", error_msg)
+                return (False, "", "", error_msg)
+        except Exception as e:
+            ino_print_log("InoOpenaiChatCompletions", "", e)
+            return (False, "", "", str(e))
+
+
 LOCAL_NODE_CLASS = {
     "InoOpenaiResponses": InoOpenaiResponses,
+    "InoOpenaiChatCompletions": InoOpenaiChatCompletions,
 }
 LOCAL_NODE_NAME = {
     "InoOpenaiResponses": "Ino Openai Responses",
+    "InoOpenaiChatCompletions": "Ino Openai Chat Completions",
 }
