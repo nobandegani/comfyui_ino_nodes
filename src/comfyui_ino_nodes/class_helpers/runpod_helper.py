@@ -1,3 +1,4 @@
+import base64
 import io
 import os
 from datetime import datetime
@@ -7,11 +8,11 @@ from PIL import Image
 
 import folder_paths
 
-from inopyutils import InoRunpodHelper, ino_is_err
+from inopyutils import InoRunpodHelper, ino_is_err, InoUtilHelper
 
 from custom_nodes.comfyui_ino_nodes.src.comfyui_ino_nodes.node_helper import ino_print_log
 
-class InoVllmRunSyncText:
+class InoVllmRunSync:
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -81,45 +82,13 @@ class InoVllmRunSyncImage:
             return (False, -1, "not enabled", "", "", "", )
 
         try:
-            file_name = datetime.now().strftime("%Y%m%d%H%M%S%f")
-            parent_path = folder_paths.get_temp_directory()
-            i = 255. * image[0].cpu().numpy()
-            img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-            file_w_ext = file_name + ".jpg"
-            full_path = os.path.join(parent_path, file_w_ext)
-            img.save(full_path,)
-            img.close()
 
-            with open(full_path, "rb") as f:
-                image_bytes = f.read()
-
-            image_str = f"data:image/jpeg;base64,{image_bytes}"
-
-        except Exception as e:
-            return (False, -1, f"image failed: {e}", 0, 0, "", )
-
-        try:
-            response = await InoRunpodHelper.serverless_vllm_runsync(
-                url=url,
-                api_key=api_key,
-                system_prompt=system_prompt,
-                user_prompt=user_prompt,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                image=image_str
-            )
-            if ino_is_err(response):
-                return (False, -1, response["msg"], 0, 0, "",)
-
-            return (True, response["id"], response["status"], response["delay_time"], response["execution_time"], response["response"], )
         except Exception as e:
             return (False, -1, f"response failed: {e}", 0, 0, "", )
 
 LOCAL_NODE_CLASS = {
-    "InoVllmRunSyncText": InoVllmRunSyncText,
-    "InoVllmRunSyncImage": InoVllmRunSyncImage,
+    "InoVllmRunSyncText": InoVllmRunSync,
 }
 LOCAL_NODE_NAME = {
-    "InoVllmRunSyncText": "Ino Vllm Run Sync Text",
-    "InoVllmRunSyncImage": "Ino Vllm Run Sync Image",
+    "InoVllmRunSync": "Ino Vllm Run Sync",
 }
