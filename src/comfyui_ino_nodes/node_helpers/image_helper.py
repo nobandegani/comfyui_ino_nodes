@@ -330,8 +330,9 @@ class InoImageListToBatch(io.ComfyNode):
             node_id="InoImageListToBatch",
             display_name="Ino Image List To Batch",
             category="InoNodes",
+            is_input_list=True,
             inputs=[
-                io.Image.Input("images", is_input_list=True),
+                io.Image.Input("images"),
                 io.Boolean.Input("padding", default=False, label_off="Resize", label_on="Pad"),
             ],
             outputs=[
@@ -342,6 +343,7 @@ class InoImageListToBatch(io.ComfyNode):
 
     @classmethod
     def execute(cls, images, padding):
+        padding = padding[0] if isinstance(padding, list) else padding
         if len(images) == 0:
             import torch
             return io.NodeOutput(torch.empty(0), 0)
