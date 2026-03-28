@@ -7,34 +7,30 @@ from ..node_helper import any_type, ino_print_log
 
 #todo add show any
 
-class InoRelay:
-    """
-        Date Time As String
-    """
+class InoRelay(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        execute_template = io.MatchType.Template("execute")
+        relay_template = io.MatchType.Template("relay")
+        return io.Schema(
+            node_id="InoRelay",
+            display_name="Ino Relay",
+            category="InoNodes",
+            inputs=[
+                io.MatchType.Input("execute", template=execute_template, optional=True),
+                io.MatchType.Input("relay", template=relay_template, optional=True),
+            ],
+            outputs=[
+                io.MatchType.Output(template=execute_template, display_name="execute"),
+                io.MatchType.Output(template=relay_template, display_name="relay"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "execute": (any_type, {"default": None, }),
-                "relay": (any_type, {"default": None, }),
-            },
-        }
-
-    RETURN_TYPES = (any_type, any_type, )
-    RETURN_NAMES = ("execute", "relay" )
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def __init__(self):
-        pass
-
-    async def function(self, execute = None, relay = None):
+    def execute(cls, execute=None, relay=None) -> io.NodeOutput:
         if execute is not None:
-            return (execute, relay,)
-
-        return (execute, None,)
+            return io.NodeOutput(execute, relay)
+        return io.NodeOutput(execute, None)
 
 class InoAnyEqual:
     """
