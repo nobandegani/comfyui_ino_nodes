@@ -67,7 +67,7 @@ class InoBoolToSwitch(io.ComfyNode):
         result = 2 if input_bool else 1
         return io.NodeOutput(result)
 
-class InoConditionBooleanMulti:
+class InoConditionBoolean:
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -114,11 +114,11 @@ LOCAL_NODE_CLASS = {
     "InoBooleanEqual": InoBooleanEqual,
     "InoNotBoolean": InoNotBoolean,
     "InoBoolToSwitch": InoBoolToSwitch,
-    "InoConditionBooleanMulti": InoConditionBooleanMulti,
+    "InoConditionBoolean": InoConditionBoolean,
 }
 LOCAL_NODE_NAME = {
     "InoBooleanEqual": "Ino Boolean Equal",
     "InoNotBoolean": "Ino Not Boolean",
     "InoBoolToSwitch": "Ino Bool To Switch",
-    "InoConditionBooleanMulti": "Ino Condition Boolean Multi",
+    "InoConditionBoolean": "Ino Condition Boolean",
 }
