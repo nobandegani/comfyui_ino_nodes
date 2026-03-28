@@ -497,9 +497,10 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         if not enabled:
             return io.NodeOutput(False, [], 0, [], positive, negative)
 
+        import math
+        import comfy.utils
+        import node_helpers as nh
         from comfy_extras.nodes_dataset import load_and_process_images
-        from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
-        from comfy_extras.nodes_edit_model import ReferenceLatent
         from nodes import VAEEncode
 
         if parent_folder == "input":
@@ -537,12 +538,23 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
 
         for img in output_images:
             single = img.unsqueeze(0)
-            scaled = ImageScaleToTotalPixels.execute(single, upscale_method, megapixels, resolution_steps)[0]
+
+            # ImageScaleToTotalPixels inline
+            samples = single.movedim(-1, 1)
+            total = megapixels * 1024 * 1024
+            scale_by = math.sqrt(total / (samples.shape[3] * samples.shape[2]))
+            width = max(1, round(samples.shape[3] * scale_by / resolution_steps) * resolution_steps)
+            height = max(1, round(samples.shape[2] * scale_by / resolution_steps) * resolution_steps)
+            s = comfy.utils.common_upscale(samples, width, height, upscale_method, "disabled")
+            scaled = s.movedim(1, -1)
+
             latent = vae_encoder.encode(vae, scaled)[0]
             latents.append(latent)
-            pos_cond = ReferenceLatent.execute(pos_cond, latent)[0]
+
+            # ReferenceLatent inline
+            pos_cond = nh.conditioning_set_values(pos_cond, {"reference_latents": [latent["samples"]]}, append=True)
             if neg_cond is not None:
-                neg_cond = ReferenceLatent.execute(neg_cond, latent)[0]
+                neg_cond = nh.conditioning_set_values(neg_cond, {"reference_latents": [latent["samples"]]}, append=True)
 
         return io.NodeOutput(True, output_images, num_images, latents, pos_cond, neg_cond)
 
