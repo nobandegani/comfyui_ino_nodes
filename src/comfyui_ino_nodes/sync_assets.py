@@ -3,7 +3,7 @@ import asyncio
 
 from botocore.config import Config
 
-from inopyutils import InoS3Helper, ino_err, ino_ok, ino_is_err
+from inopyutils import InoS3Helper, ino_is_err
 
 class FileSyncer:
     def __init__(self):
@@ -69,6 +69,13 @@ class FileSyncer:
         self.s3_id: str = os.getenv("SYNC_S3_ID", "")
         self.s3_secret: str = os.getenv("SYNC_S3_SECRET", "")
 
+        missing = [name for name, val in [
+            ("SYNC_S3_URL", self.s3_url), ("SYNC_S3_BUCKET", self.s3_bucket),
+            ("SYNC_S3_ID", self.s3_id), ("SYNC_S3_SECRET", self.s3_secret),
+        ] if not val]
+        if missing:
+            raise EnvironmentError(f"Missing required env vars: {', '.join(missing)}")
+
         self.s3_client = InoS3Helper()
         self.s3_client.init(
             aws_access_key_id=self.s3_id,
@@ -76,7 +83,6 @@ class FileSyncer:
             endpoint_url=self.s3_url,
             region_name=self.s3_region,
             bucket_name=self.s3_bucket,
-            retries=10,
             config=self.s3_config,
         )
 
@@ -121,20 +127,22 @@ class FileSyncer:
         print(f"Valid models: {self.comfy_models}")
         print(f"Folders to sync: {self.sync_folders}")
 
-    async def sync_files(self):
-        for folder in self.sync_folders:
-            local_folder_path = folder.replace("comfyui", self.local_comfy_path, 1)
-            print(f"Syncing folder started for {folder} to {local_folder_path}")
+    async def _sync_one(self, folder: str):
+        local_folder_path = os.path.join(self.local_comfy_path, folder.removeprefix("comfyui/"))
+        print(f"Syncing folder started for {folder} to {local_folder_path}")
 
-            syncfolder_res = await self.s3_client.sync_folder(
-                s3_key=folder,
-                local_folder_path=local_folder_path,
-                concurrency=10
-            )
-            if ino_is_err(syncfolder_res):
-                print(f"Syncing folder failed for {folder}: {syncfolder_res['msg']}")
-            else:
-                print(f"Syncing Folder finished for {folder}")
+        syncfolder_res = await self.s3_client.sync_folder(
+            s3_key=folder,
+            local_folder_path=local_folder_path,
+            concurrency=10
+        )
+        if ino_is_err(syncfolder_res):
+            print(f"Syncing folder failed for {folder}: {syncfolder_res['msg']}")
+        else:
+            print(f"Syncing folder finished for {folder}")
+
+    async def sync_files(self):
+        await asyncio.gather(*[self._sync_one(folder) for folder in self.sync_folders])
 
 async def main():
     print("Sync assets starting...")
