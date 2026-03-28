@@ -1,4 +1,5 @@
 import random
+from comfy_api.latest import io
 
 class InoRandomIntInRange:
     """
@@ -106,15 +107,46 @@ class InoIntEqual:
     def function(self, int_a, int_b):
         return (int_a == int_b,)
 
+class InoCompareInt(io.ComfyNode):
+    @classmethod
+    def define_schema(cls) -> io.Schema:
+        return io.Schema(
+            node_id="InoCompareInt",
+            display_name="Ino Compare Int",
+            category="InoNodes",
+            inputs=[
+                io.Int.Input("int_a", default=0),
+                io.Int.Input("int_b", default=0),
+                io.Combo.Input("compare", options=["=", "<", ">", "<=", ">=", "<>"]),
+            ],
+            outputs=[
+                io.Boolean.Output()
+            ]
+        )
+
+    @classmethod
+    def execute(cls, int_a, int_b, compare) -> io.NodeOutput:
+        ops = {
+            "=": int_a == int_b,
+            "<": int_a < int_b,
+            ">": int_a > int_b,
+            "<=": int_a <= int_b,
+            ">=": int_a >= int_b,
+            "<>": int_a != int_b,
+        }
+        return io.NodeOutput(ops[compare])
+
 LOCAL_NODE_CLASS = {
     "InoIntEqual": InoIntEqual,
     "InoRandomIntInRange": InoRandomIntInRange,
     "InoIntToString": InoIntToString,
     "InoIntToFloat": InoIntToFloat,
+    "InoCompareInt": InoCompareInt,
 }
 LOCAL_NODE_NAME = {
     "InoIntEqual": "Ino Int Equal",
     "InoRandomIntInRange": "Ino Random Int In Range",
     "InoIntToString": "Ino Int To String",
     "InoIntToFloat": "Ino Int To Float",
+    "InoCompareInt": "Ino Compare Int",
 }
