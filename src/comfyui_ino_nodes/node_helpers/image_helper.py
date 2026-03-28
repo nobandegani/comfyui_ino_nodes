@@ -209,84 +209,86 @@ class InoImageResizeByLongerSideAndCropV2:
 
         return (cropped_image[0],)
 
-class InoLoadImagesFromFolder(io.ComfyNode):
+def _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first):
+    from comfy_extras.nodes_dataset import load_and_process_images
+
+    if parent_folder == "input":
+        sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
+    elif parent_folder == "output":
+        sub_input_dir = os.path.join(folder_paths.get_output_directory(), folder)
+    else:
+        sub_input_dir = os.path.join(folder_paths.get_temp_directory(), folder)
+
+    valid_extensions = [".png", ".jpg", ".jpeg", ".webp"]
+    image_files = sorted([
+        f for f in os.listdir(sub_input_dir)
+        if any(f.lower().endswith(ext) for ext in valid_extensions)
+    ])
+
+    skip_from_first = max(0, int(skip_from_first))
+    load_cap = max(0, int(load_cap))
+
+    if skip_from_first:
+        image_files = image_files[skip_from_first:]
+    if load_cap > 0:
+        image_files = image_files[:load_cap]
+
+    return load_and_process_images(image_files, sub_input_dir)
+
+
+class InoLoadImagesFromFolderList(io.ComfyNode):
     @classmethod
     def define_schema(cls):
         return io.Schema(
-            node_id="InoLoadImagesFromFolder",
-            display_name="Ino Load Images From Folder",
+            node_id="InoLoadImagesFromFolderList",
+            display_name="Ino Load Images From Folder (List)",
             category="InoNodes",
             inputs=[
-                io.Combo.Input(
-                    "parent_folder",
-                    options=["input", "output", "temp"]
-                ),
-                io.String.Input(
-                    "folder",
-                ),
-                io.Int.Input(
-                    "load_cap",
-                    default=0,
-                    min=0,
-                    max=10000
-                ),
-                io.Int.Input(
-                    "skip_from_first",
-                    default=0,
-                    min=0,
-                    max=10000
-                ),
-                io.Boolean.Input("return_as_list", default=True, label_off="Batch", label_on="List"),
+                io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
+                io.String.Input("folder"),
+                io.Int.Input("load_cap", default=0, min=0, max=10000),
+                io.Int.Input("skip_from_first", default=0, min=0, max=10000),
             ],
             outputs=[
-                io.Image.Output(
-                    display_name="images",
-                    is_output_list=True,
-                    tooltip="List of loaded images",
-                ),
-                io.Int.Output(
-                    display_name="number of images",
-                )
+                io.Image.Output(display_name="images", is_output_list=True),
+                io.Int.Output(display_name="number of images"),
             ],
         )
 
     @classmethod
-    def execute(cls, parent_folder, folder, load_cap, skip_from_first, return_as_list):
-        from comfy_extras.nodes_dataset import load_and_process_images
+    def execute(cls, parent_folder, folder, load_cap, skip_from_first):
+        output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
+        return io.NodeOutput(output_images, len(output_images))
+
+
+class InoLoadImagesFromFolderBatch(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoLoadImagesFromFolderBatch",
+            display_name="Ino Load Images From Folder (Batch)",
+            category="InoNodes",
+            inputs=[
+                io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
+                io.String.Input("folder"),
+                io.Int.Input("load_cap", default=0, min=0, max=10000),
+                io.Int.Input("skip_from_first", default=0, min=0, max=10000),
+            ],
+            outputs=[
+                io.Image.Output(display_name="images"),
+                io.Int.Output(display_name="number of images"),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, parent_folder, folder, load_cap, skip_from_first):
         import torch
-
-        if parent_folder == "input":
-            sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
-        elif parent_folder == "output":
-            sub_input_dir = os.path.join(folder_paths.get_output_directory(), folder)
+        output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
+        if len(output_images) > 0:
+            batched = torch.cat(output_images, dim=0)
         else:
-            sub_input_dir = os.path.join(folder_paths.get_temp_directory(), folder)
-
-        valid_extensions = [".png", ".jpg", ".jpeg", ".webp"]
-        image_files = [
-            f
-            for f in os.listdir(sub_input_dir)
-            if any(f.lower().endswith(ext) for ext in valid_extensions)
-        ]
-
-        image_files = sorted(image_files)
-
-        skip_from_first = max(0, int(skip_from_first))
-        load_cap = max(0, int(load_cap))
-
-        if skip_from_first:
-            image_files = image_files[skip_from_first:]
-
-        if load_cap > 0:
-            image_files = image_files[:load_cap]
-
-        output_tensor = load_and_process_images(image_files, sub_input_dir)
-
-        if return_as_list:
-            return io.NodeOutput(output_tensor, len(output_tensor))
-        else:
-            batched = torch.cat(output_tensor, dim=0) if len(output_tensor) > 0 else torch.empty(0)
-            return io.NodeOutput(batched, len(output_tensor))
+            batched = torch.empty(0)
+        return io.NodeOutput(batched, len(output_images))
 
 class InoCropImageByBox(io.ComfyNode):
     @classmethod
@@ -517,7 +519,8 @@ LOCAL_NODE_CLASS = {
     "InoSaveImages": InoSaveImages,
     "InoImageResizeByLongerSideV1": InoImageResizeByLongerSideV1,
     "InoImageResizeByLongerSideAndCropV2": InoImageResizeByLongerSideAndCropV2,
-    "InoLoadImagesFromFolder": InoLoadImagesFromFolder,
+    "InoLoadImagesFromFolderList": InoLoadImagesFromFolderList,
+    "InoLoadImagesFromFolderBatch": InoLoadImagesFromFolderBatch,
     "InoOnImageListCompleted": InoOnImageListCompleted,
     "InoCropImageByBox": InoCropImageByBox,
     "InoImageToBase64": InoImageToBase64,
@@ -527,7 +530,8 @@ LOCAL_NODE_NAME = {
     "InoSaveImages": "Ino Save Images",
     "InoImageResizeByLongerSideV1": "Ino Image Resize By Longer Side V1",
     "InoImageResizeByLongerSideAndCropV2": "Ino Image Resize By Longer Side And Crop V2",
-    "InoLoadImagesFromFolder": "Ino Load Images From Folder",
+    "InoLoadImagesFromFolderList": "Ino Load Images From Folder (List)",
+    "InoLoadImagesFromFolderBatch": "Ino Load Images From Folder (Batch)",
     "InoOnImageListCompleted": "Ino On Image List Completed",
     "InoCropImageByBox": "Ino Crop Image By Box",
     "InoImageToBase64": "Ino Image To Base64",
