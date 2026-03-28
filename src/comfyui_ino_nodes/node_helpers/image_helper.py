@@ -282,13 +282,8 @@ class InoLoadImagesFromFolderBatch(io.ComfyNode):
 
     @classmethod
     def execute(cls, parent_folder, folder, load_cap, skip_from_first):
-        import torch
         output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
-        if len(output_images) > 0:
-            batched = torch.cat(output_images, dim=0)
-        else:
-            batched = torch.empty(0)
-        return io.NodeOutput(batched, len(output_images))
+        return io.NodeOutput(output_images, len(output_images))
 
 class InoCropImageByBox(io.ComfyNode):
     @classmethod
