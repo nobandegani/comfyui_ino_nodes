@@ -477,23 +477,25 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
                 io.Float.Input("megapixels", default=1.0, min=0.01, max=16.0, step=0.01),
                 io.Int.Input("resolution_steps", default=1, min=1, max=256),
                 io.Vae.Input("vae"),
-                io.Conditioning.Input("conditioning"),
+                io.Conditioning.Input("positive"),
+                io.Conditioning.Input("negative", optional=True),
             ],
             outputs=[
                 io.Boolean.Output(display_name="success"),
                 io.Image.Output(display_name="images", is_output_list=True),
                 io.Int.Output(display_name="number_of_images"),
                 io.Latent.Output(display_name="latents", is_output_list=True),
-                io.Conditioning.Output(display_name="conditioning"),
+                io.Conditioning.Output(display_name="positive"),
+                io.Conditioning.Output(display_name="negative"),
             ],
         )
 
     @classmethod
     def execute(cls, enabled, parent_folder, folder, load_cap, skip_from_first,
                 upscale_method, megapixels, resolution_steps,
-                vae, conditioning):
+                vae, positive, negative=None):
         if not enabled:
-            return io.NodeOutput(False, [], 0, [], conditioning)
+            return io.NodeOutput(False, [], 0, [], positive, negative)
 
         from comfy_extras.nodes_dataset import load_and_process_images
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
@@ -523,23 +525,26 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             image_files = image_files[:load_cap]
 
         if not image_files:
-            return io.NodeOutput(False, [], 0, [], conditioning)
+            return io.NodeOutput(False, [], 0, [], positive, negative)
 
         output_images = load_and_process_images(image_files, sub_input_dir)
         num_images = len(output_images)
 
         vae_encoder = VAEEncode()
         latents = []
-        cond = conditioning
+        pos_cond = positive
+        neg_cond = negative
 
         for img in output_images:
             single = img.unsqueeze(0)
             scaled = ImageScaleToTotalPixels.execute(single, upscale_method, megapixels, resolution_steps)[0]
             latent = vae_encoder.encode(vae, scaled)[0]
             latents.append(latent)
-            cond = ReferenceLatent.execute(cond, latent)[0]
+            pos_cond = ReferenceLatent.execute(pos_cond, latent)[0]
+            if neg_cond is not None:
+                neg_cond = ReferenceLatent.execute(neg_cond, latent)[0]
 
-        return io.NodeOutput(True, output_images, num_images, latents, cond)
+        return io.NodeOutput(True, output_images, num_images, latents, pos_cond, neg_cond)
 
 
 LOCAL_NODE_CLASS = {
