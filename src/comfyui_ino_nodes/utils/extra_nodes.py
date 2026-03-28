@@ -53,33 +53,6 @@ class InoAnyEqual(io.ComfyNode):
     def execute(cls, input, compare) -> io.NodeOutput:
         return io.NodeOutput(input == compare)
 
-class InoAnyBoolSwitch:
-    """
-        reverse boolean
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input_false": (any_type, {}),
-                "input_true": (any_type, {}),
-                "condition": ("BOOLEAN", {"default": True, "label_off": "False", "label_on": "True"}),
-            }
-        }
-
-    RETURN_TYPES = (any_type,)
-    RETURN_NAMES = ("output",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, input_false, input_true, condition):
-        if condition:
-            return (input_true,)
-        else:
-            return (input_false,)
 
 class InoDelayAsync:
     """
@@ -247,7 +220,6 @@ class InoSwitchOnInt(io.ComfyNode):
 LOCAL_NODE_CLASS = {
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
-    "InoAnyBoolSwitch": InoAnyBoolSwitch,
     "InoDelayAsync": InoDelayAsync,
 
     "InoPrintLog": InoPrintLog,
@@ -260,7 +232,6 @@ LOCAL_NODE_CLASS = {
 LOCAL_NODE_NAME = {
     "InoRelay": "Ino Relay",
     "InoAnyEqual": "Ino Any Equal",
-    "InoAnyBoolSwitch": "Ino Any Bool Switch",
     "InoDelayAsync": "Ino Delay Async",
 
     "InoPrintLog": "Ino Print Log",
