@@ -494,7 +494,8 @@ class InoImagesToReferenceLatent(io.ComfyNode):
         pos_cond = positive
         neg_cond = negative
 
-        for img in images:
+        for i in range(images.shape[0]):
+            img = images[i].unsqueeze(0)
             latent = vae_encoder.encode(vae, img)[0]
             latents.append(latent)
             pos_cond = ReferenceLatent.execute(pos_cond, latent).args[0]
