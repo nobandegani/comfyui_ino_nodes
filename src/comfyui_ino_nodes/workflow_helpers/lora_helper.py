@@ -140,7 +140,7 @@ class InoCalculateLoraConfig:
 
     def function(self, enabled, dataset_count, max_batch_size, target_epochs, max_lora_parts):
         if not enabled:
-            return 0, 0, 0, 0, 0
+            return (0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0, "", False, 0, 0.0, False, 0)
 
         batch_size = min(max_batch_size, max(1, dataset_count // 10))
         grad_accum = max(1, 12 // batch_size)

@@ -309,7 +309,7 @@ class InoHttpDownloadModel:
             need_download = not model_path.is_file()
             if not need_download:
                 ino_print_log("InoHttpDownloadModel", "model already downloaded", )
-                return (True, "model validated", model_type, model_path, rel_path,)
+                return (True, "model validated", model_type, str(model_path), str(rel_path),)
 
             model_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -324,10 +324,10 @@ class InoHttpDownloadModel:
                 connection=6
             )
             if ino_is_err(http_result):
-                return (False, "failed to download", model_type, model_path, rel_path,)
+                return (False, "failed to download", model_type, str(model_path), str(rel_path),)
 
             ino_print_log("InoHttpDownloadModel", "file downloaded successfully", )
-            return (http_result["success"], http_result["msg"], model_type, model_path, rel_path, )
+            return (http_result["success"], http_result["msg"], model_type, str(model_path), str(rel_path), )
         except Exception as e:
             ino_print_log("InoHttpDownloadModel", "", e)
             return (False, f"Error: {e}", "", "", "",)
@@ -380,7 +380,7 @@ class InoS3DownloadModel:
             need_download = not model_path.is_file()
             if not need_download:
                 ino_print_log("InoS3DownloadModel", "model already downloaded", )
-                return (True, "model validated", model_type, model_path, rel_path,)
+                return (True, "model validated", model_type, str(model_path), str(rel_path),)
 
             validate_s3_key = S3Helper.validate_s3_key(s3_key)
             if not validate_s3_key["success"]:
@@ -400,7 +400,7 @@ class InoS3DownloadModel:
             )
 
             ino_print_log("InoS3DownloadModel", "file downloaded successfully", )
-            return (s3_result["success"], s3_result["msg"], model_type, model_path, rel_path, )
+            return (s3_result["success"], s3_result["msg"], model_type, str(model_path), str(rel_path), )
         except Exception as e:
             ino_print_log("InoS3DownloadModel", "", e)
             return (False, f"Error: {e}", "", "", "",)
@@ -471,7 +471,7 @@ class InoHuggingFaceDownloadModel:
             args["local_dir"] = model_path
         except Exception as e:
             ino_print_log("InoHuggingFaceDownloadFile", "", e)
-            return (False, f"Error: {e}", "",)
+            return (False, f"Error: {e}", "", "", "")
 
         try:
             result = hf_hub_download(repo_id, filename, **args)
@@ -480,10 +480,10 @@ class InoHuggingFaceDownloadModel:
                 result = f"{model_path}/{Path(result).name}"
             rel_path = Path(result).relative_to(model_path_base)
             ino_print_log("InoHuggingFaceDownloadFile", "file downloaded successfully", )
-            return (True, "Successfull", model_type, result, rel_path)
+            return (True, "Successfull", model_type, str(result), str(rel_path))
         except Exception as e:
             ino_print_log("InoHuggingFaceDownloadFile", "", e)
-            return (False, f"Error: {e}", "", )
+            return (False, f"Error: {e}", "", "", "")
 
 class InoHuggingFaceDownloadRepo:
     @classmethod
@@ -544,16 +544,16 @@ class InoHuggingFaceDownloadRepo:
             args["local_dir"] = model_path
         except Exception as e:
             ino_print_log("InoHuggingFaceDownloadRepo", "", e)
-            return (False, f"Error: {e}", "",)
+            return (False, f"Error: {e}", "", "", "")
 
         try:
             result = snapshot_download(repo_id, **args)
             rel_path = Path(result).relative_to(model_path_base)
             ino_print_log("InoHuggingFaceDownloadRepo", "file downloaded successfully", )
-            return (True, "Successfull", model_type, result, rel_path)
+            return (True, "Successfull", model_type, str(result), str(rel_path))
         except Exception as e:
             ino_print_log("InoHuggingFaceDownloadRepo", "", e)
-            return (False, f"Error: {e}", "", )
+            return (False, f"Error: {e}", "", "", "")
 
 class InoCivitaiDownloadModel:
     @classmethod
@@ -621,10 +621,10 @@ class InoCivitaiDownloadModel:
             abs_path = download_model["local_file_path"]
             rel_path = Path(abs_path).relative_to(model_path_base)
 
-            return (True, download_model["msg"], model_type, abs_path, rel_path, )
+            return (True, download_model["msg"], model_type, str(abs_path), str(rel_path), )
         except Exception as e:
             ino_print_log("InoCivitaiDownloadFile", "", e)
-            return (False, e, "", "", "",)
+            return (False, str(e), "", "", "",)
 
 class InoHandleDownloadModel:
     @classmethod

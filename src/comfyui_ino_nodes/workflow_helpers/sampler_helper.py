@@ -356,12 +356,12 @@ class InoShowModelConfig:
     def function(self, enabled, config):
         if not enabled:
             ino_print_log("InoShowModelConfig", "not enabled")
-            return None
+            return ("", "", "", "", False, False, False, 0.0, False, "", "", "", False, 0, "", "", 0, 0, "", "", "")
 
         load_json = InoJsonHelper.string_to_dict(config)
         if not load_json["success"]:
             ino_print_log("InoShowModelConfig", "string_to_dict failed")
-            return None
+            return ("", "", "", "", False, False, False, 0.0, False, "", "", "", False, 0, "", "", 0, 0, "", "", "")
         model_cfg = load_json["data"]
 
         ino_print_log("InoShowModelConfig", "success")
@@ -438,7 +438,7 @@ class InoUpdateModelConfig:
     ):
         if not enabled:
             ino_print_log("InoUpdateModelConfig", "not enabled")
-            return None
+            return ("", "")
 
         load_json = InoJsonHelper.string_to_dict(config)
         if not load_json["success"]:
@@ -482,7 +482,7 @@ class InoUpdateModelConfig:
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
             ino_print_log("InoUpdateModelConfig", "dict_to_string failed")
-            return (-1, "", "",)
+            return (config, "")
 
         ino_print_log("InoUpdateModelConfig", "success")
         return (config, model_cfg_str["data"], )
@@ -537,11 +537,11 @@ class InoShowLoraConfig:
     def function(self, enabled, config):
         if not enabled:
             ino_print_log("InoShowLoraConfig", "not enabled")
-            return None
+            return ("", "", "", "", "", "", "", 0.0, 0.0, "", "")
         load_json = InoJsonHelper.string_to_dict(config)
         if not load_json["success"]:
             ino_print_log("InoShowLoraConfig", "string_to_dict failed")
-            return None
+            return ("", "", "", "", "", "", "", 0.0, 0.0, "", "")
         model_cfg = load_json["data"]
 
         ino_print_log("InoShowLoraConfig", "success")
@@ -551,7 +551,7 @@ class InoShowLoraConfig:
             model_cfg["type"],
             model_cfg["trigger_word"],
             model_cfg["trigger_words"],
-            model_cfg["file"],
+            str(model_cfg["file"]),
             model_cfg["weight_type"],
             model_cfg["strength_model"],
             model_cfg["strength_clip"],
@@ -772,7 +772,7 @@ class InoGetSamplerConfig:
         ):
         if not enabled:
             ino_print_log("InoGetSamplerConfig", "not enabled")
-            return (None, None, None, None, None, None,)
+            return (None, None, None, "", "")
 
         update_config = InoUpdateModelConfig()
         updated_config = update_config.function(
@@ -789,7 +789,7 @@ class InoGetSamplerConfig:
         load_json = InoJsonHelper.string_to_dict(updated_config[1])
         if not load_json["success"]:
             ino_print_log("InoGetSamplerConfig", "string_to_dict failed")
-            return (None, None, None, None, None, None,)
+            return (None, None, None, "", "")
 
         model_cfg = load_json["data"]
 
@@ -828,7 +828,7 @@ class InoGetSamplerConfig:
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
             ino_print_log("InoGetSamplerConfig", "dict_to_string failed")
-            return (-1, "", "",)
+            return (None, None, None, config, "")
 
         ino_print_log("InoGetSamplerConfig", "success")
         return (get_guider[0], get_sampler[0], get_sigmas[0], config, model_cfg_str["data"], )
@@ -902,7 +902,7 @@ class InoGetConditioning:
         load_json = InoJsonHelper.string_to_dict(updated_config[1])
         if not load_json["success"]:
             ino_print_log("InoGetConditioning", "string_to_dict failed")
-            return (None, None, None, None, None, None,)
+            return (None, None, "", "")
 
         model_cfg = load_json["data"]
 
@@ -952,7 +952,7 @@ class InoGetConditioning:
         model_cfg_str = InoJsonHelper.dict_to_string(model_cfg)
         if not model_cfg_str["success"]:
             ino_print_log("InoGetConditioning", "dict_to_string failed")
-            return (-1, "", "",)
+            return (None, None, config, "")
 
         ino_print_log("InoGetConditioning", "success")
         return (positive_condition[0], negative_condition[0], config, model_cfg_str["data"], )
