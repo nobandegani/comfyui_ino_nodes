@@ -25,12 +25,14 @@ class InoLoadMultipleLora:
             inputs["optional"][f"lora_{i}_strength_clip"] = ("FLOAT", {"default": 1.0, "min": -100.0, "max": 100.0, "step": 0.01})
         return inputs
 
-    RETURN_TYPES = ("MODEL", "CLIP")
-    RETURN_NAMES = ("model", "clip")
+    RETURN_TYPES = ("MODEL", "CLIP", "STRING", "INT")
+    RETURN_NAMES = ("model", "clip", "lora_names", "total_loaded")
+    OUTPUT_IS_LIST = (False, False, True, False)
     FUNCTION = "load_loras"
     CATEGORY = "InoNodes"
 
     def load_loras(self, model, clip, **kwargs):
+        loaded_names = []
         for i in range(5):
             enable = kwargs.get(f"lora_{i}_enable", False)
             if not enable:
@@ -56,8 +58,9 @@ class InoLoadMultipleLora:
                 self.loaded_loras[i] = (lora_path, lora)
 
             model, clip = comfy.sd.load_lora_for_models(model, clip, lora, strength_model, strength_clip)
+            loaded_names.append(lora_name)
 
-        return (model, clip)
+        return (model, clip, loaded_names, len(loaded_names))
 
 
 class InoCalculateLoraConfig:
