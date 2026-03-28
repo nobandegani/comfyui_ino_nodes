@@ -460,31 +460,21 @@ class InoImageToBase64:
             return (False, str(e))
 
 
-class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
+class InoImagesToReferenceLatent(io.ComfyNode):
     @classmethod
     def define_schema(cls):
         return io.Schema(
-            node_id="InoImagesFromFolderToReferenceLatent",
-            display_name="Ino Images From Folder To Reference Latent",
+            node_id="InoImagesToReferenceLatent",
+            display_name="Ino Images To Reference Latent",
             category="InoNodes",
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
-                io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
-                io.String.Input("folder"),
-                io.Int.Input("load_cap", default=0, min=0, max=10000),
-                io.Int.Input("skip_from_first", default=0, min=0, max=10000),
-                io.Combo.Input("upscale_method", options=["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]),
-                io.Float.Input("megapixels", default=1.0, min=0.01, max=16.0, step=0.01),
-                io.Int.Input("resolution_steps", default=1, min=1, max=256),
+                io.Image.Input("images"),
                 io.Vae.Input("vae"),
                 io.Conditioning.Input("positive"),
                 io.Conditioning.Input("negative", optional=True),
             ],
             outputs=[
-                io.Boolean.Output(display_name="success"),
-                io.Image.Output(display_name="raw_images", is_output_list=True),
-                io.Image.Output(display_name="scaled_images", is_output_list=True),
-                io.Int.Output(display_name="number_of_images"),
                 io.Latent.Output(display_name="latents", is_output_list=True),
                 io.Conditioning.Output(display_name="positive"),
                 io.Conditioning.Output(display_name="negative"),
@@ -492,62 +482,26 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, enabled, parent_folder, folder, load_cap, skip_from_first,
-                upscale_method, megapixels, resolution_steps,
-                vae, positive, negative=None):
+    def execute(cls, enabled, images, vae, positive, negative=None):
         if not enabled:
-            return io.NodeOutput(False, [], [], 0, [], positive, negative)
+            return io.NodeOutput([], positive, negative)
 
-        from comfy_extras.nodes_dataset import load_and_process_images
-        from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
         from comfy_extras.nodes_edit_model import ReferenceLatent
         from nodes import VAEEncode
 
-        if parent_folder == "input":
-            sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
-        elif parent_folder == "output":
-            sub_input_dir = os.path.join(folder_paths.get_output_directory(), folder)
-        else:
-            sub_input_dir = os.path.join(folder_paths.get_temp_directory(), folder)
-
-        valid_extensions = [".png", ".jpg", ".jpeg", ".webp"]
-        image_files = [
-            f for f in os.listdir(sub_input_dir)
-            if any(f.lower().endswith(ext) for ext in valid_extensions)
-        ]
-        image_files = sorted(image_files)
-
-        skip_from_first = max(0, int(skip_from_first))
-        load_cap = max(0, int(load_cap))
-
-        if skip_from_first:
-            image_files = image_files[skip_from_first:]
-        if load_cap > 0:
-            image_files = image_files[:load_cap]
-
-        if not image_files:
-            return io.NodeOutput(False, [], [], 0, [], positive, negative)
-
-        output_images = load_and_process_images(image_files, sub_input_dir)
-        num_images = len(output_images)
-
         vae_encoder = VAEEncode()
-        scaled_images = []
         latents = []
         pos_cond = positive
         neg_cond = negative
 
-        for img in output_images:
-            scale_result = ImageScaleToTotalPixels.execute(img, upscale_method, megapixels, resolution_steps)
-            scaled = scale_result.args[0]
-            scaled_images.append(scaled)
-            latent = vae_encoder.encode(vae, scaled)[0]
+        for img in images:
+            latent = vae_encoder.encode(vae, img)[0]
             latents.append(latent)
             pos_cond = ReferenceLatent.execute(pos_cond, latent).args[0]
             if neg_cond is not None:
                 neg_cond = ReferenceLatent.execute(neg_cond, latent).args[0]
 
-        return io.NodeOutput(True, output_images, scaled_images, num_images, latents, pos_cond, neg_cond)
+        return io.NodeOutput(latents, pos_cond, neg_cond)
 
 
 LOCAL_NODE_CLASS = {
@@ -558,7 +512,7 @@ LOCAL_NODE_CLASS = {
     "InoOnImageListCompleted": InoOnImageListCompleted,
     "InoCropImageByBox": InoCropImageByBox,
     "InoImageToBase64": InoImageToBase64,
-    "InoImagesFromFolderToReferenceLatent": InoImagesFromFolderToReferenceLatent,
+    "InoImagesToReferenceLatent": InoImagesToReferenceLatent,
 }
 LOCAL_NODE_NAME = {
     "InoSaveImages": "Ino Save Images",
@@ -568,5 +522,5 @@ LOCAL_NODE_NAME = {
     "InoOnImageListCompleted": "Ino On Image List Completed",
     "InoCropImageByBox": "Ino Crop Image By Box",
     "InoImageToBase64": "Ino Image To Base64",
-    "InoImagesFromFolderToReferenceLatent": "Ino Images From Folder To Reference Latent",
+    "InoImagesToReferenceLatent": "Ino Images To Reference Latent",
 }
