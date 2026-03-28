@@ -3,7 +3,7 @@ import asyncio
 
 from botocore.config import Config
 
-from inopyutils import InoS3Helper, InoHttpHelper, InoFileHelper, ino_err, ino_ok, ino_is_err
+from inopyutils import InoS3Helper, ino_err, ino_ok, ino_is_err
 
 class FileSyncer:
     def __init__(self):
