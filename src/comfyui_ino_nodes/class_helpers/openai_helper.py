@@ -32,14 +32,14 @@ class InoOpenaiResponses:
         }
 
     CATEGORY = "InoOpenaiHelper"
-    RETURN_TYPES = ("BOOLEAN", "INT", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING",)
     RETURN_NAMES = ("success", "id", "status", "error", "output_text", "output",)
     FUNCTION = "function"
 
     async def function(self, enabled, seed, response_type, text, image_url, openai_api_key="", timeout=300, max_retries=3, model="gpt-5"):
         if not enabled:
             ino_print_log("InoOpenaiResponses","Node is disabled")
-            return (False, -1, "not enabled", "", "", "")
+            return (False, "", "not enabled", "", "", "")
 
         try:
             api_key = openai_api_key if openai_api_key else os.getenv('OPENAI_TOKEN', '')
@@ -88,7 +88,7 @@ class InoOpenaiResponses:
             return (True, response.id, response.status, error_message, response_text, response_output, )
         except Exception as e:
             ino_print_log("InoOpenaiResponses","",e)
-            return (False, -1, "Openai response failed", str(e), "", "", )
+            return (False, "", "Openai response failed", str(e), "", "", )
 
 
 class InoOpenaiChatCompletions:

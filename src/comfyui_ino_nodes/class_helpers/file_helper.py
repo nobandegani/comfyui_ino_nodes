@@ -44,7 +44,7 @@ class InoIncrementBatchName:
 
     async def function(self, enabled, seed, name, dummy_string):
         if not enabled:
-            return "Disabled", "Node is disabled", ""
+            return ("",)
 
         return InoFileHelper.increment_batch_name(name= name)
 
@@ -95,7 +95,7 @@ class InoZip:
 
     async def function(self, enabled, seed, to_zip, path_to_save, zip_file_name, dummy_string):
         if not enabled:
-            return "Disabled", "Node is disabled", ""
+            return (False, "Node is disabled", "")
 
         res = await InoFileHelper.zip(
             to_zip=to_zip,
@@ -148,7 +148,7 @@ class InoUnzip:
 
     async def function(self, enabled, seed, zip_path, output_path, dummy_string):
         if not enabled:
-            return "Disabled", "Node is disabled", ""
+            return (False, "Node is disabled", "")
 
         res = await InoFileHelper.unzip(
             zip_path=zip_path,
@@ -195,7 +195,7 @@ class InoRemoveFile:
 
     async def function(self, enabled, seed, file_path, dummy_string):
         if not enabled:
-            return "Disabled", "Node is disabled", ""
+            return (False, "Node is disabled", "")
 
         res = await InoFileHelper.remove_file(
             file_path=file_path
@@ -241,7 +241,7 @@ class InoRemoveFolder:
 
     async def function(self, enabled, seed, folder_path, dummy_string):
         if not enabled:
-            return "Disabled", "Node is disabled", ""
+            return (False, "Node is disabled", "")
 
         res = await InoFileHelper.remove_folder(
             folder_path=Path(folder_path)
@@ -277,7 +277,7 @@ class InoCopyFiles:
 
     async def function(self, enabled, from_path, to_path, iterate_subfolders, rename_files, prefix_name):
         if not enabled:
-            return ("Disabled", "Node is disabled", "", )
+            return (False, "Node is disabled", "")
 
         res = await InoFileHelper.copy_files(
             to_path=Path(to_path),
@@ -351,7 +351,7 @@ class InoValidateMediaFiles:
 
     async def function(self, enabled, input_path, include_images, include_videos):
         if not enabled:
-            return (False, "Node is disabled", "", "", "", "", "", "",)
+            return (False, "Node is disabled", "", "", "", "", "", "", "")
 
         res = await InoFileHelper.validate_files(
             input_path=Path(input_path),
@@ -389,7 +389,7 @@ class InoRemoveDuplicateFiles:
 
     async def function(self, enabled, folder_path, recursive, chunk_size):
         if not enabled:
-            return (False, "Node is disabled", "")
+            return (False, "Node is disabled", "", 0)
 
         res = await InoFileHelper.remove_duplicate_files(
             input_path=Path(folder_path),

@@ -34,21 +34,21 @@ class InoJsonSetField:
             json_object = InoJsonHelper.string_to_dict(base_json)
             if not json_object["success"]:
                 ino_print_log("InoJsonSetField", json_object["msg"])
-                return (False, json_object["msg"], "", )
+                return (False, json_object["msg"], "", "")
             json_object = json_object["data"]
 
             json_object[field_name] = field_value
             json_string = InoJsonHelper.dict_to_string(json_object)
             if not json_string["success"]:
                 ino_print_log("InoJsonSetField", json_string["msg"])
-                return (False, json_string["msg"], "", )
+                return (False, json_string["msg"], "", "")
 
             base_json = json_string["data"]
             ino_print_log("InoJsonSetField", "Success")
             return (True, "Success", base_json, json_object)
         except Exception as e:
             ino_print_log("InoJsonSetField", "",str(e))
-            return (False, f"failed: {e}", "",)
+            return (False, f"failed: {e}", "", "")
 
 class InoJsonGetField:
     """
@@ -125,7 +125,7 @@ class InoSaveJson:
                 return (False, save_json["msg"], "")
 
             ino_print_log("InoSaveJson", "Success")
-            return (True, save_json["msg"], save_path)
+            return (True, save_json["msg"], str(save_path))
         except Exception as e:
             ino_print_log("InoSaveJson", "",str(e))
             return (False, f"failed: {e}", "",)

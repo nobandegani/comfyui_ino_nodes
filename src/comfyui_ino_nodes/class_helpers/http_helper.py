@@ -61,11 +61,11 @@ class InoHttpCall:
             elif request_type == "post":
                 resp = await http_client.post(url=url, headers=headers, json=json_payload, allow_redirects=allow_redirects)
             elif request_type == "put":
-                resp = await http_client.put(url, json=json_payload, allow_redirects=allow_redirects)
+                resp = await http_client.put(url, headers=headers, json=json_payload, allow_redirects=allow_redirects)
             elif request_type == "delete":
-                resp = await http_client.delete(url, allow_redirects=allow_redirects)
+                resp = await http_client.delete(url, headers=headers, allow_redirects=allow_redirects)
             elif request_type == "patch":
-                resp = await http_client.patch(url, json=json_payload, allow_redirects=allow_redirects)
+                resp = await http_client.patch(url, headers=headers, json=json_payload, allow_redirects=allow_redirects)
             else:
                 await http_client.close()
                 ino_print_log("InoHttpCall", "Invalid request type", request_type)
