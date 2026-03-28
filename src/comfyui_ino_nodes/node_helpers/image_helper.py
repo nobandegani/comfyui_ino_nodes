@@ -235,7 +235,8 @@ class InoLoadImagesFromFolder(io.ComfyNode):
                     default=0,
                     min=0,
                     max=10000
-                )
+                ),
+                io.Boolean.Input("return_as_list", default=True, label_off="Batch", label_on="List"),
             ],
             outputs=[
                 io.Image.Output(
@@ -250,8 +251,10 @@ class InoLoadImagesFromFolder(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, parent_folder, folder, load_cap, skip_from_first):
+    def execute(cls, parent_folder, folder, load_cap, skip_from_first, return_as_list):
         from comfy_extras.nodes_dataset import load_and_process_images
+        import torch
+
         if parent_folder == "input":
             sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
         elif parent_folder == "output":
@@ -278,7 +281,12 @@ class InoLoadImagesFromFolder(io.ComfyNode):
             image_files = image_files[:load_cap]
 
         output_tensor = load_and_process_images(image_files, sub_input_dir)
-        return io.NodeOutput(output_tensor, len(output_tensor))
+
+        if return_as_list:
+            return io.NodeOutput(output_tensor, len(output_tensor))
+        else:
+            batched = torch.cat(output_tensor, dim=0) if len(output_tensor) > 0 else torch.empty(0)
+            return io.NodeOutput(batched, len(output_tensor))
 
 class InoCropImageByBox(io.ComfyNode):
     @classmethod
