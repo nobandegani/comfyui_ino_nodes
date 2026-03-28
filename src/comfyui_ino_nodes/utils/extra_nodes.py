@@ -3,7 +3,7 @@ import asyncio
 from comfy_api.latest import ComfyExtension, io
 from comfy_api.latest import _io
 
-from ..node_helper import any_type, ino_print_log
+from ..node_helper import ino_print_log
 
 #todo add show any
 
@@ -80,34 +80,32 @@ class InoDelayAsync(io.ComfyNode):
         await asyncio.sleep(delay)
         return io.NodeOutput(relay)
 
-class InoPrintLog:
     """
-        reverse boolean
-    """
+class InoPrintLog(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        template = io.MatchType.Template("relay")
+        return io.Schema(
+            node_id="InoPrintLog",
+            display_name="Ino Print Log",
+            category="InoNodes",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.MatchType.Input("relay", template=template),
+                io.String.Input("log_message", default="Log message", multiline=True),
+            ],
+            outputs=[
+                io.MatchType.Output(template=template, display_name="output"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "relay": (any_type, {}),
-                "log_message": ("STRING", {"default": "Log message", "multiline": True}),
-            }
-        }
-
-    RETURN_TYPES = (any_type,)
-    RETURN_NAMES = ("output",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    async def function(self, enabled, relay, log_message):
+    def execute(cls, enabled, relay, log_message) -> io.NodeOutput:
         if not enabled:
-            return (relay,)
+            return io.NodeOutput(relay)
 
         ino_print_log("", log_message)
-        return (relay,)
+        return io.NodeOutput(relay)
 
 from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
 
