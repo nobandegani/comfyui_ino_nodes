@@ -32,29 +32,26 @@ class InoRelay(io.ComfyNode):
             return io.NodeOutput(execute, relay)
         return io.NodeOutput(execute, None)
 
-class InoAnyEqual:
-    """
-        reverse boolean
-    """
+class InoAnyEqual(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        template = io.MatchType.Template("compare")
+        return io.Schema(
+            node_id="InoAnyEqual",
+            display_name="Ino Any Equal",
+            category="InoNodes",
+            inputs=[
+                io.MatchType.Input("input", template=template),
+                io.MatchType.Input("compare", template=template),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="equal"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input": (any_type, {}),
-                "compare": (any_type, {}),
-            }
-        }
-
-    RETURN_TYPES = ("BOOLEAN",)
-    RETURN_NAMES = ("equal",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, input, compare):
-        return (input == compare,)
+    def execute(cls, input, compare) -> io.NodeOutput:
+        return io.NodeOutput(input == compare)
 
 class InoAnyBoolSwitch:
     """
