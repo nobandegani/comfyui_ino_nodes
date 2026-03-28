@@ -80,7 +80,6 @@ class InoDelayAsync(io.ComfyNode):
         await asyncio.sleep(delay)
         return io.NodeOutput(relay)
 
-    """
 class InoPrintLog(io.ComfyNode):
     @classmethod
     def define_schema(cls):
