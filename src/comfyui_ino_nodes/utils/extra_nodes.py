@@ -54,34 +54,31 @@ class InoAnyEqual(io.ComfyNode):
         return io.NodeOutput(input == compare)
 
 
-class InoDelayAsync:
-    """
-        reverse boolean
-    """
+class InoDelayAsync(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        template = io.MatchType.Template("relay")
+        return io.Schema(
+            node_id="InoDelayAsync",
+            display_name="Ino Delay Async",
+            category="InoNodes",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.MatchType.Input("relay", template=template),
+                io.Float.Input("delay", default=0.0, min=0.0, max=10000.0, step=0.1),
+            ],
+            outputs=[
+                io.MatchType.Output(template=template, display_name="output"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "relay": (any_type, {}),
-                "delay": ("FLOAT", {"default": 0.0, "min": 0.0, "max": 10000.0, "step": 0.1,}),
-            }
-        }
-
-    RETURN_TYPES = (any_type,)
-    RETURN_NAMES = ("output",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    async def function(self, enabled, relay, delay):
+    async def execute(cls, enabled, relay, delay) -> io.NodeOutput:
         if not enabled:
-            return (relay,)
+            return io.NodeOutput(relay)
 
         await asyncio.sleep(delay)
-        return (relay,)
+        return io.NodeOutput(relay)
 
 class InoPrintLog:
     """
