@@ -129,7 +129,7 @@ class FileSyncer:
             syncfolder_res = await self.s3_client.sync_folder(
                 s3_key=folder,
                 local_folder_path=local_folder_path,
-                concc=10
+                concurrency=10
             )
             if ino_is_err(syncfolder_res):
                 print(f"Syncing folder failed for {folder}: {syncfolder_res['msg']}")
