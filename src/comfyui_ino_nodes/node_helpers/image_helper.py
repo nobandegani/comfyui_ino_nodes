@@ -236,12 +236,12 @@ def _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first):
     return load_and_process_images(image_files, sub_input_dir)
 
 
-class InoLoadImagesFromFolderList(io.ComfyNode):
+class InoLoadImagesFromFolder(io.ComfyNode):
     @classmethod
     def define_schema(cls):
         return io.Schema(
-            node_id="InoLoadImagesFromFolderList",
-            display_name="Ino Load Images From Folder (List)",
+            node_id="InoLoadImagesFromFolder",
+            display_name="Ino Load Images From Folder",
             category="InoNodes",
             inputs=[
                 io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
@@ -260,35 +260,6 @@ class InoLoadImagesFromFolderList(io.ComfyNode):
         output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
         return io.NodeOutput(output_images, len(output_images))
 
-
-class InoLoadImagesFromFolderBatch(io.ComfyNode):
-    @classmethod
-    def define_schema(cls):
-        return io.Schema(
-            node_id="InoLoadImagesFromFolderBatch",
-            display_name="Ino Load Images From Folder (Batch)",
-            category="InoNodes",
-            inputs=[
-                io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
-                io.String.Input("folder"),
-                io.Int.Input("load_cap", default=0, min=0, max=10000),
-                io.Int.Input("skip_from_first", default=0, min=0, max=10000),
-                io.Boolean.Input("padding", default=False, label_off="Resize", label_on="Pad"),
-            ],
-            outputs=[
-                io.Image.Output(display_name="images"),
-                io.Int.Output(display_name="number of images"),
-            ],
-        )
-
-    @classmethod
-    def execute(cls, parent_folder, folder, load_cap, skip_from_first, padding):
-        output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
-        if len(output_images) == 0:
-            import torch
-            return io.NodeOutput(torch.empty(0), 0)
-        batched = _batch_images(output_images, padding)
-        return io.NodeOutput(batched, len(output_images))
 
 
 def _batch_images(images, padding):
@@ -580,8 +551,7 @@ LOCAL_NODE_CLASS = {
     "InoSaveImages": InoSaveImages,
     "InoImageResizeByLongerSideV1": InoImageResizeByLongerSideV1,
     "InoImageResizeByLongerSideAndCropV2": InoImageResizeByLongerSideAndCropV2,
-    "InoLoadImagesFromFolderList": InoLoadImagesFromFolderList,
-    "InoLoadImagesFromFolderBatch": InoLoadImagesFromFolderBatch,
+    "InoLoadImagesFromFolder": InoLoadImagesFromFolder,
     "InoOnImageListCompleted": InoOnImageListCompleted,
     "InoCropImageByBox": InoCropImageByBox,
     "InoImageToBase64": InoImageToBase64,
@@ -592,8 +562,7 @@ LOCAL_NODE_NAME = {
     "InoSaveImages": "Ino Save Images",
     "InoImageResizeByLongerSideV1": "Ino Image Resize By Longer Side V1",
     "InoImageResizeByLongerSideAndCropV2": "Ino Image Resize By Longer Side And Crop V2",
-    "InoLoadImagesFromFolderList": "Ino Load Images From Folder (List)",
-    "InoLoadImagesFromFolderBatch": "Ino Load Images From Folder (Batch)",
+    "InoLoadImagesFromFolder": "Ino Load Images From Folder",
     "InoOnImageListCompleted": "Ino On Image List Completed",
     "InoCropImageByBox": "Ino Crop Image By Box",
     "InoImageToBase64": "Ino Image To Base64",
