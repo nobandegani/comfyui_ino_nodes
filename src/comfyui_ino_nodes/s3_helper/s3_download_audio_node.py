@@ -1,15 +1,8 @@
-import os
-import torch
-import numpy as np
-from PIL import Image, ImageOps, ImageSequence
-
 from pathlib import Path
-from datetime import datetime
 
 from inopyutils import ino_is_err, InoUtilHelper
 
 import folder_paths
-import node_helpers
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 
@@ -60,10 +53,10 @@ class InoS3DownloadAudio:
 
         from comfy_extras.nodes_audio import LoadAudio
 
-        audio_loader = LoadAudio()
-        load_audio = audio_loader.load(audio=downloaded["local_file"])
+        annotated_name = f"{file_name}[temp]"
+        load_audio = LoadAudio.execute(audio=annotated_name)
 
         if load_audio[0]:
             return (True, "Success", str(downloaded), load_audio[0],)
 
-        return (False, "failed to load the audio", str(downloaded), load_audio[0],)
+        return (False, "failed to load the audio", str(downloaded), None,)
