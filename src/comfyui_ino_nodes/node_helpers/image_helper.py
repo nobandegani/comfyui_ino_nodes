@@ -468,6 +468,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             display_name="Ino Images From Folder To Reference Latent",
             category="InoNodes",
             inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
                 io.String.Input("folder"),
                 io.Int.Input("load_cap", default=0, min=0, max=10000),
@@ -488,9 +489,12 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, parent_folder, folder, load_cap, skip_from_first,
+    def execute(cls, enabled, parent_folder, folder, load_cap, skip_from_first,
                 upscale_method, megapixels, resolution_steps,
                 vae, conditioning):
+        if not enabled:
+            return io.NodeOutput(False, [], 0, [], conditioning)
+
         from comfy_extras.nodes_dataset import load_and_process_images
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
         from comfy_extras.nodes_edit_model import ReferenceLatent
