@@ -273,6 +273,7 @@ class InoLoadImagesFromFolderBatch(io.ComfyNode):
                 io.String.Input("folder"),
                 io.Int.Input("load_cap", default=0, min=0, max=10000),
                 io.Int.Input("skip_from_first", default=0, min=0, max=10000),
+                io.Boolean.Input("padding", default=False, label_off="Resize", label_on="Pad"),
             ],
             outputs=[
                 io.Image.Output(display_name="images"),
@@ -281,9 +282,43 @@ class InoLoadImagesFromFolderBatch(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, parent_folder, folder, load_cap, skip_from_first):
+    def execute(cls, parent_folder, folder, load_cap, skip_from_first, padding):
+        import torch
+        from collections import Counter
+        from comfy.utils import common_upscale
+
         output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
-        return io.NodeOutput(output_images, len(output_images))
+        if len(output_images) == 0:
+            return io.NodeOutput(torch.empty(0), 0)
+
+        processed = []
+        if padding:
+            max_h = max(img.shape[1] for img in output_images)
+            max_w = max(img.shape[2] for img in output_images)
+            for img in output_images:
+                # img shape: [1, H, W, C]
+                h, w = img.shape[1], img.shape[2]
+                if h != max_h or w != max_w:
+                    padded = torch.zeros(1, max_h, max_w, img.shape[3])
+                    y_offset = (max_h - h) // 2
+                    x_offset = (max_w - w) // 2
+                    padded[:, y_offset:y_offset + h, x_offset:x_offset + w, :] = img
+                    processed.append(padded)
+                else:
+                    processed.append(img)
+        else:
+            sizes = Counter((img.shape[1], img.shape[2]) for img in output_images)
+            target_h, target_w = sizes.most_common(1)[0][0]
+            for img in output_images:
+                if img.shape[1] != target_h or img.shape[2] != target_w:
+                    # [B,H,W,C] -> [B,C,H,W] for common_upscale
+                    img = img.movedim(-1, 1)
+                    img = common_upscale(img, target_w, target_h, "lanczos", "center")
+                    img = img.movedim(1, -1)
+                processed.append(img)
+
+        batched = torch.cat(processed, dim=0)
+        return io.NodeOutput(batched, len(output_images))
 
 class InoCropImageByBox(io.ComfyNode):
     @classmethod
