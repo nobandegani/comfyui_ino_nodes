@@ -26,20 +26,20 @@ class InoS3SyncFolder:
         }
 
     CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "INT", "INT", "INT", "INT",)
-    RETURN_NAMES = ("success", "msg", "result", "downloaded", "uploaded", "skipped_unchanged", "failed",)
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "INT", "INT", "INT", "INT",)
+    RETURN_NAMES = ("success", "msg", "result", "rel_path", "abs_path", "downloaded", "uploaded", "skipped_unchanged", "failed",)
     FUNCTION = "function"
 
     async def function(self, execute, enabled, s3_key, parent_folder, local_path, sync_local, s3_config, concurrency):
         if not enabled:
-            return (False, "not enabled", "", 0, 0, 0, 0,)
+            return (False, "not enabled", "", "", "", 0, 0, 0, 0,)
 
         if not execute:
-            return (False, "execute empty", "", 0, 0, 0, 0,)
+            return (False, "execute empty", "", "", "", 0, 0, 0, 0,)
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, validate_s3_key["msg"], "", 0, 0, 0, 0,)
+            return (False, validate_s3_key["msg"], "", "", "", 0, 0, 0, 0,)
 
         if parent_folder == "input":
             parent_path = folder_paths.get_input_directory()
@@ -56,7 +56,7 @@ class InoS3SyncFolder:
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (False, s3_instance["msg"], "", 0, 0, 0, 0,)
+            return (False, s3_instance["msg"], "", "", "", 0, 0, 0, 0,)
         s3_instance = s3_instance["instance"]
 
         s3_result = await s3_instance.sync_folder(
@@ -70,6 +70,8 @@ class InoS3SyncFolder:
             s3_result["success"],
             s3_result["msg"],
             str(s3_result),
+            local_path,
+            abs_path,
             s3_result.get("downloaded", 0),
             s3_result.get("uploaded", 0),
             s3_result.get("skipped_unchanged", 0),
