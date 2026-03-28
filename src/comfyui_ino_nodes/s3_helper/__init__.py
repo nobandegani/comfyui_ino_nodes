@@ -10,6 +10,8 @@ from .s3_get_download_url import InoS3GetDownloadURL
 from .s3_download_audio_node import InoS3DownloadAudio
 from .s3_upload_audio_node import InoS3UploadAudio
 from .s3_upload_video_node import InoS3UploadVideo
+from .s3_verify_file_node import InoS3VerifyFile
+from .s3_sync_folder_node import InoS3SyncFolder
 
 LOCAL_NODE_CLASS = {
     "InoS3Config": InoS3Config,
@@ -24,6 +26,8 @@ LOCAL_NODE_CLASS = {
     "InoS3DownloadAudio": InoS3DownloadAudio,
     "InoS3UploadAudio": InoS3UploadAudio,
     "InoS3UploadVideo": InoS3UploadVideo,
+    "InoS3VerifyFile": InoS3VerifyFile,
+    "InoS3SyncFolder": InoS3SyncFolder,
 }
 LOCAL_NODE_NAME = {
     "InoS3Config": "Ino S3 Config",
@@ -38,4 +42,6 @@ LOCAL_NODE_NAME = {
     "InoS3DownloadAudio": "Ino S3 Download Audio",
     "InoS3UploadAudio": "Ino S3 Upload Audio",
     "InoS3UploadVideo": "Ino S3 Upload Video",
+    "InoS3VerifyFile": "Ino S3 Verify File",
+    "InoS3SyncFolder": "Ino S3 Sync Folder",
 }
