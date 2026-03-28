@@ -4,8 +4,8 @@ description = "A comprehensive collection of custom nodes for ComfyUI that provi
 version = "1.3.2"
 license = { file = "LICENSE" }
 readme = "README.md"
-requires-python = ">=3.8"
-dependencies = ["inocloudreve", "inopyutils", "numpy", "Pillow", "torch"]
+requires-python = ">=3.10"
+dependencies = ["inocloudreve", "inopyutils", "numpy", "Pillow", "torch", "openai", "aiohttp", "huggingface_hub", "hf_xet"]
 keywords = ["comfyui", "custom-nodes", "s3", "cloudreve", "lora", "file-handling", "utilities"]
 classifiers = [
     "Development Status :: 4 - Beta",
