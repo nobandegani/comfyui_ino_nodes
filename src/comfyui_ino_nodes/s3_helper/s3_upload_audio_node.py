@@ -103,4 +103,4 @@ class InoS3UploadAudio:
 
         #os.remove(full_path)
 
-        return (audio, True, "Success", s3_result, file, s3_full_key, )
+        return (audio, True, "Success", str(s3_result), file, s3_full_key, )

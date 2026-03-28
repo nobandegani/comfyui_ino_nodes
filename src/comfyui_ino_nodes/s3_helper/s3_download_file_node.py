@@ -58,4 +58,4 @@ class InoS3DownloadFile:
             s3_key=s3_key,
             local_file_path=abs_path
         )
-        return (s3_result["success"], s3_result["msg"], s3_result, save_path, abs_path, )
+        return (s3_result["success"], s3_result["msg"], str(s3_result), str(save_path), abs_path, )

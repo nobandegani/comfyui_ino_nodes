@@ -74,4 +74,4 @@ class InoS3UploadFolder:
         if s3_result["success"] and delete_local:
             shutil.rmtree(local_upload_path)
 
-        return (s3_result["success"], s3_result["msg"], s3_result, s3_result["total_files"], s3_result["uploaded_successfully"], s3_result["failed_uploads"], s3_result["errors"], )
+        return (s3_result["success"], s3_result["msg"], str(s3_result), s3_result["total_files"], s3_result["uploaded_successfully"], s3_result["failed_uploads"], str(s3_result["errors"]), )

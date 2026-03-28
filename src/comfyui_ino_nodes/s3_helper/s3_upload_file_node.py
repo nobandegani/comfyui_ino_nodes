@@ -69,4 +69,4 @@ class InoS3UploadFile:
         if s3_result["success"] and delete_local:
             os.remove(abs_path)
 
-        return (s3_result["success"], s3_result["msg"], s3_result, )
+        return (s3_result["success"], s3_result["msg"], str(s3_result), )

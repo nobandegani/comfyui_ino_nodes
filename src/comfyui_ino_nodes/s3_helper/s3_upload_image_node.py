@@ -45,7 +45,7 @@ class InoS3UploadImage:
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (images, False, validate_s3_key["msg"], "", "", )
+            return (images, False, validate_s3_key["msg"], "", "", "")
 
         if date_time_as_name:
             file_name = InoUtilHelper.get_date_time_utc_base64()
@@ -76,7 +76,7 @@ class InoS3UploadImage:
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (images, False, s3_instance["msg"], s3_instance, "", )
+            return (images, False, s3_instance["msg"], str(s3_instance), "", "")
         s3_instance = s3_instance["instance"]
 
         for index in results:
@@ -103,7 +103,7 @@ class InoS3UploadImage:
                 break
 
         if not final_success:
-            return (images, final_success, final_message, result_str, "", )
+            return (images, final_success, final_message, result_str, "", "")
 
         s3_paths = []
         file_names = []
@@ -111,4 +111,4 @@ class InoS3UploadImage:
             s3_paths.append(results[index]["s3_key"])
             file_names.append(results[index]["filename"])
 
-        return (images, True, "Success", result_str, file_names, s3_paths, )
+        return (images, True, "Success", result_str, str(file_names), str(s3_paths), )

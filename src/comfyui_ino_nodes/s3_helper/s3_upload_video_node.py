@@ -47,7 +47,7 @@ class InoS3UploadVideo:
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (video, False, validate_s3_key["msg"], "", "", )
+            return (video, False, validate_s3_key["msg"], "", "", "")
 
         if date_time_as_name:
             file_name = InoUtilHelper.get_date_time_utc_base64()
@@ -77,7 +77,7 @@ class InoS3UploadVideo:
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (video, False, s3_instance["msg"], s3_instance, "", )
+            return (video, False, s3_instance["msg"], str(s3_instance), "", "")
         s3_instance = s3_instance["instance"]
 
         s3_full_key = s3_key + "/" + filename_w_ext
@@ -88,6 +88,6 @@ class InoS3UploadVideo:
         )
         if not s3_result["success"]:
             #os.remove(results[index]["full_path"])
-            return (video, s3_result["success"], s3_result["msg"], s3_result, file_name, s3_full_key,)
+            return (video, s3_result["success"], s3_result["msg"], str(s3_result), file_name, s3_full_key,)
 
-        return (video, s3_result["success"], s3_result["msg"], s3_result, file_name, s3_full_key,)
+        return (video, s3_result["success"], s3_result["msg"], str(s3_result), file_name, s3_full_key,)

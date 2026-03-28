@@ -48,7 +48,7 @@ class InoS3DownloadAudio:
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (s3_instance["success"], s3_instance["msg"], s3_instance, None, )
+            return (False, s3_instance["msg"], str(s3_instance), None, )
         s3_instance = s3_instance["instance"]
 
         downloaded = await s3_instance.download_file(
@@ -56,7 +56,7 @@ class InoS3DownloadAudio:
             local_file_path=str(local_save_path.resolve())
         )
         if not downloaded["success"]:
-            return (downloaded["success"], downloaded["msg"], downloaded, None, )
+            return (downloaded["success"], downloaded["msg"], str(downloaded), None, )
 
         from comfy_extras.nodes_audio import LoadAudio
 
@@ -64,6 +64,6 @@ class InoS3DownloadAudio:
         load_audio = audio_loader.load(audio=downloaded["local_file"])
 
         if load_audio[0]:
-            return (True, "Success", downloaded, load_audio[0],)
+            return (True, "Success", str(downloaded), load_audio[0],)
 
-        return (False, "failed to load the audio", downloaded, load_audio[0],)
+        return (False, "failed to load the audio", str(downloaded), load_audio[0],)

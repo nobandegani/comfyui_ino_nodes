@@ -64,4 +64,4 @@ class InoS3DownloadFolder:
             max_concurrent=max_concurrent
         )
 
-        return (s3_result["success"], s3_result["msg"], s3_result, save_path, abs_path, )
+        return (s3_result["success"], s3_result["msg"], str(s3_result), save_path, abs_path, )

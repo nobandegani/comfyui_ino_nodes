@@ -94,4 +94,4 @@ class InoS3UploadString:
 
         #os.remove(full_path)
 
-        return (string, True, "Success", s3_result, file_w_ext, s3_full_key, )
+        return (string, True, "Success", str(s3_result), file_w_ext, s3_full_key, )

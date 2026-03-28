@@ -58,7 +58,7 @@ class InoS3DownloadImage:
             local_file_path=str(local_save_path.resolve())
         )
         if not downloaded["success"]:
-            return (downloaded["success"], downloaded["msg"], downloaded, empty_image, None, )
+            return (downloaded["success"], downloaded["msg"], str(downloaded), empty_image, None, )
 
         img = node_helpers.pillow(Image.open, downloaded["local_file"])
 
@@ -102,4 +102,4 @@ class InoS3DownloadImage:
             output_image = output_images[0]
             output_mask = output_masks[0]
 
-        return (downloaded["success"], downloaded["msg"], downloaded, output_image, output_mask, )
+        return (downloaded["success"], downloaded["msg"], str(downloaded), output_image, output_mask, )

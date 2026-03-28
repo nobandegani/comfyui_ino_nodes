@@ -48,4 +48,4 @@ class InoS3GetDownloadURL:
             as_attachment=as_attachment,
             filename=filename,
         )
-        return (s3_result["success"], s3_result["msg"], s3_result, s3_result["url"], s3_result["filename"],)
+        return (s3_result["success"], s3_result["msg"], str(s3_result), s3_result["url"], s3_result["filename"],)
