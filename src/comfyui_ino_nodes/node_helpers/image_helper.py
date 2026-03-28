@@ -482,7 +482,8 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             ],
             outputs=[
                 io.Boolean.Output(display_name="success"),
-                io.Image.Output(display_name="images", is_output_list=True),
+                io.Image.Output(display_name="raw_images", is_output_list=True),
+                io.Image.Output(display_name="scaled_images", is_output_list=True),
                 io.Int.Output(display_name="number_of_images"),
                 io.Latent.Output(display_name="latents", is_output_list=True),
                 io.Conditioning.Output(display_name="positive"),
@@ -495,7 +496,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
                 upscale_method, megapixels, resolution_steps,
                 vae, positive, negative=None):
         if not enabled:
-            return io.NodeOutput(False, [], 0, [], positive, negative)
+            return io.NodeOutput(False, [], [], 0, [], positive, negative)
 
         from comfy_extras.nodes_dataset import load_and_process_images
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
@@ -525,12 +526,13 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             image_files = image_files[:load_cap]
 
         if not image_files:
-            return io.NodeOutput(False, [], 0, [], positive, negative)
+            return io.NodeOutput(False, [], [], 0, [], positive, negative)
 
         output_images = load_and_process_images(image_files, sub_input_dir)
         num_images = len(output_images)
 
         vae_encoder = VAEEncode()
+        scaled_images = []
         latents = []
         pos_cond = positive
         neg_cond = negative
@@ -538,13 +540,14 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         for img in output_images:
             scale_result = ImageScaleToTotalPixels.execute(img, upscale_method, megapixels, resolution_steps)
             scaled = scale_result.args[0]
+            scaled_images.append(scaled)
             latent = vae_encoder.encode(vae, scaled)[0]
             latents.append(latent)
             pos_cond = ReferenceLatent.execute(pos_cond, latent).args[0]
             if neg_cond is not None:
                 neg_cond = ReferenceLatent.execute(neg_cond, latent).args[0]
 
-        return io.NodeOutput(True, output_images, num_images, latents, pos_cond, neg_cond)
+        return io.NodeOutput(True, output_images, scaled_images, num_images, latents, pos_cond, neg_cond)
 
 
 LOCAL_NODE_CLASS = {
