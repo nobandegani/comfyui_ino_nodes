@@ -283,42 +283,71 @@ class InoLoadImagesFromFolderBatch(io.ComfyNode):
 
     @classmethod
     def execute(cls, parent_folder, folder, load_cap, skip_from_first, padding):
-        import torch
-        from collections import Counter
-        from comfy.utils import common_upscale
-
         output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
         if len(output_images) == 0:
+            import torch
             return io.NodeOutput(torch.empty(0), 0)
-
-        processed = []
-        if padding:
-            max_h = max(img.shape[1] for img in output_images)
-            max_w = max(img.shape[2] for img in output_images)
-            for img in output_images:
-                # img shape: [1, H, W, C]
-                h, w = img.shape[1], img.shape[2]
-                if h != max_h or w != max_w:
-                    padded = torch.zeros(1, max_h, max_w, img.shape[3])
-                    y_offset = (max_h - h) // 2
-                    x_offset = (max_w - w) // 2
-                    padded[:, y_offset:y_offset + h, x_offset:x_offset + w, :] = img
-                    processed.append(padded)
-                else:
-                    processed.append(img)
-        else:
-            sizes = Counter((img.shape[1], img.shape[2]) for img in output_images)
-            target_h, target_w = sizes.most_common(1)[0][0]
-            for img in output_images:
-                if img.shape[1] != target_h or img.shape[2] != target_w:
-                    # [B,H,W,C] -> [B,C,H,W] for common_upscale
-                    img = img.movedim(-1, 1)
-                    img = common_upscale(img, target_w, target_h, "lanczos", "center")
-                    img = img.movedim(1, -1)
-                processed.append(img)
-
-        batched = torch.cat(processed, dim=0)
+        batched = _batch_images(output_images, padding)
         return io.NodeOutput(batched, len(output_images))
+
+
+def _batch_images(images, padding):
+    import torch
+    from collections import Counter
+    from comfy.utils import common_upscale
+
+    processed = []
+    if padding:
+        max_h = max(img.shape[1] for img in images)
+        max_w = max(img.shape[2] for img in images)
+        for img in images:
+            h, w = img.shape[1], img.shape[2]
+            if h != max_h or w != max_w:
+                padded = torch.zeros(1, max_h, max_w, img.shape[3])
+                y_offset = (max_h - h) // 2
+                x_offset = (max_w - w) // 2
+                padded[:, y_offset:y_offset + h, x_offset:x_offset + w, :] = img
+                processed.append(padded)
+            else:
+                processed.append(img)
+    else:
+        sizes = Counter((img.shape[1], img.shape[2]) for img in images)
+        target_h, target_w = sizes.most_common(1)[0][0]
+        for img in images:
+            if img.shape[1] != target_h or img.shape[2] != target_w:
+                img = img.movedim(-1, 1)
+                img = common_upscale(img, target_w, target_h, "lanczos", "center")
+                img = img.movedim(1, -1)
+            processed.append(img)
+
+    return torch.cat(processed, dim=0)
+
+
+class InoImageListToBatch(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoImageListToBatch",
+            display_name="Ino Image List To Batch",
+            category="InoNodes",
+            inputs=[
+                io.Image.Input("images",),
+                io.Boolean.Input("padding", default=False, label_off="Resize", label_on="Pad"),
+            ],
+            outputs=[
+                io.Image.Output(display_name="images"),
+                io.Int.Output(display_name="number of images"),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, images, padding):
+        if len(images) == 0:
+            import torch
+            return io.NodeOutput(torch.empty(0), 0)
+        batched = _batch_images(images, padding)
+        return io.NodeOutput(batched, len(images))
+
 
 class InoCropImageByBox(io.ComfyNode):
     @classmethod
@@ -555,6 +584,7 @@ LOCAL_NODE_CLASS = {
     "InoCropImageByBox": InoCropImageByBox,
     "InoImageToBase64": InoImageToBase64,
     "InoImagesToReferenceLatent": InoImagesToReferenceLatent,
+    "InoImageListToBatch": InoImageListToBatch,
 }
 LOCAL_NODE_NAME = {
     "InoSaveImages": "Ino Save Images",
@@ -566,4 +596,5 @@ LOCAL_NODE_NAME = {
     "InoCropImageByBox": "Ino Crop Image By Box",
     "InoImageToBase64": "Ino Image To Base64",
     "InoImagesToReferenceLatent": "Ino Images To Reference Latent",
+    "InoImageListToBatch": "Ino Image List To Batch",
 }
