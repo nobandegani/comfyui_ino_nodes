@@ -219,11 +219,9 @@ class InoSwitchOnInt(io.ComfyNode):
             category="InoNodes",
             is_experimental=True,
             inputs=[
-                io.Int.Input("switch", default=0, min=-1),
-                io.MatchType.Input("input_0", template=template, lazy=True),
-                *[io.MatchType.Input(f"input_{i}", template=template, optional=True, lazy=True) for i in range(1, 10)],
-                io.MatchType.Input("on_below_0", template=template, optional=True, lazy=True),
-                io.MatchType.Input("on_above_9", template=template, optional=True, lazy=True),
+                io.Int.Input("switch", default=0, min=0),
+                io.MatchType.Input("default", template=template, lazy=True),
+                *[io.MatchType.Input(f"input_{i}", template=template, optional=True, lazy=True) for i in range(0, 10)],
             ],
             outputs=[
                 io.MatchType.Output(template=template, display_name="output"),
@@ -231,32 +229,21 @@ class InoSwitchOnInt(io.ComfyNode):
         )
 
     @classmethod
-    def check_lazy_status(cls, switch, on_below_0=MISSING, on_above_9=MISSING, **kwargs):
+    def check_lazy_status(cls, switch, default=MISSING, **kwargs):
         # None = connected but lazy, not yet evaluated → need to request
         # MISSING = not connected at all → skip, use fallback
         needed = []
-        if switch < 0:
-            if on_below_0 is None:
-                needed.append("on_below_0")
-        elif switch > 9:
-            if on_above_9 is None:
-                needed.append("on_above_9")
-        else:
-            key = f"input_{switch}"
-            if kwargs.get(key, MISSING) is None:
-                needed.append(key)
-        # Always need input_0 as fallback
-        if kwargs.get("input_0", MISSING) is None:
-            needed.append("input_0")
+        key = f"input_{switch}"
+        if kwargs.get(key, MISSING) is None:
+            needed.append(key)
+        # Always need default as fallback
+        if default is None:
+            needed.append("default")
         return needed if needed else None
 
     @classmethod
-    def execute(cls, switch, on_below_0=MISSING, on_above_9=MISSING, **kwargs) -> io.NodeOutput:
-        fallback = kwargs.get("input_0", None)
-        if switch < 0:
-            return io.NodeOutput(on_below_0 if on_below_0 is not MISSING else fallback)
-        if switch > 9:
-            return io.NodeOutput(on_above_9 if on_above_9 is not MISSING else fallback)
+    def execute(cls, switch, default=MISSING, **kwargs) -> io.NodeOutput:
+        fallback = default if default is not MISSING else None
         result = kwargs.get(f"input_{switch}", MISSING)
         return io.NodeOutput(result if result is not MISSING else fallback)
 
