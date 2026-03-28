@@ -67,54 +67,36 @@ class InoBoolToSwitch(io.ComfyNode):
         result = 2 if input_bool else 1
         return io.NodeOutput(result)
 
-class InoConditionBoolean:
+class InoConditionBoolean(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "inputcount": ("INT", {"default": 2, "min": 2, "max": 1000, "step": 1}),
-                "condition": ( ["AND", "OR"], {}),
-                "bool_1": ("BOOLEAN", {"default": True, "forceInput": True}),
-            },
-            "optional": {
-                "bool_2": ("BOOLEAN", {"default": False, "forceInput": True}),
-            }
-    }
+    def define_schema(cls) -> io.Schema:
+        return io.Schema(
+            node_id="InoConditionBoolean",
+            display_name="Ino Condition Boolean",
+            category="InoNodes",
+            inputs=[
+                io.Combo.Input("condition", options=["AND", "OR"]),
+                io.Boolean.Input("bool_1", default=True),
+                io.Boolean.Input("bool_2", default=True),
+            ],
+            outputs=[
+                io.Boolean.Output()
+            ]
+        )
 
-    RETURN_TYPES = ("BOOLEAN",)
-    RETURN_NAMES = ("bool",)
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(self, inputcount, condition, **kwargs):
-        bool_1 = kwargs["bool_1"]
-        bools = []
-        for c in range(1, inputcount):
-            val = kwargs.get(f"bool_{c + 1}", None)
-            if val is None:
-                continue
-            bools.append(bool(val))
-
-        if bool_1 is not None:
-            bools.insert(0, bool(bool_1))
-
-        if not bools:
-            return (False,)
-
+    @classmethod
+    def execute(cls, condition, bool_1, bool_2) -> io.NodeOutput:
         if condition == "AND":
-            result = all(bools)
-        elif condition == "OR":
-            result = any(bools)
+            result = bool_1 and bool_2
         else:
-            return (False,)
-
-        return (result,)
+            result = bool_1 or bool_2
+        return io.NodeOutput(result)
 
 LOCAL_NODE_CLASS = {
     "InoBooleanEqual": InoBooleanEqual,
     "InoNotBoolean": InoNotBoolean,
     "InoBoolToSwitch": InoBoolToSwitch,
-    "InoConditionBoolean": InoConditionBoolean,
+    "InoConditionBoolean": InoConditionBoolean
 }
 LOCAL_NODE_NAME = {
     "InoBooleanEqual": "Ino Boolean Equal",
