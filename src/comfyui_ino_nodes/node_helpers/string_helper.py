@@ -29,7 +29,7 @@ class InoStringToggleCase:
 
     def function(self, enabled, input_string, toggle_to):
         if not enabled:
-            return input_string
+            return (input_string,)
         result = str(input_string).upper() if toggle_to else str(input_string).lower()
         return (result,)
 
@@ -107,7 +107,7 @@ class InoStringStripSimple:
 
     def function(self, input_string, strip_string):
         if input_string is None:
-            return ""
+            return ("",)
 
         translation_table = str.maketrans("", "", strip_string)
         return (input_string.translate(translation_table), )
@@ -135,7 +135,7 @@ class InoStringToAlphabeticString:
 
     def function(self, input_string, length):
         if input_string is None:
-            return ""
+            return ("",)
 
         alphabet = "abcdefghijklmnopqrstuvwxyz"
         digest = hashlib.sha256(input_string.encode()).digest()

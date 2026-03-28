@@ -72,7 +72,7 @@ class InoGetDateTimeDuration:
         time_delta: timedelta = datetime_a - datetime_b
         total_seconds: float = time_delta.total_seconds()
 
-        return (time_delta, total_seconds, float(total_seconds/60), float(total_seconds/3600), float(time_delta.days),)
+        return (str(time_delta), total_seconds, float(total_seconds/60), float(total_seconds/3600), float(time_delta.days),)
 
 class InoDateTimeAsString:
     """

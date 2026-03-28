@@ -16,7 +16,7 @@ class InoRandomIntInRange:
             }
         }
 
-    RETURN_TYPES = ("INT", "INT", )
+    RETURN_TYPES = ("INT", "STRING", )
     RETURN_NAMES = ("RandomInt", "FormattedInt", )
 
     FUNCTION = "function"
@@ -24,7 +24,7 @@ class InoRandomIntInRange:
 
     def function(self, enabled, int_min, int_max, length):
         if not enabled:
-            return (-1, )
+            return (-1, "")
         random_int = random.randint(int_min, int_max)
         formatted_int = str(random_int).zfill(length)
         return (random_int, formatted_int, )

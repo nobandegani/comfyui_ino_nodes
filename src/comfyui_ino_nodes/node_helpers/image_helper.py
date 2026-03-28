@@ -52,9 +52,9 @@ class InoSaveImages:
             names.append(result["filename"])
 
         if len(results) == 0:
-            return (False, "", 0, )
+            return (False, "", 0, time_now)
 
-        return (True, names, len(results), time_now)
+        return (True, str(names), len(results), time_now)
 
 class InoImageResizeByLongerSideV1:
     @classmethod
