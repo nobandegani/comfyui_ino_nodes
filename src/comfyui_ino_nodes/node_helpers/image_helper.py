@@ -331,7 +331,7 @@ class InoImageListToBatch(io.ComfyNode):
             display_name="Ino Image List To Batch",
             category="InoNodes",
             inputs=[
-                io.Image.Input("images",),
+                io.Image.Input("images", is_input_list=True),
                 io.Boolean.Input("padding", default=False, label_off="Resize", label_on="Pad"),
             ],
             outputs=[
