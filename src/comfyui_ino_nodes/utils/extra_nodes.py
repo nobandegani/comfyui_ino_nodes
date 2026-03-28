@@ -234,18 +234,22 @@ class InoSwitchOnInt(io.ComfyNode):
         # MISSING = not connected at all → skip, use fallback
         needed = []
         key = f"input_{switch}"
-        if kwargs.get(key, MISSING) is None:
+        selected = kwargs.get(key, MISSING)
+        if selected is None:
             needed.append(key)
-        # Always need default as fallback
-        if default is None:
-            needed.append("default")
+        elif selected is MISSING:
+            # Selected input not connected, need default as fallback
+            if default is None:
+                needed.append("default")
         return needed if needed else None
 
     @classmethod
     def execute(cls, switch, default=MISSING, **kwargs) -> io.NodeOutput:
-        fallback = default if default is not MISSING else None
         result = kwargs.get(f"input_{switch}", MISSING)
-        return io.NodeOutput(result if result is not MISSING else fallback)
+        if result is not MISSING:
+            return io.NodeOutput(result)
+        fallback = default if default is not MISSING else None
+        return io.NodeOutput(fallback)
 
 LOCAL_NODE_CLASS = {
     "InoRelay": InoRelay,
