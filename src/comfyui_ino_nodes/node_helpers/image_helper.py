@@ -536,17 +536,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         neg_cond = negative
 
         for img in output_images:
-            single = img.unsqueeze(0)
-            import math
-            h, w = single.shape[1], single.shape[2]
-            if h == 0 or w == 0:
-                continue
-            total = megapixels * 1024 * 1024
-            scale_by = math.sqrt(total / (w * h))
-            test_w = round(w * scale_by / resolution_steps) * resolution_steps
-            test_h = round(h * scale_by / resolution_steps) * resolution_steps
-            safe_steps = resolution_steps if (test_w > 0 and test_h > 0) else 1
-            scale_result = ImageScaleToTotalPixels.execute(single, upscale_method, megapixels, safe_steps)
+            scale_result = ImageScaleToTotalPixels.execute(img, upscale_method, megapixels, resolution_steps)
             scaled = scale_result.args[0]
             latent = vae_encoder.encode(vae, scaled)[0]
             latents.append(latent)
