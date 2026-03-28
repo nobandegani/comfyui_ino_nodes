@@ -1,7 +1,5 @@
 inocloudreve
-inopyutils==1.7.17
-openai
-aiohttp
+inopyutils==1.8.1
 
 huggingface_hub
 hf_xet
