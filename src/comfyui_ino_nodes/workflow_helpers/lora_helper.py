@@ -60,7 +60,7 @@ class InoLoadMultipleLora:
             model, clip = comfy.sd.load_lora_for_models(model, clip, lora, strength_model, strength_clip)
             loaded_names.append(lora_name)
 
-        return (model, clip, loaded_names, len(loaded_names))
+        return (model, clip, loaded_names if loaded_names else [""], len(loaded_names))
 
 
 class InoCalculateLoraConfig:
