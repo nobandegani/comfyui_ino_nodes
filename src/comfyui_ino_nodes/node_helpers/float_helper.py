@@ -58,11 +58,45 @@ class InoCompareFloat(io.ComfyNode):
         }
         return io.NodeOutput(ops[compare])
 
+class InoFloatEqual:
+    """
+        check if its equal to the input Float
+    """
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "float_a": ("FLOAT", {
+                    "default": 0.0,
+                    "step": 0.01,
+                    "display": "number"
+                }),
+                "float_b": ("FLOAT", {
+                    "default": 0.0,
+                    "step": 0.01,
+                    "display": "number"
+                }),
+            },
+        }
+
+    RETURN_TYPES = ("BOOLEAN",)
+    RETURN_NAMES = ("is equal",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, float_a, float_b):
+        return (float_a == float_b,)
+
 LOCAL_NODE_CLASS = {
     "InoFloatToInt": InoFloatToInt,
     "InoCompareFloat": InoCompareFloat,
+    "InoFloatEqual": InoFloatEqual,
 }
 LOCAL_NODE_NAME = {
     "InoFloatToInt": "Ino Float To Int",
     "InoCompareFloat": "Ino Compare Float",
+    "InoFloatEqual": "Ino Float Equal",
 }
