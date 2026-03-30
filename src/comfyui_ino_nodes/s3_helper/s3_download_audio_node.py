@@ -53,7 +53,7 @@ class InoS3DownloadAudio:
 
         from comfy_extras.nodes_audio import LoadAudio
 
-        annotated_name = f"{file_name}[temp]"
+        annotated_name = f"{file_name} [temp]"
         load_audio = LoadAudio.execute(audio=annotated_name)
 
         if load_audio[0]:
