@@ -502,6 +502,57 @@ class InoImageToBase64:
             return (False, str(e))
 
 
+class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
+    upscale_methods = ["nearest-exact", "bilinear", "area", "bicubic", "lanczos"]
+
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoImagesFromFolderToReferenceLatent",
+            display_name="Ino Images From Folder To Reference Latent",
+            category="InoNodes",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
+                io.String.Input("folder"),
+                io.Int.Input("load_cap", default=0, min=0, max=10000),
+                io.Int.Input("skip_from_first", default=0, min=0, max=10000),
+                io.Combo.Input("upscale_method", options=cls.upscale_methods, default="lanczos"),
+                io.Float.Input("megapixels", default=1.0, min=0.01, max=16.0, step=0.01),
+                io.Int.Input("resolution_steps", default=1, min=1, max=256),
+                io.Vae.Input("vae"),
+                io.Conditioning.Input("positive"),
+                io.Conditioning.Input("negative", optional=True),
+            ],
+            outputs=[
+                io.Latent.Output(display_name="latents", is_output_list=True),
+                io.Conditioning.Output(display_name="positive"),
+                io.Conditioning.Output(display_name="negative"),
+                io.Int.Output(display_name="number of images"),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, enabled, parent_folder, folder, load_cap, skip_from_first, upscale_method, megapixels, resolution_steps, vae, positive, negative=None):
+        if not enabled:
+            return io.NodeOutput([], positive, negative, 0)
+
+        from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
+
+        images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
+
+        scaled_images = []
+        for i in range(len(images)):
+            img = images[i] if images[i].dim() == 4 else images[i].unsqueeze(0)
+            scaled = ImageScaleToTotalPixels.execute(img, upscale_method, megapixels, resolution_steps).args[0]
+            scaled_images.append(scaled)
+
+        batch = torch.cat(scaled_images, dim=0)
+        result = InoImagesToReferenceLatent.execute(enabled, batch, vae, positive, negative)
+
+        return io.NodeOutput(result.args[0], result.args[1], result.args[2], len(images))
+
+
 class InoImagesToReferenceLatent(io.ComfyNode):
     @classmethod
     def define_schema(cls):
@@ -556,6 +607,7 @@ LOCAL_NODE_CLASS = {
     "InoCropImageByBox": InoCropImageByBox,
     "InoImageToBase64": InoImageToBase64,
     "InoImagesToReferenceLatent": InoImagesToReferenceLatent,
+    "InoImagesFromFolderToReferenceLatent": InoImagesFromFolderToReferenceLatent,
     "InoImageListToBatch": InoImageListToBatch,
 }
 LOCAL_NODE_NAME = {
@@ -567,5 +619,6 @@ LOCAL_NODE_NAME = {
     "InoCropImageByBox": "Ino Crop Image By Box",
     "InoImageToBase64": "Ino Image To Base64",
     "InoImagesToReferenceLatent": "Ino Images To Reference Latent",
+    "InoImagesFromFolderToReferenceLatent": "Ino Images From Folder To Reference Latent",
     "InoImageListToBatch": "Ino Image List To Batch",
 }
