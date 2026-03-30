@@ -525,6 +525,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
                 io.Conditioning.Input("negative", optional=True),
             ],
             outputs=[
+                io.Image.Output(display_name="images", is_output_list=True),
                 io.Latent.Output(display_name="latents", is_output_list=True),
                 io.Conditioning.Output(display_name="positive"),
                 io.Conditioning.Output(display_name="negative"),
@@ -542,15 +543,26 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
 
         scaled_images = []
-        for i in range(len(images)):
-            img = images[i] if images[i].dim() == 4 else images[i].unsqueeze(0)
+        for img in images:
             scaled = ImageScaleToTotalPixels.execute(img, upscale_method, megapixels, resolution_steps).args[0]
             scaled_images.append(scaled)
 
-        batch = torch.cat(scaled_images, dim=0)
-        result = InoImagesToReferenceLatent.execute(enabled, batch, vae, positive, negative)
+        from comfy_extras.nodes_edit_model import ReferenceLatent
+        from nodes import VAEEncode
 
-        return io.NodeOutput(result.args[0], result.args[1], result.args[2], len(images))
+        vae_encoder = VAEEncode()
+        latents = []
+        pos_cond = positive
+        neg_cond = negative
+
+        for img in scaled_images:
+            latent = vae_encoder.encode(vae, img)[0]
+            latents.append(latent)
+            pos_cond = ReferenceLatent.execute(pos_cond, latent).args[0]
+            if neg_cond is not None:
+                neg_cond = ReferenceLatent.execute(neg_cond, latent).args[0]
+
+        return io.NodeOutput(images, latents, pos_cond, neg_cond, len(images))
 
 
 class InoImagesToReferenceLatent(io.ComfyNode):
