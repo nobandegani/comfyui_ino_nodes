@@ -211,6 +211,29 @@ class InoSwitchOnInt(io.ComfyNode):
         fallback = default if default is not MISSING else None
         return io.NodeOutput(fallback)
 
+class InoLength(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        template = io.MatchType.Template("input")
+        return io.Schema(
+            node_id="InoLength",
+            display_name="Ino Length",
+            category="InoNodes",
+            is_input_list=True,
+            inputs=[
+                io.MatchType.Input("input", template=template),
+            ],
+            outputs=[
+                io.Int.Output(display_name="length"),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, input) -> io.NodeOutput:
+        if not isinstance(input, (list, tuple)):
+            return io.NodeOutput(-1)
+        return io.NodeOutput(len(input))
+
 LOCAL_NODE_CLASS = {
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
@@ -221,7 +244,8 @@ LOCAL_NODE_CLASS = {
     "InoRandomNoise": InoRandomNoise,
 
     "InoSwitchOnBool": InoSwitchOnBool,
-    "InoSwitchOnInt": InoSwitchOnInt
+    "InoSwitchOnInt": InoSwitchOnInt,
+    "InoLength": InoLength,
 }
 LOCAL_NODE_NAME = {
     "InoRelay": "Ino Relay",
@@ -233,5 +257,6 @@ LOCAL_NODE_NAME = {
     "InoRandomNoise": "Ino Random Noise",
 
     "InoSwitchOnBool": "Ino Switch On Bool",
-    "InoSwitchOnInt": "Ino Switch On Int"
+    "InoSwitchOnInt": "Ino Switch On Int",
+    "InoLength": "Ino Length",
 }
