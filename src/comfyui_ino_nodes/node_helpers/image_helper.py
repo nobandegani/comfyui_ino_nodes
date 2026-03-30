@@ -535,10 +535,15 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
 
     @classmethod
     def execute(cls, enabled, parent_folder, folder, load_cap, skip_from_first, upscale_method, megapixels, resolution_steps, vae, positive, negative=None):
+        from comfy_extras.nodes_edit_model import ReferenceLatent
+        from nodes import VAEEncode
+
+        vae_encoder = VAEEncode()
+
         if not enabled:
             from nodes import EmptyImage, EmptyLatentImage
             empty_image = EmptyImage().generate(512, 512)[0]
-            empty_latent = EmptyLatentImage().generate(512, 512)[0]
+            empty_latent = vae_encoder.encode(vae, empty_image)[0]
             return io.NodeOutput([empty_image], [empty_latent], positive, negative, 0)
 
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
@@ -550,10 +555,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             scaled = ImageScaleToTotalPixels.execute(img, upscale_method, megapixels, resolution_steps).args[0]
             scaled_images.append(scaled)
 
-        from comfy_extras.nodes_edit_model import ReferenceLatent
-        from nodes import VAEEncode
 
-        vae_encoder = VAEEncode()
         latents = []
         pos_cond = positive
         neg_cond = negative
