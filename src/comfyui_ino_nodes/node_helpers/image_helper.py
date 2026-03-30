@@ -536,7 +536,10 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
     @classmethod
     def execute(cls, enabled, parent_folder, folder, load_cap, skip_from_first, upscale_method, megapixels, resolution_steps, vae, positive, negative=None):
         if not enabled:
-            return io.NodeOutput([], positive, negative, 0)
+            from nodes import EmptyImage, EmptyLatentImage
+            empty_image = EmptyImage().generate(512, 512)[0]
+            empty_latent = EmptyLatentImage().generate(512, 512)[0]
+            return io.NodeOutput([empty_image], [empty_latent], positive, negative, 0)
 
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
 
