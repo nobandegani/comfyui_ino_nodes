@@ -29,6 +29,7 @@ class InoHttpCall:
     RETURN_NAMES = ("Success", "StatusCode", "MSG", "Response", )
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
     CATEGORY = "InoNodes"
 
     async def function(self, enabled,

@@ -29,6 +29,7 @@ class InoS3UploadAudio:
     RETURN_TYPES = ("AUDIO", "BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
     RETURN_NAMES = ("audio", "success", "msg", "result", "file_name", "s3_audio_path",)
     FUNCTION = "function"
+    OUTPUT_NODE = True
     CATEGORY = "InoS3Helper"
 
     async def function(self, execute, enabled, audio, s3_key, file_name, s3_config, date_time_as_name):

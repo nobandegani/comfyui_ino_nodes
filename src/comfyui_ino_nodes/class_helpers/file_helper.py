@@ -90,6 +90,7 @@ class InoZip:
     DESCRIPTION = cleandoc(__doc__)
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     CATEGORY = "InoFileHelper"
 
@@ -143,6 +144,7 @@ class InoUnzip:
     DESCRIPTION = cleandoc(__doc__)
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     CATEGORY = "InoFileHelper"
 
@@ -190,6 +192,7 @@ class InoRemoveFile:
     DESCRIPTION = cleandoc(__doc__)
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     CATEGORY = "InoFileHelper"
 
@@ -236,6 +239,7 @@ class InoRemoveFolder:
     DESCRIPTION = cleandoc(__doc__)
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     CATEGORY = "InoFileHelper"
 
@@ -272,6 +276,7 @@ class InoCopyFiles:
     RETURN_NAMES = ("success", "message", "logs", )
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     CATEGORY = "InoFileHelper"
 
@@ -384,6 +389,7 @@ class InoRemoveDuplicateFiles:
     RETURN_NAMES = ("success", "message", "removed_list", "removed_count", )
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     CATEGORY = "InoFileHelper"
 

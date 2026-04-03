@@ -36,6 +36,7 @@ class InoS3UploadVideo:
     RETURN_TYPES = ("Video", "BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
     RETURN_NAMES = ("video", "success", "msg", "result", "file_name", "s3_video_path",)
     FUNCTION = "function"
+    OUTPUT_NODE = True
     CATEGORY = "InoS3Helper"
 
     async def function(self, execute, enabled, video: Input.Video, s3_key, file_name, s3_config, date_time_as_name, video_format, video_codec):

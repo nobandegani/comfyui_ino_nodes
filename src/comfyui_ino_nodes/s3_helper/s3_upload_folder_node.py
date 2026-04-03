@@ -33,6 +33,7 @@ class InoS3UploadFolder:
     RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "INT", "INT", "INT", "STRING", )
     RETURN_NAMES = ("success", "msg", "result", "total_files", "uploaded_successfully", "failed_uploads", "errors", )
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     async def function(self, execute, enabled, s3_key, parent_folder, local_path, delete_local, s3_config, bucket_name, max_concurrent, verify_with_s3):
         if not enabled:

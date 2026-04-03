@@ -174,6 +174,8 @@ class InoSaveText:
 
     FUNCTION = "function"
 
+    OUTPUT_NODE = True
+
     CATEGORY = "InoNodes"
 
     def function(self, enabled, text, folder, file_name):

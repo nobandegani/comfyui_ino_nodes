@@ -29,6 +29,7 @@ class InoS3SyncFolder:
     RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "INT", "INT", "INT", "INT",)
     RETURN_NAMES = ("success", "msg", "result", "rel_path", "abs_path", "downloaded", "uploaded", "skipped_unchanged", "failed",)
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     async def function(self, execute, enabled, s3_key, parent_folder, local_path, sync_local, s3_config, concurrency):
         if not enabled:

@@ -34,6 +34,7 @@ class InoS3UploadImage:
     RETURN_TYPES = ("IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
     RETURN_NAMES = ("images", "success", "msg", "result", "file_names", "s3_image_paths",)
     FUNCTION = "function"
+    OUTPUT_NODE = True
     CATEGORY = "InoS3Helper"
 
     async def function(self, execute, enabled, images, s3_key, file_name, s3_config, compress_level, date_time_as_name):

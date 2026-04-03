@@ -102,6 +102,7 @@ class InoSaveJson:
     RETURN_NAMES = ("Success", "MSG",  "json_file", )
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
     CATEGORY = "InoNodes"
 
     async def function(self, execute, enabled, json_string, local_path):

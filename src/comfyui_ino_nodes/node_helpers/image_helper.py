@@ -34,6 +34,7 @@ class InoSaveImages:
     RETURN_NAMES = ("Success", "Result", "NumberOfImages", "DateTimeIso", )
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
     CATEGORY = "InoNodes"
 
     def function(self, images, filename_prefix):
@@ -416,6 +417,7 @@ class InoOnImageListCompleted(io.ComfyNode):
             node_id="InoOnImageListCompleted",
             display_name="Ino On Image List Completed",
             category="InoNodes",
+            is_output_node=True,
             inputs=[
                 io.Image.Input("input_image"),
                 io.Combo.Input(

@@ -27,6 +27,7 @@ class InoConvertVideoToMP4:
     RETURN_NAMES = ("success", "msg", "result",)
 
     FUNCTION = "function"
+    OUTPUT_NODE = True
 
     CATEGORY = "InoMediaHelper"
 
