@@ -1,9 +1,54 @@
 import asyncio
+import sys
+import collections
+import threading
 
 from comfy_api.latest import ComfyExtension, io
 from comfy_api.latest import _io
 
 from ..node_helper import ino_print_log
+
+
+class _LogCapture:
+    """Captures terminal output (stdout) into a ring buffer."""
+
+    def __init__(self, max_lines=10000):
+        self._buffer = collections.deque(maxlen=max_lines)
+        self._lock = threading.Lock()
+        self._original_stdout = None
+        self._installed = False
+
+    def install(self):
+        if self._installed:
+            return
+        self._original_stdout = sys.stdout
+        sys.stdout = self
+        self._installed = True
+
+    @property
+    def encoding(self):
+        return getattr(self._original_stdout, "encoding", "utf-8")
+
+    def write(self, text):
+        if self._original_stdout:
+            self._original_stdout.write(text)
+        if text and text != "\n":
+            with self._lock:
+                for line in text.rstrip("\n").split("\n"):
+                    self._buffer.append(line)
+
+    def flush(self):
+        if self._original_stdout:
+            self._original_stdout.flush()
+
+    def get_lines(self, count):
+        with self._lock:
+            lines = list(self._buffer)
+        return lines[-count:] if count < len(lines) else lines
+
+
+_log_capture = _LogCapture()
+_log_capture.install()
 
 #todo add show any
 
@@ -234,6 +279,30 @@ class InoLength(io.ComfyNode):
             return io.NodeOutput(-1)
         return io.NodeOutput(len(input))
 
+class InoTerminalLog(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoTerminalLog",
+            display_name="Ino Terminal Log",
+            category="InoNodes",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Int.Input("lines", default=50, min=1, max=10000),
+            ],
+            outputs=[
+                io.String.Output(display_name="log"),
+            ],
+        )
+
+    @classmethod
+    def execute(cls, enabled, lines) -> io.NodeOutput:
+        if not enabled:
+            return io.NodeOutput("")
+        captured = _log_capture.get_lines(lines)
+        return io.NodeOutput("\n".join(captured))
+
+
 LOCAL_NODE_CLASS = {
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
@@ -246,6 +315,7 @@ LOCAL_NODE_CLASS = {
     "InoSwitchOnBool": InoSwitchOnBool,
     "InoSwitchOnInt": InoSwitchOnInt,
     "InoLength": InoLength,
+    "InoTerminalLog": InoTerminalLog,
 }
 LOCAL_NODE_NAME = {
     "InoRelay": "Ino Relay",
@@ -259,4 +329,5 @@ LOCAL_NODE_NAME = {
     "InoSwitchOnBool": "Ino Switch On Bool",
     "InoSwitchOnInt": "Ino Switch On Int",
     "InoLength": "Ino Length",
+    "InoTerminalLog": "Ino Terminal Log",
 }
