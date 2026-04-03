@@ -50,8 +50,6 @@ class _LogCapture:
 _log_capture = _LogCapture()
 _log_capture.install()
 
-#todo add show any
-
 class InoRelay(io.ComfyNode):
     @classmethod
     def define_schema(cls):
