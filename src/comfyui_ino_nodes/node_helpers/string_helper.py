@@ -2,6 +2,9 @@ import os
 import re
 import hashlib
 import base64
+from pathlib import Path
+
+import folder_paths
 
 class InoStringToggleCase:
     """
@@ -164,13 +167,14 @@ class InoSaveText:
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "text": ("STRING", {"multiline": True, "default": ""}),
-                "folder": ("STRING", {"default": "output"}),
+                "parent_folder": (["input", "output", "temp"],),
+                "folder": ("STRING", {"default": ""}),
                 "file_name": ("STRING", {"default": "output.txt"}),
             }
         }
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("file_path",)
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING",)
+    RETURN_NAMES = ("success", "message", "file_path",)
 
     FUNCTION = "function"
 
@@ -178,14 +182,26 @@ class InoSaveText:
 
     CATEGORY = "InoNodes"
 
-    def function(self, enabled, text, folder, file_name):
-        file_path = os.path.join(folder, file_name)
+    def function(self, enabled, text, parent_folder, folder, file_name):
+        if parent_folder == "input":
+            base_dir = folder_paths.get_input_directory()
+        elif parent_folder == "output":
+            base_dir = folder_paths.get_output_directory()
+        else:
+            base_dir = folder_paths.get_temp_directory()
+
+        save_dir = Path(base_dir) / folder
+        file_path = str((save_dir / file_name).resolve())
+
         if not enabled:
-            return (file_path,)
-        os.makedirs(folder, exist_ok=True)
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(text)
-        return (file_path,)
+            return (False, "not enabled", file_path,)
+        try:
+            save_dir.mkdir(parents=True, exist_ok=True)
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(text)
+            return (True, "saved", file_path,)
+        except Exception as e:
+            return (False, str(e), file_path,)
 
 
 LOCAL_NODE_CLASS = {
