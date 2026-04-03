@@ -1,5 +1,5 @@
 inocloudreve
-inopyutils==1.8.1
+inopyutils==1.8.2
 
 huggingface_hub
 hf_xet
