@@ -219,6 +219,9 @@ def _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first):
     else:
         sub_input_dir = os.path.join(folder_paths.get_temp_directory(), folder)
 
+    if not os.path.isdir(sub_input_dir):
+        return []
+
     valid_extensions = [".png", ".jpg", ".jpeg", ".webp"]
     image_files = sorted([
         f for f in os.listdir(sub_input_dir)
@@ -232,6 +235,9 @@ def _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first):
         image_files = image_files[skip_from_first:]
     if load_cap > 0:
         image_files = image_files[:load_cap]
+
+    if not image_files:
+        return []
 
     return load_and_process_images(image_files, sub_input_dir)
 
@@ -250,6 +256,7 @@ class InoLoadImagesFromFolder(io.ComfyNode):
                 io.Int.Input("skip_from_first", default=0, min=0, max=10000),
             ],
             outputs=[
+                io.Boolean.Output(display_name="success"),
                 io.Image.Output(display_name="images", is_output_list=True),
                 io.Int.Output(display_name="number of images"),
             ],
@@ -258,7 +265,11 @@ class InoLoadImagesFromFolder(io.ComfyNode):
     @classmethod
     def execute(cls, parent_folder, folder, load_cap, skip_from_first):
         output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
-        return io.NodeOutput(output_images, len(output_images))
+        if not output_images:
+            from nodes import EmptyImage
+            empty_image = EmptyImage().generate(512, 512)[0]
+            return io.NodeOutput(False, [empty_image], 0)
+        return io.NodeOutput(True, output_images, len(output_images))
 
 
 
@@ -525,6 +536,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
                 io.Conditioning.Input("negative", optional=True),
             ],
             outputs=[
+                io.Boolean.Output(display_name="success"),
                 io.Image.Output(display_name="images", is_output_list=True),
                 io.Latent.Output(display_name="latents", is_output_list=True),
                 io.Conditioning.Output(display_name="positive"),
@@ -540,15 +552,19 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
 
         vae_encoder = VAEEncode()
 
+        from nodes import EmptyImage
+        empty_image = EmptyImage().generate(512, 512)[0]
+        empty_latent = vae_encoder.encode(vae, empty_image)[0]
+
         if not enabled:
-            from nodes import EmptyImage, EmptyLatentImage
-            empty_image = EmptyImage().generate(512, 512)[0]
-            empty_latent = vae_encoder.encode(vae, empty_image)[0]
-            return io.NodeOutput([empty_image], [empty_latent], positive, negative, 0)
+            return io.NodeOutput(False, [empty_image], [empty_latent], positive, negative, 0)
 
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
 
         images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
+
+        if not images:
+            return io.NodeOutput(False, [empty_image], [empty_latent], positive, negative, 0)
 
         scaled_images = []
         for img in images:
@@ -567,7 +583,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             if neg_cond is not None:
                 neg_cond = ReferenceLatent.execute(neg_cond, latent).args[0]
 
-        return io.NodeOutput(images, latents, pos_cond, neg_cond, len(images))
+        return io.NodeOutput(True, images, latents, pos_cond, neg_cond, len(images))
 
 
 class InoImagesToReferenceLatent(io.ComfyNode):
