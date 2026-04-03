@@ -1,3 +1,4 @@
+import os
 import re
 import hashlib
 import base64
@@ -155,12 +156,43 @@ class InoStringToAlphabeticString:
 
         return (alphbetic_string, )
 
+class InoSaveText:
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
+                "text": ("STRING", {"multiline": True, "default": ""}),
+                "folder": ("STRING", {"default": "output"}),
+                "file_name": ("STRING", {"default": "output.txt"}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("file_path",)
+
+    FUNCTION = "function"
+
+    CATEGORY = "InoNodes"
+
+    def function(self, enabled, text, folder, file_name):
+        file_path = os.path.join(folder, file_name)
+        if not enabled:
+            return (file_path,)
+        os.makedirs(folder, exist_ok=True)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(text)
+        return (file_path,)
+
+
 LOCAL_NODE_CLASS = {
     "InoStringToggleCase": InoStringToggleCase,
     "InoStringReplaceSimple": InoStringReplaceSimple,
     "InoStringReplaceSimple2": InoStringReplaceSimple2,
     "InoStringStripSimple": InoStringStripSimple,
     "InoStringToAlphabeticString": InoStringToAlphabeticString,
+    "InoSaveText": InoSaveText,
 }
 LOCAL_NODE_NAME = {
     "InoStringToggleCase": "Ino String Toggle Case",
@@ -168,4 +200,5 @@ LOCAL_NODE_NAME = {
     "InoStringReplaceSimple2": "Ino String Replace Simple2",
     "InoStringStripSimple": "Ino String Strip Simple",
     "InoStringToAlphabeticString": "Ino String To Alphabetic String",
+    "InoSaveText": "Ino Save Text",
 }
