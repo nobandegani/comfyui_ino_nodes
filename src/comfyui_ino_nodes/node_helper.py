@@ -1,6 +1,50 @@
 from pathlib import Path
 import os
 import csv
+import sys
+import collections
+import threading
+
+
+class LogCapture:
+    """Captures terminal output (stdout) into a ring buffer."""
+
+    def __init__(self, max_lines=10000):
+        self._buffer = collections.deque(maxlen=max_lines)
+        self._lock = threading.Lock()
+        self._original_stdout = None
+        self._installed = False
+
+    def install(self):
+        if self._installed:
+            return
+        self._original_stdout = sys.stdout
+        sys.stdout = self
+        self._installed = True
+
+    @property
+    def encoding(self):
+        return getattr(self._original_stdout, "encoding", "utf-8")
+
+    def write(self, text):
+        if self._original_stdout:
+            self._original_stdout.write(text)
+        if text and text != "\n":
+            with self._lock:
+                for line in text.rstrip("\n").split("\n"):
+                    self._buffer.append(line)
+
+    def flush(self):
+        if self._original_stdout:
+            self._original_stdout.flush()
+
+    def get_lines(self, count):
+        with self._lock:
+            lines = list(self._buffer)
+        return lines[-count:] if count < len(lines) else lines
+
+
+log_capture = LogCapture()
 
 # wildcard trick is taken from pythongossss's
 class AnyType(str):
@@ -62,6 +106,8 @@ UNET_WEIGHT_DTYPE= ["default", "fp8_e4m3fn", "fp8_e4m3fn_fast", "fp8_e5m2"]
 
 CLIP_TYPE= ["stable_diffusion", "stable_cascade", "sd3", "stable_audio", "mochi", "ltxv", "pixart", "cosmos", "lumina2", "wan", "hidream", "chroma", "ace", "omnigen2", "qwen_image", "hunyuan_image", "flux2", "ovis"]
 
+PARENT_FOLDER_OPTIONS = ["input", "output", "temp"]
+
 def _load_csv_as_dict(is_config: bool, model_type: str) -> list:
     base_dir = Path(__file__).resolve().parent.parent.parent
     middle_dir = "configs" if is_config else "files"
@@ -86,8 +132,6 @@ def get_list_from_csv(is_config: bool, model_type: str, return_only_names):
         data = csv_data
 
     return data
-
-PARENT_FOLDER_OPTIONS = ["input", "output", "temp"]
 
 def resolve_comfy_path(parent_folder: str, folder: str = "", filename: str = "") -> tuple:
     """Resolves parent_folder + folder + filename into (rel_path, abs_path)."""

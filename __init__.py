@@ -1,6 +1,5 @@
 """Top-level package for comfyui_ino_nodes."""
 
-
 #--------------------------------- Class helpers ---------------------------------
 from .src.comfyui_ino_nodes.class_helpers.file_helper import (
     LOCAL_NODE_CLASS as FILE_HELPER_CLASS,
@@ -169,6 +168,9 @@ __all__ = [
 __author__ = """InoNodes"""
 __email__ = "contact@inoland.net"
 __version__ = "1.1.5"
+
+from .src.comfyui_ino_nodes.node_helper import log_capture
+log_capture.install()
 
 from .src.comfyui_ino_nodes.basic_auth import LOCAL_NODE_CLASS as BASIC_AUTH_CLASS, LOCAL_NODE_NAME as BASIC_AUTH_NAME
 from .src.comfyui_ino_nodes.basic_auth import InoBasicAuthClass

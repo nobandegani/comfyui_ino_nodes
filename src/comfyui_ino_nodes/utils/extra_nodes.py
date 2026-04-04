@@ -1,54 +1,8 @@
 import asyncio
-import sys
-import collections
-import threading
 
-from comfy_api.latest import ComfyExtension, io
-from comfy_api.latest import _io
+from comfy_api.latest import io
 
-from ..node_helper import ino_print_log
-
-
-class _LogCapture:
-    """Captures terminal output (stdout) into a ring buffer."""
-
-    def __init__(self, max_lines=10000):
-        self._buffer = collections.deque(maxlen=max_lines)
-        self._lock = threading.Lock()
-        self._original_stdout = None
-        self._installed = False
-
-    def install(self):
-        if self._installed:
-            return
-        self._original_stdout = sys.stdout
-        sys.stdout = self
-        self._installed = True
-
-    @property
-    def encoding(self):
-        return getattr(self._original_stdout, "encoding", "utf-8")
-
-    def write(self, text):
-        if self._original_stdout:
-            self._original_stdout.write(text)
-        if text and text != "\n":
-            with self._lock:
-                for line in text.rstrip("\n").split("\n"):
-                    self._buffer.append(line)
-
-    def flush(self):
-        if self._original_stdout:
-            self._original_stdout.flush()
-
-    def get_lines(self, count):
-        with self._lock:
-            lines = list(self._buffer)
-        return lines[-count:] if count < len(lines) else lines
-
-
-_log_capture = _LogCapture()
-_log_capture.install()
+from ..node_helper import ino_print_log, log_capture
 
 class InoRelay(io.ComfyNode):
     @classmethod
@@ -149,36 +103,34 @@ class InoPrintLog(io.ComfyNode):
         ino_print_log("", log_message)
         return io.NodeOutput(relay)
 
-from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
-
-class InoRandomNoise:
+class InoRandomNoise(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "noise_seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "control_after_generate": True,
-                }),
-                "precision": ("BOOLEAN", {"default": True, "label_off": "32-bit", "label_on": "64-bit"}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoRandomNoise",
+            display_name="Ino Random Noise",
+            category="InoSamplerHelper",
+            inputs=[
+                io.Int.Input("noise_seed", default=0, min=0, max=0xffffffffffffffff, control_after_generate=True),
+                io.Boolean.Input("precision", default=True, label_off="32-bit", label_on="64-bit"),
+            ],
+            outputs=[
+                io.Noise.Output(display_name="noise"),
+                io.Int.Output(display_name="seed"),
+            ],
+        )
 
-    RETURN_TYPES = ("NOISE", "INT", )
-    FUNCTION = "function"
-    CATEGORY = "InoSamplerHelper"
+    @classmethod
+    def execute(cls, noise_seed, precision) -> io.NodeOutput:
+        from comfy_extras.nodes_custom_sampler import Noise_RandomNoise
 
-    def function(self, noise_seed, precision:bool):
         if precision:
             final_seed = noise_seed & 0xFFFFFFFFFFFFFFFF
         else:
             final_seed = noise_seed & 0xFFFFFFFF
 
         random_seed = Noise_RandomNoise(final_seed)
-
-        return (random_seed, final_seed, )
+        return io.NodeOutput(random_seed, final_seed)
 
 class InoSwitchOnBool(io.ComfyNode):
     @classmethod
@@ -297,7 +249,7 @@ class InoTerminalLog(io.ComfyNode):
     def execute(cls, enabled, lines) -> io.NodeOutput:
         if not enabled:
             return io.NodeOutput("")
-        captured = _log_capture.get_lines(lines)
+        captured = log_capture.get_lines(lines)
         return io.NodeOutput("\n".join(captured))
 
 
