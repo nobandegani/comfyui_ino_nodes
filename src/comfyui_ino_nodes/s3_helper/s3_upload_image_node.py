@@ -53,10 +53,9 @@ class InoS3UploadImage:
         if date_time_as_name:
             filename = InoUtilHelper.get_date_time_utc_base64()
 
-        _, parent_abs = resolve_comfy_path(parent_folder, folder)
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
-        full_output_folder, file_prefix, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(filename, parent_abs, images[0].shape[1], images[0].shape[0])
+        full_output_folder, file_prefix, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(filename, abs_path, images[0].shape[1], images[0].shape[0])
         results:dict = {}
         for (batch_number, image) in enumerate(images):
             i = 255. * image.cpu().numpy()

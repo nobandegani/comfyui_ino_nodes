@@ -65,8 +65,7 @@ class InoS3UploadString:
 
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
-        _, parent_abs = resolve_comfy_path(parent_folder, folder)
-        full_output_folder, file_prefix, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(filename, parent_abs, 0, 0)
+        full_output_folder, file_prefix, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(filename, abs_path, 0, 0)
 
         filename_with_batch_num = file_prefix.replace("%batch_num%", "0")
         file = f"{filename_with_batch_num}_{counter:05}"

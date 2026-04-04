@@ -56,13 +56,11 @@ class InoS3UploadVideo:
             filename = InoUtilHelper.get_date_time_utc_base64()
 
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
-
-        _, parent_abs = resolve_comfy_path(parent_folder, folder)
         width, height = video.get_dimensions()
 
         full_output_folder, file_prefix, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(
             filename,
-            parent_abs,
+            abs_path,
             width,
             height
         )

@@ -45,11 +45,12 @@ class InoSaveImages:
         time_now = datetime.now(timezone.utc).isoformat()
 
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
+        _, parent_dir = resolve_comfy_path(parent_folder)
 
         prefix = f"{folder}/{filename_prefix}" if folder else filename_prefix
 
         full_output_folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
-            prefix, abs_path if not folder else resolve_comfy_path(parent_folder)[1],
+            prefix, parent_dir,
             images[0].shape[1], images[0].shape[0]
         )
 

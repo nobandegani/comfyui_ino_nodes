@@ -99,12 +99,19 @@ def resolve_comfy_path(parent_folder: str, folder: str = "", filename: str = "")
     else:
         parent_path = folder_paths.get_temp_directory()
 
-    rel = Path(folder)
+    parts = []
+    if folder:
+        parts.append(folder)
     if filename:
-        rel = rel / filename
-    rel_path = str(rel)
-    abs_path = str((Path(parent_path) / rel).resolve())
-    return rel_path, abs_path
+        parts.append(filename)
+
+    if parts:
+        rel = str(Path(*parts))
+        abs_path = str((Path(parent_path) / rel).resolve())
+    else:
+        rel = ""
+        abs_path = str(Path(parent_path).resolve())
+    return rel, abs_path
 
 
 def get_model_from_csv(is_config: bool, model_type: str, model_name:str):
