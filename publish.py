@@ -121,22 +121,27 @@ def git_push():
 
 def publish_comfy_registry(token: str):
     """Publish to Comfy Registry using comfy-cli."""
-    run(
-        ["comfy", "node", "publish"],
-        env={"COMFY_REGISTRY_TOKEN": token},
-    )
-    print("Published to Comfy Registry")
+    print("\n> comfy node publish --token ***")
+    result = subprocess.run(["comfy", "node", "publish", "--token", token])
+    if result.returncode != 0:
+        print(f"Comfy Registry publish exited with code {result.returncode}")
+    else:
+        print("Published to Comfy Registry")
 
 
 def create_github_release(version: str):
     """Create a GitHub release using gh CLI (uses existing gh auth)."""
-    run(
+    print(f"\n> gh release create v{version}")
+    result = subprocess.run(
         ["gh", "release", "create", f"v{version}",
          "--title", f"v{version}",
          "--notes", f"Release v{version}",
          "--latest"],
     )
-    print(f"Created GitHub release v{version}")
+    if result.returncode != 0:
+        print(f"GitHub release creation exited with code {result.returncode}")
+    else:
+        print(f"Created GitHub release v{version}")
 
 
 def main():
