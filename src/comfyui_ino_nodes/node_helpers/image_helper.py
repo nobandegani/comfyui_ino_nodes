@@ -188,11 +188,9 @@ class InoImageResizeByLongerSideAndCropV2(io.ComfyNode):
 
     @classmethod
     def execute(cls, image, target_width, target_height, padding_color, interpolation, crop, position, x, y) -> io.NodeOutput:
-        from comfy_extras.nodes_images import GetImageSize, ImageCrop, ResizeAndPadImage
-        get_image_size = GetImageSize()
-        image_size = get_image_size.get_size(image)
-        source_width = int(image_size[0])
-        source_height = int(image_size[1])
+        from comfy_extras.nodes_images import ImageCrop, ResizeAndPadImage
+        source_width = int(image.shape[2])
+        source_height = int(image.shape[1])
 
         source_is_width_larger = source_width > source_height
         target_is_width_larger = target_width > target_height
