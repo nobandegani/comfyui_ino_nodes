@@ -1,119 +1,86 @@
 import random
 from comfy_api.latest import io
 
-class InoRandomIntInRange:
-    """
 
-    """
+class InoRandomIntInRange(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoRandomIntInRange",
+            display_name="Ino Random Int In Range",
+            category="InoIntHelper",
+            description="Generates a random integer within a range, with optional zero-padded string output.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Int.Input("int_min", default=0, min=0, max=999999),
+                io.Int.Input("int_max", default=999999, min=0, max=999999),
+                io.Int.Input("length", default=1, min=0, max=10),
+            ],
+            outputs=[
+                io.Int.Output(display_name="random_int"),
+                io.String.Output(display_name="formatted_int"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "int_min": ("INT", {"default": 0, "min": 0, "max": 999999}),
-                "int_max": ("INT", {"default": 999999, "min": 0, "max": 999999}),
-                "length": ("INT", {"default": 1, "min": 0, "max": 10}),
-            }
-        }
-
-    RETURN_TYPES = ("INT", "STRING", )
-    RETURN_NAMES = ("RandomInt", "FormattedInt", )
-
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(self, enabled, int_min, int_max, length):
+    def execute(cls, enabled, int_min, int_max, length) -> io.NodeOutput:
         if not enabled:
-            return (-1, "")
+            return io.NodeOutput(-1, "")
         random_int = random.randint(int_min, int_max)
         formatted_int = str(random_int).zfill(length)
-        return (random_int, formatted_int, )
+        return io.NodeOutput(random_int, formatted_int)
 
-class InoIntToString:
-    """
 
-    """
+class InoIntToString(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoIntToString",
+            display_name="Ino Int To String",
+            category="InoIntHelper",
+            description="Converts an integer to a string.",
+            inputs=[
+                io.Int.Input("input_int", default=0),
+            ],
+            outputs=[
+                io.String.Output(display_name="string"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input_int": ("INT", {"default": 0}),
-            }
-        }
+    def execute(cls, input_int) -> io.NodeOutput:
+        return io.NodeOutput(str(input_int))
 
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("ReturnString", )
 
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(self, input_int):
-        return (str(input_int), )
-
-class InoIntToFloat:
-    """
-
-    """
+class InoIntToFloat(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoIntToFloat",
+            display_name="Ino Int To Float",
+            category="InoIntHelper",
+            description="Converts an integer to a float.",
+            inputs=[
+                io.Int.Input("input_int", default=0),
+            ],
+            outputs=[
+                io.Float.Output(display_name="float"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input_int": ("INT", {"default": 0}),
-            }
-        }
+    def execute(cls, input_int) -> io.NodeOutput:
+        return io.NodeOutput(float(input_int))
 
-    RETURN_TYPES = ("FLOAT", )
-    RETURN_NAMES = ("ReturnFLOAT", )
-
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(self, input_int):
-        return (float(input_int), )
-
-class InoIntEqual:
-    """
-        check if its equal to the input Int
-    """
-
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "int_a": ("INT", {
-                    "default": 0,
-                    "step": 1,
-                    "display": "number"
-                }),
-                "int_b": ("INT", {
-                    "default": 0,
-                    "step": 1,
-                    "display": "number"
-                }),
-            },
-
-        }
-
-    RETURN_TYPES = ("BOOLEAN",)
-    RETURN_NAMES = ("is equal",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, int_a, int_b):
-        return (int_a == int_b,)
 
 class InoCompareInt(io.ComfyNode):
     @classmethod
-    def define_schema(cls) -> io.Schema:
+    def define_schema(cls):
         return io.Schema(
             node_id="InoCompareInt",
             display_name="Ino Compare Int",
-            category="InoNodes",
+            category="InoIntHelper",
+            description="Compares two integer values using a selected operator.",
             inputs=[
                 io.Int.Input("int_a", default=0),
                 io.Int.Input("int_b", default=0),
@@ -136,15 +103,14 @@ class InoCompareInt(io.ComfyNode):
         }
         return io.NodeOutput(ops[compare])
 
+
 LOCAL_NODE_CLASS = {
-    "InoIntEqual": InoIntEqual,
     "InoRandomIntInRange": InoRandomIntInRange,
     "InoIntToString": InoIntToString,
     "InoIntToFloat": InoIntToFloat,
     "InoCompareInt": InoCompareInt,
 }
 LOCAL_NODE_NAME = {
-    "InoIntEqual": "Ino Int Equal",
     "InoRandomIntInRange": "Ino Random Int In Range",
     "InoIntToString": "Ino Int To String",
     "InoIntToFloat": "Ino Int To Float",
