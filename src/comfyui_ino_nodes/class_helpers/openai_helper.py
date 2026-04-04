@@ -3,148 +3,128 @@ import os
 from inopyutils import InoJsonHelper, InoOpenAIHelper
 from openai import OpenAI
 
-from custom_nodes.comfyui_ino_nodes.src.comfyui_ino_nodes.node_helper import ino_print_log
+from comfy_api.latest import io
 
-class InoOpenaiResponses:
+from ..node_helper import ino_print_log
+
+
+class InoOpenaiResponses(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "step": 1,
-                    "label": "Seed (0 = random)",
-                    "control_after_generate": True,
-                }),
-                "response_type": (["text", "image"], {}),
-                "text": ("STRING", {"default": ""}),
-                "image_url": ("STRING", {"default": ""}),
-            },
-            "optional": {
-                "openai_api_key": ("STRING", {"default": ""}),
-                "timeout": ("FLOAT", {"default": 300}),
-                "max_retries": ("INT", {"default": 3}),
-                "model": (["gpt-5", "gpt-4.1"], {}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoOpenaiResponses",
+            display_name="Ino Openai Responses",
+            category="InoOpenaiHelper",
+            description="Sends a text or image prompt to OpenAI Responses API and returns the result.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Int.Input("seed", default=0, min=0, max=0xffffffffffffffff, control_after_generate=True),
+                io.Combo.Input("response_type", options=["text", "image"]),
+                io.String.Input("text", default=""),
+                io.String.Input("image_url", default=""),
+                io.String.Input("openai_api_key", default="", optional=True),
+                io.Float.Input("timeout", default=300, optional=True),
+                io.Int.Input("max_retries", default=3, optional=True),
+                io.Combo.Input("model", options=["gpt-5", "gpt-4.1"], optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="id"),
+                io.String.Output(display_name="status"),
+                io.String.Output(display_name="error"),
+                io.String.Output(display_name="output_text"),
+                io.String.Output(display_name="output"),
+            ],
+        )
 
-    CATEGORY = "InoOpenaiHelper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "id", "status", "error", "output_text", "output",)
-    FUNCTION = "function"
-
-    async def function(self, enabled, seed, response_type, text, image_url, openai_api_key="", timeout=300, max_retries=3, model="gpt-5"):
+    @classmethod
+    async def execute(cls, enabled, seed, response_type, text, image_url,
+                      openai_api_key="", timeout=300, max_retries=3, model="gpt-5") -> io.NodeOutput:
         if not enabled:
-            ino_print_log("InoOpenaiResponses","Node is disabled")
-            return (False, "", "not enabled", "", "", "")
+            ino_print_log("InoOpenaiResponses", "Node is disabled")
+            return io.NodeOutput(False, "", "not enabled", "", "", "")
 
         try:
             api_key = openai_api_key if openai_api_key else os.getenv('OPENAI_TOKEN', '')
-            client = OpenAI(
-                api_key=api_key,
-                timeout=timeout,
-                max_retries=max_retries,
-            )
+            client = OpenAI(api_key=api_key, timeout=timeout, max_retries=max_retries)
 
             response_input = text
-            if response_type == "text":
-                pass
-            elif response_type == "image":
-                response_input=[
+            if response_type == "image":
+                response_input = [
                     {
                         "role": "user",
                         "content": [
-                            { "type": "input_text", "text": text },
-                            {
-                                "type": "input_image",
-                                "image_url": image_url
-                            }
+                            {"type": "input_text", "text": text},
+                            {"type": "input_image", "image_url": image_url}
                         ]
                     }
                 ]
-            response = client.responses.create(
-                model=model,
-                input=response_input
-            )
 
-            if response.error:
-                error_message = response.error.message
-            else:
-                error_message = "none"
+            response = client.responses.create(model=model, input=response_input)
 
-            if response.output:
-                response_output = InoJsonHelper.dict_to_string(response.output)["data"]
-            else:
-                response_output = "empty"
+            error_message = response.error.message if response.error else "none"
+            response_output = InoJsonHelper.dict_to_string(response.output)["data"] if response.output else "empty"
+            response_text = response.output_text if response.output_text else "empty"
 
-            if response.output_text:
-                response_text = response.output_text
-            else:
-                response_text = "empty"
-
-            return (True, response.id, response.status, error_message, response_text, response_output, )
+            return io.NodeOutput(True, response.id, response.status, error_message, response_text, response_output)
         except Exception as e:
-            ino_print_log("InoOpenaiResponses","",e)
-            return (False, "", "Openai response failed", str(e), "", "", )
+            ino_print_log("InoOpenaiResponses", "", e)
+            return io.NodeOutput(False, "", "Openai response failed", str(e), "", "")
 
 
-class InoOpenaiChatCompletions:
+class InoOpenaiChatCompletions(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "user_prompt": ("STRING", {"default": ""}),
-            },
-            "optional": {
-                "openai_api_key": ("STRING", {"default": ""}),
-                "base_url": ("STRING", {"default": "https://api.openai.com/v1"}),
-                "model": ("STRING", {"default": "gpt-5"}),
-                "system_prompt": ("STRING", {"default": ""}),
-                "image_url": ("STRING", {"default": ""}),
-                "temperature": ("FLOAT", {"default": 0.7, "min": 0.0, "max": 2.0, "step": 0.1}),
-                "max_tokens": ("INT", {"default": 1024, "min": 1, "max": 128000}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoOpenaiChatCompletions",
+            display_name="Ino Openai Chat Completions",
+            category="InoOpenaiHelper",
+            description="Sends a chat completion request to any OpenAI-compatible API with optional system prompt and image.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("user_prompt", default=""),
+                io.String.Input("openai_api_key", default="", optional=True),
+                io.String.Input("base_url", default="https://api.openai.com/v1", optional=True),
+                io.String.Input("model", default="gpt-5", optional=True),
+                io.String.Input("system_prompt", default="", optional=True),
+                io.String.Input("image_url", default="", optional=True),
+                io.Float.Input("temperature", default=0.7, min=0.0, max=2.0, step=0.1, optional=True),
+                io.Int.Input("max_tokens", default=1024, min=1, max=128000, optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="response"),
+                io.String.Output(display_name="finish_reason"),
+                io.String.Output(display_name="error"),
+            ],
+        )
 
-    CATEGORY = "InoOpenaiHelper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "response", "finish_reason", "error",)
-    FUNCTION = "function"
-
-    async def function(self, enabled, user_prompt, openai_api_key="", base_url="https://api.openai.com/v1",
-                       model="gpt-5", system_prompt="", image_url="", temperature=0.7, max_tokens=1024):
+    @classmethod
+    async def execute(cls, enabled, user_prompt, openai_api_key="", base_url="https://api.openai.com/v1",
+                      model="gpt-5", system_prompt="", image_url="", temperature=0.7, max_tokens=1024) -> io.NodeOutput:
         if not enabled:
             ino_print_log("InoOpenaiChatCompletions", "Node is disabled")
-            return (False, "", "", "not enabled")
+            return io.NodeOutput(False, "", "", "not enabled")
 
         try:
             api_key = openai_api_key if openai_api_key else os.getenv('OPENAI_TOKEN', '')
             image = image_url if image_url else None
 
             result = await InoOpenAIHelper.chat_completions(
-                api_key=api_key,
-                base_url=base_url,
-                model=model,
-                user_prompt=user_prompt,
-                system_prompt=system_prompt,
-                image=image,
-                temperature=temperature,
-                max_tokens=max_tokens,
+                api_key=api_key, base_url=base_url, model=model,
+                user_prompt=user_prompt, system_prompt=system_prompt,
+                image=image, temperature=temperature, max_tokens=max_tokens,
             )
 
             if result.get("success"):
-                return (True, result.get("response", ""), result.get("finish_reason", ""), "none")
+                return io.NodeOutput(True, result.get("response", ""), result.get("finish_reason", ""), "none")
             else:
                 error_msg = result.get("message", "unknown error")
                 ino_print_log("InoOpenaiChatCompletions", "", error_msg)
-                return (False, "", "", error_msg)
+                return io.NodeOutput(False, "", "", error_msg)
         except Exception as e:
             ino_print_log("InoOpenaiChatCompletions", "", e)
-            return (False, "", "", str(e))
+            return io.NodeOutput(False, "", "", str(e))
 
 
 LOCAL_NODE_CLASS = {

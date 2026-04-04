@@ -1,51 +1,47 @@
 from inopyutils import InoJsonHelper, InoHttpHelper
 
-from custom_nodes.comfyui_ino_nodes.src.comfyui_ino_nodes.node_helper import ino_print_log
+from comfy_api.latest import io
+
+from ..node_helper import ino_print_log
 
 
-class InoHttpCall:
-    """
-
-    """
+class InoHttpCall(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoHttpCall",
+            display_name="Ino Http Call",
+            category="InoHttpHelper",
+            description="Makes an HTTP request (GET/POST/PUT/DELETE/PATCH) and returns the response.",
+            is_output_node=True,
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("url", default="http://127.0.0.1:3313/health"),
+                io.Combo.Input("request_type", options=["get", "post", "put", "delete", "patch"]),
+                io.String.Input("headers", default='{"Connection": "keep-alive"}'),
+                io.String.Input("json_payload", default=""),
+                io.Boolean.Input("trust_env", default=False, optional=True),
+                io.Boolean.Input("allow_redirects", default=False, optional=True),
+                io.Int.Input("max_retries", default=10, min=1, max=50, optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.Int.Output(display_name="status_code"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="response"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "url": ("STRING", {"default": "http://127.0.0.1:3313/health"}),
-                "request_type": (list(["get", "post", "put", "delete", "patch",]), {}),
-                "headers": ("STRING", {"default": '{"Connection": "keep-alive"}'}),
-                "json_payload": ("STRING", {"default": None})
-            },
-            "optional": {
-                "trust_env": ("BOOLEAN", {"default": False}),
-                "allow_redirects": ("BOOLEAN", {"default": False}),
-                "max_retries": ("INT", {"default": 10, "min": 1, "max": 50}),
-            }
-        }
-
-    RETURN_TYPES = ("BOOLEAN", "INT", "STRING", "STRING", )
-    RETURN_NAMES = ("Success", "StatusCode", "MSG", "Response", )
-
-    FUNCTION = "function"
-    OUTPUT_NODE = True
-    CATEGORY = "InoNodes"
-
-    async def function(self, enabled,
-                       url, request_type, headers, json_payload,
-                       trust_env, allow_redirects, max_retries
-                       ):
+    async def execute(cls, enabled, url, request_type, headers, json_payload,
+                      trust_env=False, allow_redirects=False, max_retries=10) -> io.NodeOutput:
         if not enabled:
             ino_print_log("InoHttpCall", "Attempt to run but disabled")
-            return (False, 0, "Attempt to run but disabled", "", )
+            return io.NodeOutput(False, 0, "Attempt to run but disabled", "")
 
         http_client = None
         try:
-            http_client = InoHttpHelper(
-                retries=max_retries,
-                trust_env=trust_env
-            )
+            http_client = InoHttpHelper(retries=max_retries, trust_env=trust_env)
 
             if InoJsonHelper.is_valid(headers):
                 headers = InoJsonHelper.string_to_dict(headers)["data"]
@@ -70,20 +66,21 @@ class InoHttpCall:
             else:
                 await http_client.close()
                 ino_print_log("InoHttpCall", "Invalid request type", request_type)
-                return (False, 0, "Invalid request type", "",)
+                return io.NodeOutput(False, 0, "Invalid request type", "")
 
             await http_client.close()
             if not resp["success"]:
                 ino_print_log("InoHttpCall", resp["msg"], resp)
-                return (False, 0, resp["msg"], resp,)
+                return io.NodeOutput(False, 0, resp["msg"], str(resp))
 
             ino_print_log("InoHttpCall", "Success")
-            return (True, resp["status_code"], resp["msg"], resp["data"], )
+            return io.NodeOutput(True, resp["status_code"], resp["msg"], resp["data"])
         except Exception as e:
             if http_client:
                 await http_client.close()
             ino_print_log("InoHttpCall", "", e)
-            return (False, 0, str(e), "",)
+            return io.NodeOutput(False, 0, str(e), "")
+
 
 LOCAL_NODE_CLASS = {
     "InoHttpCall": InoHttpCall,
