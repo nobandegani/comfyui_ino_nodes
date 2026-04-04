@@ -253,19 +253,22 @@ class InoLoadImagesFromFolder(io.ComfyNode):
                 io.String.Output(display_name="rel_path"),
                 io.String.Output(display_name="abs_path"),
                 io.Image.Output(display_name="images", is_output_list=True),
+                io.Mask.Output(display_name="masks", is_output_list=True),
                 io.Int.Output(display_name="number of images"),
             ],
         )
 
     @classmethod
     def execute(cls, parent_folder, folder, load_cap, skip_from_first):
+        import torch
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
-        output_images = load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
+        output_images, output_masks = load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
         if not output_images:
             from nodes import EmptyImage
             empty_image = EmptyImage().generate(512, 512)[0]
-            return io.NodeOutput(False, "No images found", rel_path, abs_path, [empty_image], 0)
-        return io.NodeOutput(True, f"Loaded {len(output_images)} images", rel_path, abs_path, output_images, len(output_images))
+            empty_mask = torch.zeros((64, 64), dtype=torch.float32, device="cpu").unsqueeze(0)
+            return io.NodeOutput(False, "No images found", rel_path, abs_path, [empty_image], [empty_mask], 0)
+        return io.NodeOutput(True, f"Loaded {len(output_images)} images", rel_path, abs_path, output_images, output_masks, len(output_images))
 
 
 
@@ -563,7 +566,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
 
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
 
-        images = load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
+        images, _ = load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
 
         if not images:
             return io.NodeOutput(False, "No images found", rel_path, abs_path, [empty_image], [empty_latent], positive, negative, 0)

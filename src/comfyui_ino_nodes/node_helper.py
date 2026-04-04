@@ -172,14 +172,12 @@ def load_image(image_path: str):
     return output_image, output_mask
 
 
-def load_images_from_folder(parent_folder: str, folder: str, load_cap: int = 0, skip_from_first: int = 0) -> list:
-    """Loads images from a ComfyUI folder with EXIF rotation handling. Returns list of torch tensors."""
-    import folder_paths
-
+def load_images_from_folder(parent_folder: str, folder: str, load_cap: int = 0, skip_from_first: int = 0) -> tuple:
+    """Loads images from a ComfyUI folder. Returns (output_images, output_masks) lists."""
     _, abs_path = resolve_comfy_path(parent_folder, folder)
 
     if not os.path.isdir(abs_path):
-        return []
+        return [], []
 
     valid_extensions = [".png", ".jpg", ".jpeg", ".webp"]
     image_files = sorted([
@@ -196,15 +194,17 @@ def load_images_from_folder(parent_folder: str, folder: str, load_cap: int = 0, 
         image_files = image_files[:load_cap]
 
     if not image_files:
-        return []
+        return [], []
 
     output_images = []
+    output_masks = []
     for file in image_files:
         image_path = os.path.join(abs_path, file)
-        image, _ = load_image(image_path)
+        image, mask = load_image(image_path)
         output_images.append(image)
+        output_masks.append(mask)
 
-    return output_images
+    return output_images, output_masks
 
 
 def get_model_from_csv(is_config: bool, model_type: str, model_name:str):
