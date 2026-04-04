@@ -2,46 +2,84 @@ import base64
 import io as std_io
 import torch
 import os
+import math
 from pathlib import Path
 
 from torchvision.transforms import InterpolationMode
 import torchvision.transforms.functional as TorchFunctional
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from PIL import Image
 import numpy as np
 
+import nodes
 import folder_paths
-from comfy_api.latest import ComfyExtension, io
+from comfy_api.latest import io
 
 from inopyutils import InoJsonHelper, ino_is_err
 
 from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path, load_images_from_folder
 
+MAX_RESOLUTION = nodes.MAX_RESOLUTION
 
-class InoSaveImages:
-    """
 
-    """
+def _batch_images(images, padding):
+    from collections import Counter
+    from comfy.utils import common_upscale
+
+    processed = []
+    if padding:
+        max_h = max(img.shape[1] for img in images)
+        max_w = max(img.shape[2] for img in images)
+        for img in images:
+            h, w = img.shape[1], img.shape[2]
+            if h != max_h or w != max_w:
+                padded = torch.zeros(1, max_h, max_w, img.shape[3])
+                y_offset = (max_h - h) // 2
+                x_offset = (max_w - w) // 2
+                padded[:, y_offset:y_offset + h, x_offset:x_offset + w, :] = img
+                processed.append(padded)
+            else:
+                processed.append(img)
+    else:
+        sizes = Counter((img.shape[1], img.shape[2]) for img in images)
+        target_h, target_w = sizes.most_common(1)[0][0]
+        for img in images:
+            if img.shape[1] != target_h or img.shape[2] != target_w:
+                img = img.movedim(-1, 1)
+                img = common_upscale(img, target_w, target_h, "lanczos", "center")
+                img = img.movedim(1, -1)
+            processed.append(img)
+
+    return torch.cat(processed, dim=0)
+
+
+class InoSaveImages(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoSaveImages",
+            display_name="Ino Save Images",
+            category="InoImageHelper",
+            description="Saves images to a specified folder with a filename prefix.",
+            is_output_node=True,
+            inputs=[
+                io.Image.Input("images", tooltip="The images to save."),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("folder", default=""),
+                io.String.Input("filename_prefix", default="ComfyUI", tooltip="The prefix for the file to save."),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="rel_path"),
+                io.String.Output(display_name="abs_path"),
+                io.Int.Output(display_name="number_of_images"),
+                io.String.Output(display_name="datetime_iso"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "images": ("IMAGE", {"tooltip": "The images to save."}),
-                "parent_folder": (PARENT_FOLDER_OPTIONS,),
-                "folder": ("STRING", {"default": ""}),
-                "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "The prefix for the file to save. This may include formatting information such as %date:yyyy-MM-dd% or %Empty Latent Image.width% to include values from nodes."})
-            }
-        }
-
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "INT", "STRING", )
-    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "number_of_images", "datetime_iso", )
-
-    FUNCTION = "function"
-    OUTPUT_NODE = True
-    CATEGORY = "InoNodes"
-
-    def function(self, images, parent_folder, folder, filename_prefix):
+    def execute(cls, images, parent_folder, folder, filename_prefix) -> io.NodeOutput:
         time_now = datetime.now(timezone.utc).isoformat()
 
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
@@ -74,49 +112,41 @@ class InoSaveImages:
             counter += 1
 
         if len(results) == 0:
-            return (False, "No images saved", rel_path, abs_path, 0, time_now)
+            return io.NodeOutput(False, "No images saved", rel_path, abs_path, 0, time_now)
 
         names = [r["filename"] for r in results]
-        return (True, str(names), rel_path, abs_path, len(results), time_now)
+        return io.NodeOutput(True, str(names), rel_path, abs_path, len(results), time_now)
 
-class InoImageResizeByLongerSideV1:
+
+class InoImageResizeByLongerSideV1(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "image": ("IMAGE",),
-                "size": ("INT", {"default": 512, "min": 0, "step": 1, "max": 99999}),
-                "interpolation_mode": (
-                    ["bicubic", "bilinear", "nearest", "nearest exact"],
-                ),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoImageResizeByLongerSideV1",
+            display_name="Ino Image Resize By Longer Side V1",
+            category="InoImageHelper",
+            description="Resizes an image so the longer side matches the specified size, preserving aspect ratio.",
+            inputs=[
+                io.Image.Input("image"),
+                io.Int.Input("size", default=512, min=0, max=99999, step=1),
+                io.Combo.Input("interpolation_mode", options=["bicubic", "bilinear", "nearest", "nearest exact"]),
+            ],
+            outputs=[
+                io.Image.Output(display_name="image"),
+            ],
+        )
 
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("Result",)
-
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(
-        self,
-        image: torch.Tensor,
-        size: int,
-        interpolation_mode: str,
-    ):
-        assert isinstance(image, torch.Tensor)
-        assert isinstance(size, int)
-        assert isinstance(interpolation_mode, str)
-
-        interpolation_mode = interpolation_mode.upper().replace(" ", "_")
-        interpolation_mode = getattr(InterpolationMode, interpolation_mode)
+    @classmethod
+    def execute(cls, image, size, interpolation_mode) -> io.NodeOutput:
+        interp = interpolation_mode.upper().replace(" ", "_")
+        interp = getattr(InterpolationMode, interp)
 
         _, h, w, _ = image.shape
 
         if h >= w:
             new_h = size
             new_w = round(w * new_h / h)
-        else:  # h < w
+        else:
             new_w = size
             new_h = round(h * new_w / w)
 
@@ -124,99 +154,82 @@ class InoImageResizeByLongerSideV1:
         image = TorchFunctional.resize(
             image,
             (new_h, new_w),
-            interpolation=interpolation_mode,
+            interpolation=interp,
             antialias=True,
         )
         image = image.permute(0, 2, 3, 1)
 
-        return (image,)
+        return io.NodeOutput(image)
 
-import nodes
-MAX_RESOLUTION = nodes.MAX_RESOLUTION
 
-class InoImageResizeByLongerSideAndCropV2:
+class InoImageResizeByLongerSideAndCropV2(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "image": ("IMAGE",),
-                "target_width": ("INT", {
-                    "default": 512,
-                    "min": 1,
-                    "max": MAX_RESOLUTION,
-                    "step": 1
-                }),
-                "target_height": ("INT", {
-                    "default": 512,
-                    "min": 1,
-                    "max": MAX_RESOLUTION,
-                    "step": 1
-                }),
-                "padding_color": (["white", "black"],),
-                "interpolation": (["area", "bicubic", "nearest-exact", "bilinear", "lanczos"],),
-                "crop": ("BOOLEAN", {"default": True}),
-                "position": (["top-left", "top-center", "center", "bottom-center", "bottom-right"],),
-                "x": ("INT", {"default": 0, "min": 0, "max": MAX_RESOLUTION, "step": 1}),
-                "y": ("INT", {"default": 0, "min": 0, "max": MAX_RESOLUTION, "step": 1}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoImageResizeByLongerSideAndCropV2",
+            display_name="Ino Image Resize By Longer Side And Crop V2",
+            category="InoImageHelper",
+            description="Resizes an image to fit target dimensions with optional cropping and position control.",
+            inputs=[
+                io.Image.Input("image"),
+                io.Int.Input("target_width", default=512, min=1, max=MAX_RESOLUTION, step=1),
+                io.Int.Input("target_height", default=512, min=1, max=MAX_RESOLUTION, step=1),
+                io.Combo.Input("padding_color", options=["white", "black"]),
+                io.Combo.Input("interpolation", options=["area", "bicubic", "nearest-exact", "bilinear", "lanczos"]),
+                io.Boolean.Input("crop", default=True),
+                io.Combo.Input("position", options=["top-left", "top-center", "center", "bottom-center", "bottom-right"]),
+                io.Int.Input("x", default=0, min=0, max=MAX_RESOLUTION, step=1),
+                io.Int.Input("y", default=0, min=0, max=MAX_RESOLUTION, step=1),
+            ],
+            outputs=[
+                io.Image.Output(display_name="image"),
+            ],
+        )
 
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("Result",)
-
-    FUNCTION = "function"
-    CATEGORY = "InoNodes"
-
-    def function(self, image, target_width: int, target_height: int, padding_color, interpolation, crop, position, x, y):
+    @classmethod
+    def execute(cls, image, target_width, target_height, padding_color, interpolation, crop, position, x, y) -> io.NodeOutput:
         from comfy_extras.nodes_images import GetImageSize, ImageCrop, ResizeAndPadImage
         get_image_size = GetImageSize()
         image_size = get_image_size.get_size(image)
         source_width = int(image_size[0])
         source_height = int(image_size[1])
 
-        source_is_width_larger:bool = source_width > source_height
-        target_is_width_larger:bool = target_width > target_height
+        source_is_width_larger = source_width > source_height
+        target_is_width_larger = target_width > target_height
 
-        if source_is_width_larger == True and target_is_width_larger == True:
-            resize_width:int = target_width
-            resize_height:int = round((target_width / source_width) * source_height)
+        if source_is_width_larger and target_is_width_larger:
+            resize_width = target_width
+            resize_height = round((target_width / source_width) * source_height)
         else:
-            resize_height:int = target_height
-            resize_width:int = round((target_height / source_height) * source_width)
+            resize_height = target_height
+            resize_width = round((target_height / source_height) * source_width)
 
         resizer = ResizeAndPadImage()
         resized_image = resizer.resize_and_pad(image, resize_width, resize_height, padding_color, interpolation)
 
         if not crop:
-            return (resized_image[0],)
+            return io.NodeOutput(resized_image[0])
 
         cropper = ImageCrop()
-        # Compute crop origin based on position. If position is set, it overrides manual x/y.
         canvas = resized_image[0]
-        # canvas shape: (batch, height, width, channels)
         canvas_h = int(canvas.shape[1])
         canvas_w = int(canvas.shape[2])
 
         def clamp(val, lo, hi):
             return max(lo, min(val, hi))
 
-        # Defaults to manual x/y, but overridden by position mapping below
         crop_x = int(x)
         crop_y = int(y)
 
-        # Horizontal positions
-        left_x = 0
         center_x = max(0, (canvas_w - int(target_width)) // 2)
         right_x = max(0, canvas_w - int(target_width))
-        # Vertical positions
-        top_y = 0
         center_y = max(0, (canvas_h - int(target_height)) // 2)
         bottom_y = max(0, canvas_h - int(target_height))
 
         if position == "top-left":
-            crop_x, crop_y = left_x, top_y
+            crop_x, crop_y = 0, 0
         elif position == "top-center":
-            crop_x, crop_y = center_x, top_y
+            crop_x, crop_y = center_x, 0
         elif position == "center":
             crop_x, crop_y = center_x, center_y
         elif position == "bottom-center":
@@ -224,14 +237,12 @@ class InoImageResizeByLongerSideAndCropV2:
         elif position == "bottom-right":
             crop_x, crop_y = right_x, bottom_y
 
-        # Ensure crop origin stays within canvas
         crop_x = clamp(crop_x, 0, max(0, canvas_w - 1))
         crop_y = clamp(crop_y, 0, max(0, canvas_h - 1))
 
         cropped_image = cropper.crop(canvas, int(target_width), int(target_height), int(crop_x), int(crop_y))
 
-        return (cropped_image[0],)
-
+        return io.NodeOutput(cropped_image[0])
 
 
 class InoLoadImagesFromFolder(io.ComfyNode):
@@ -240,9 +251,10 @@ class InoLoadImagesFromFolder(io.ComfyNode):
         return io.Schema(
             node_id="InoLoadImagesFromFolder",
             display_name="Ino Load Images From Folder",
-            category="InoNodes",
+            category="InoImageHelper",
+            description="Loads images from a folder with optional skip and cap. Returns images, masks, and count.",
             inputs=[
-                io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
                 io.String.Input("folder"),
                 io.Int.Input("load_cap", default=0, min=0, max=10000),
                 io.Int.Input("skip_from_first", default=0, min=0, max=10000),
@@ -259,8 +271,7 @@ class InoLoadImagesFromFolder(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, parent_folder, folder, load_cap, skip_from_first):
-        import torch
+    def execute(cls, parent_folder, folder, load_cap, skip_from_first) -> io.NodeOutput:
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
         output_images, output_masks = load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
         if not output_images:
@@ -271,46 +282,14 @@ class InoLoadImagesFromFolder(io.ComfyNode):
         return io.NodeOutput(True, f"Loaded {len(output_images)} images", rel_path, abs_path, output_images, output_masks, len(output_images))
 
 
-
-def _batch_images(images, padding):
-    import torch
-    from collections import Counter
-    from comfy.utils import common_upscale
-
-    processed = []
-    if padding:
-        max_h = max(img.shape[1] for img in images)
-        max_w = max(img.shape[2] for img in images)
-        for img in images:
-            h, w = img.shape[1], img.shape[2]
-            if h != max_h or w != max_w:
-                padded = torch.zeros(1, max_h, max_w, img.shape[3])
-                y_offset = (max_h - h) // 2
-                x_offset = (max_w - w) // 2
-                padded[:, y_offset:y_offset + h, x_offset:x_offset + w, :] = img
-                processed.append(padded)
-            else:
-                processed.append(img)
-    else:
-        sizes = Counter((img.shape[1], img.shape[2]) for img in images)
-        target_h, target_w = sizes.most_common(1)[0][0]
-        for img in images:
-            if img.shape[1] != target_h or img.shape[2] != target_w:
-                img = img.movedim(-1, 1)
-                img = common_upscale(img, target_w, target_h, "lanczos", "center")
-                img = img.movedim(1, -1)
-            processed.append(img)
-
-    return torch.cat(processed, dim=0)
-
-
 class InoImageListToBatch(io.ComfyNode):
     @classmethod
     def define_schema(cls):
         return io.Schema(
             node_id="InoImageListToBatch",
             display_name="Ino Image List To Batch",
-            category="InoNodes",
+            category="InoImageHelper",
+            description="Combines a list of images into a single batched tensor, with resize or pad options.",
             is_input_list=True,
             inputs=[
                 io.Image.Input("images"),
@@ -323,10 +302,9 @@ class InoImageListToBatch(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, images, padding):
+    def execute(cls, images, padding) -> io.NodeOutput:
         padding = padding[0] if isinstance(padding, list) else padding
         if len(images) == 0:
-            import torch
             return io.NodeOutput(torch.empty(0), 0)
         batched = _batch_images(images, padding)
         return io.NodeOutput(batched, len(images))
@@ -338,75 +316,39 @@ class InoCropImageByBox(io.ComfyNode):
         return io.Schema(
             node_id="InoCropImageByBox",
             display_name="Ino Crop Image By Box",
-            category="InoNodes",
+            category="InoImageHelper",
+            description="Crops an image to a square region around a point with adjustable shift offsets.",
             inputs=[
-                io.Image.Input(
-                    "image"
-                ),
-                io.Int.Input(
-                    "x",
-                    default=0,
-                    min=0,
-                    max=10000
-                ),
-                io.Int.Input(
-                    "y",
-                    default=0,
-                    min=0,
-                    max=10000
-                ),
-                io.Float.Input(
-                    "shift_x",
-                    default=0.5,
-                    min=0,
-                    max=1,
-                    step=0.1
-                ),
-                io.Float.Input(
-                    "shift_y",
-                    default=0.5,
-                    min=0,
-                    max=1,
-                    step=0.1
-                )
+                io.Image.Input("image"),
+                io.Int.Input("x", default=0, min=0, max=10000),
+                io.Int.Input("y", default=0, min=0, max=10000),
+                io.Float.Input("shift_x", default=0.5, min=0, max=1, step=0.1),
+                io.Float.Input("shift_y", default=0.5, min=0, max=1, step=0.1),
             ],
             outputs=[
-                io.Image.Output(
-                    display_name="images",
-                    tooltip="Image",
-                ),
+                io.Image.Output(display_name="image"),
             ],
         )
 
     @classmethod
-    def execute(cls, image, x, y, shift_x, shift_y):
+    def execute(cls, image, x, y, shift_x, shift_y) -> io.NodeOutput:
         height = int(image.shape[1])
         width = int(image.shape[2])
 
-        crop_size: int = int(min(width, height))
+        crop_size = int(min(width, height))
 
-        x = float(x)
-        y = float(y)
-        shift_x = float(shift_x)
-        shift_y = float(shift_y)
-
-        crop_x = int(round(x - (crop_size * shift_x)))
-        crop_y = int(round(y - (crop_size * shift_y)))
+        crop_x = int(round(float(x) - (crop_size * float(shift_x))))
+        crop_y = int(round(float(y) - (crop_size * float(shift_y))))
 
         crop_x = max(0, min(crop_x, width - crop_size))
         crop_y = max(0, min(crop_y, height - crop_size))
 
-        to_x: int = crop_x + crop_size
-        to_y: int = crop_y + crop_size
+        to_x = crop_x + crop_size
+        to_y = crop_y + crop_size
 
         img = image[:, crop_y:to_y, crop_x:to_x, :]
+        return io.NodeOutput(img)
 
-        print(
-            f"image_shape={tuple(image.shape)} crop_size={crop_size} "
-            f"crop_x={crop_x} crop_y={crop_y} to_x={to_x} to_y={to_y} "
-            f"out_shape={tuple(img.shape)}"
-        )
-        return io.NodeOutput(img, )
 
 class InoOnImageListCompleted(io.ComfyNode):
     @classmethod
@@ -414,31 +356,18 @@ class InoOnImageListCompleted(io.ComfyNode):
         return io.Schema(
             node_id="InoOnImageListCompleted",
             display_name="Ino On Image List Completed",
-            category="InoNodes",
+            category="InoImageHelper",
+            description="Tracks image processing progress with a persistent counter stored in the folder.",
             is_output_node=True,
             inputs=[
                 io.Image.Input("input_image"),
-                io.Combo.Input(
-                    "parent_folder",
-                    options=["input", "output", "temp"]
-                ),
-                io.String.Input(
-                    "folder",
-                ),
-                io.Int.Input(
-                    "count",
-                    default=0,
-                    min=0,
-                    max=10000
-                )
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("folder"),
+                io.Int.Input("count", default=0, min=0, max=10000),
             ],
             outputs=[
-                io.Image.Output(
-                    "output_image"
-                ),
-                io.Int.Output(
-                    display_name="current",
-                )
+                io.Image.Output(display_name="output_image"),
+                io.Int.Output(display_name="current"),
             ],
         )
 
@@ -447,15 +376,10 @@ class InoOnImageListCompleted(io.ComfyNode):
         return datetime.now(timezone.utc).isoformat()
 
     @classmethod
-    async def execute(cls, input_image, parent_folder, folder, count):
-        if parent_folder == "input":
-            sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
-        elif parent_folder == "output":
-            sub_input_dir = os.path.join(folder_paths.get_output_directory(), folder)
-        else:
-            sub_input_dir = os.path.join(folder_paths.get_temp_directory(), folder)
+    async def execute(cls, input_image, parent_folder, folder, count) -> io.NodeOutput:
+        _, abs_path = resolve_comfy_path(parent_folder, folder)
 
-        counter_path:Path = Path(sub_input_dir) / "counter.json"
+        counter_path = Path(abs_path) / "counter.json"
 
         counter_json = {"counter": 1}
         if counter_path.exists():
@@ -476,28 +400,32 @@ class InoOnImageListCompleted(io.ComfyNode):
 
         return io.NodeOutput(input_image, counter_json["counter"])
 
-class InoImageToBase64:
+
+class InoImageToBase64(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "image": ("IMAGE",),
-                "format": (["png", "jpeg", "webp"], {"default": "png"}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoImageToBase64",
+            display_name="Ino Image To Base64",
+            category="InoImageHelper",
+            description="Converts an image to a base64-encoded data URL string.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Image.Input("image"),
+                io.Combo.Input("format", options=["png", "jpeg", "webp"], default="png"),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="base64_string"),
+            ],
+        )
 
-    CATEGORY = "InoNodes"
-    RETURN_TYPES = ("BOOLEAN", "STRING",)
-    RETURN_NAMES = ("success", "base64_string",)
-    FUNCTION = "function"
-
-    def function(self, enabled, image, format="png"):
+    @classmethod
+    def execute(cls, enabled, image, format="png") -> io.NodeOutput:
         if not enabled:
-            return (False, "")
+            return io.NodeOutput(False, "")
 
         try:
-            # IMAGE tensor is (B, H, W, C) float32 [0,1] — take first image
             img_np = (image[0].cpu().numpy() * 255).astype(np.uint8)
             pil_image = Image.fromarray(img_np)
 
@@ -508,9 +436,9 @@ class InoImageToBase64:
             pil_image.save(buffer, format=format.upper())
             b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-            return (True, f"data:{mime};base64,{b64}")
+            return io.NodeOutput(True, f"data:{mime};base64,{b64}")
         except Exception as e:
-            return (False, str(e))
+            return io.NodeOutput(False, str(e))
 
 
 class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
@@ -521,10 +449,11 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         return io.Schema(
             node_id="InoImagesFromFolderToReferenceLatent",
             display_name="Ino Images From Folder To Reference Latent",
-            category="InoNodes",
+            category="InoImageHelper",
+            description="Loads images from a folder, scales them, and encodes as reference latents for conditioning.",
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
-                io.Combo.Input("parent_folder", options=["input", "output", "temp"]),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
                 io.String.Input("folder"),
                 io.Int.Input("load_cap", default=0, min=0, max=10000),
                 io.Int.Input("skip_from_first", default=0, min=0, max=10000),
@@ -549,7 +478,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, enabled, parent_folder, folder, load_cap, skip_from_first, upscale_method, megapixels, resolution_steps, vae, positive, negative=None):
+    def execute(cls, enabled, parent_folder, folder, load_cap, skip_from_first, upscale_method, megapixels, resolution_steps, vae, positive, negative=None) -> io.NodeOutput:
         from comfy_extras.nodes_edit_model import ReferenceLatent
         from nodes import VAEEncode
 
@@ -576,7 +505,6 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             scaled = ImageScaleToTotalPixels.execute(img, upscale_method, megapixels, resolution_steps).args[0]
             scaled_images.append(scaled)
 
-
         latents = []
         pos_cond = positive
         neg_cond = negative
@@ -597,7 +525,8 @@ class InoImagesToReferenceLatent(io.ComfyNode):
         return io.Schema(
             node_id="InoImagesToReferenceLatent",
             display_name="Ino Images To Reference Latent",
-            category="InoNodes",
+            category="InoImageHelper",
+            description="Encodes a batch of images as reference latents and applies them to conditioning.",
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.Image.Input("images"),
@@ -613,7 +542,7 @@ class InoImagesToReferenceLatent(io.ComfyNode):
         )
 
     @classmethod
-    def execute(cls, enabled, images, vae, positive, negative=None):
+    def execute(cls, enabled, images, vae, positive, negative=None) -> io.NodeOutput:
         if not enabled:
             return io.NodeOutput([], positive, negative)
 
