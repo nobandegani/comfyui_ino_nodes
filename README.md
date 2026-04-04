@@ -335,7 +335,7 @@ Video preview.
 
 | | |
 |---|---|
-| **Version** | 2.0.1 |
+| **Version** | 2.0.2 |
 | **Python** | >= 3.10 |
 | **ComfyUI** | v0.18.1+ |
 | **Schema** | V3 (all nodes) |
