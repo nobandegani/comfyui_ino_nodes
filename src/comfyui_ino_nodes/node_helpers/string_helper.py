@@ -1,145 +1,130 @@
-import os
 import re
 import hashlib
 import base64
 from pathlib import Path
 
-import folder_paths
+from comfy_api.latest import io
 
-class InoStringToggleCase:
-    """
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
 
-    """
+
+class InoStringToggleCase(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoStringToggleCase",
+            display_name="Ino String Toggle Case",
+            category="InoStringHelper",
+            description="Converts a string to upper or lower case.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("input_string", default="Test String", multiline=True),
+                io.Boolean.Input("toggle_to", default=True, label_off="Lower", label_on="Upper"),
+            ],
+            outputs=[
+                io.String.Output(display_name="string"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "input_string": ("STRING", {
-                    "multiline": True,
-                    "default": "Test String"
-                }),
-                "toggle_to": ("BOOLEAN", {"default": True, "label_off": "Lower", "label_on": "Upper"}),
-            }
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("String",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, enabled, input_string, toggle_to):
+    def execute(cls, enabled, input_string, toggle_to) -> io.NodeOutput:
         if not enabled:
-            return (input_string,)
+            return io.NodeOutput(input_string)
         result = str(input_string).upper() if toggle_to else str(input_string).lower()
-        return (result,)
+        return io.NodeOutput(result)
 
 
-class InoStringReplaceSimple:
-    """
-
-    """
+class InoStringReplacePlaceholder(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoStringReplacePlaceholder",
+            display_name="Ino String Replace Placeholder",
+            category="InoStringHelper",
+            description="Replaces all {placeholder} tokens in a string with the replacement value.",
+            inputs=[
+                io.String.Input("input_string", default="Test {String}"),
+                io.String.Input("replace_string", default="Replaced"),
+            ],
+            outputs=[
+                io.String.Output(display_name="string"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input_string": ("STRING", {"default": "Test {String}"}),
-                "replace_string": ("STRING", {"default": "Replaced"}),
-            }
-        }
+    def execute(cls, input_string, replace_string) -> io.NodeOutput:
+        return io.NodeOutput(re.sub(r"\{[^}]*\}", replace_string, input_string))
 
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("string", )
 
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, input_string, replace_string):
-        return (re.sub(r"\{[^}]*\}", replace_string, input_string), )
-
-class InoStringReplaceSimple2:
-    """
-
-    """
+class InoStringReplace(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoStringReplace",
+            display_name="Ino String Replace",
+            category="InoStringHelper",
+            description="Replaces all occurrences of a substring with another.",
+            inputs=[
+                io.String.Input("input_string", default="Test string"),
+                io.String.Input("replace_from", default="Test"),
+                io.String.Input("replace_to", default="Example"),
+            ],
+            outputs=[
+                io.String.Output(display_name="string"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input_string": ("STRING", {"default": "Test string"}),
-                "replace_from": ("STRING", {"default": "Test"}),
-                "replace_to": ("STRING", {"default": "Example"}),
-            }
-        }
+    def execute(cls, input_string, replace_from, replace_to) -> io.NodeOutput:
+        return io.NodeOutput(input_string.replace(replace_from, replace_to))
 
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("string", )
 
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, input_string, replace_from, replace_to):
-        result = input_string.replace(replace_from, replace_to)
-        return (result, )
-
-class InoStringStripSimple:
-    """
-
-    """
+class InoStringStripSimple(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoStringStripSimple",
+            display_name="Ino String Strip Simple",
+            category="InoStringHelper",
+            description="Removes all specified characters from a string.",
+            inputs=[
+                io.String.Input("input_string", default="Test {String}"),
+                io.String.Input("strip_string", default="'[]{}()-_+="),
+            ],
+            outputs=[
+                io.String.Output(display_name="string"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input_string": ("STRING", {"default": "Test {String}"}),
-                "strip_string": ("STRING", {"default": "'[]{}()-_+="}),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("string", )
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, input_string, strip_string):
+    def execute(cls, input_string, strip_string) -> io.NodeOutput:
         if input_string is None:
-            return ("",)
-
+            return io.NodeOutput("")
         translation_table = str.maketrans("", "", strip_string)
-        return (input_string.translate(translation_table), )
+        return io.NodeOutput(input_string.translate(translation_table))
 
-class InoStringToAlphabeticString:
-    """
 
-    """
+class InoStringToAlphabeticString(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoStringToAlphabeticString",
+            display_name="Ino String To Alphabetic String",
+            category="InoStringHelper",
+            description="Hashes a string and converts it to a fixed-length alphabetic-only string.",
+            inputs=[
+                io.String.Input("input_string", default="mjp043n85se4z"),
+                io.Int.Input("length", default=8, min=1, max=64),
+            ],
+            outputs=[
+                io.String.Output(display_name="string"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "input_string": ("STRING", {"default": "mjp043n85se4z"}),
-                "length": ("INT", {"default": 8}),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("string", )
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, input_string, length):
+    def execute(cls, input_string, length) -> io.NodeOutput:
         if input_string is None:
-            return ("",)
+            return io.NodeOutput("")
 
         alphabet = "abcdefghijklmnopqrstuvwxyz"
         digest = hashlib.sha256(input_string.encode()).digest()
@@ -149,73 +134,66 @@ class InoStringToAlphabeticString:
         for ch in b32:
             if 'a' <= ch <= 'z':
                 idx = ord(ch) - ord('a')
-            else:  # '2'..'7'
+            else:
                 idx = (ord(ch) - ord('2')) % 26
             result_chars.append(alphabet[idx])
             if len(result_chars) == length:
                 break
 
-        alphbetic_string = "".join(result_chars)
+        return io.NodeOutput("".join(result_chars))
 
-        return (alphbetic_string, )
 
-class InoSaveText:
+class InoSaveText(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoSaveText",
+            display_name="Ino Save Text",
+            category="InoStringHelper",
+            description="Saves a text string to a file in the specified folder.",
+            is_output_node=True,
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("text", default="", multiline=True),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("folder", default=""),
+                io.String.Input("filename", default="output.txt"),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="rel_path"),
+                io.String.Output(display_name="abs_path"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "text": ("STRING", {"multiline": True, "default": ""}),
-                "parent_folder": (["input", "output", "temp"],),
-                "folder": ("STRING", {"default": ""}),
-                "file_name": ("STRING", {"default": "output.txt"}),
-            }
-        }
-
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "message", "file_path",)
-
-    FUNCTION = "function"
-
-    OUTPUT_NODE = True
-
-    CATEGORY = "InoNodes"
-
-    def function(self, enabled, text, parent_folder, folder, file_name):
-        if parent_folder == "input":
-            base_dir = folder_paths.get_input_directory()
-        elif parent_folder == "output":
-            base_dir = folder_paths.get_output_directory()
-        else:
-            base_dir = folder_paths.get_temp_directory()
-
-        save_dir = Path(base_dir) / folder
-        file_path = str((save_dir / file_name).resolve())
+    def execute(cls, enabled, text, parent_folder, folder, filename) -> io.NodeOutput:
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder, filename)
 
         if not enabled:
-            return (False, "not enabled", file_path,)
+            return io.NodeOutput(False, "not enabled", rel_path, abs_path)
         try:
-            save_dir.mkdir(parents=True, exist_ok=True)
-            with open(file_path, "w", encoding="utf-8") as f:
+            Path(abs_path).parent.mkdir(parents=True, exist_ok=True)
+            with open(abs_path, "w", encoding="utf-8") as f:
                 f.write(text)
-            return (True, "saved", file_path,)
+            return io.NodeOutput(True, "saved", rel_path, abs_path)
         except Exception as e:
-            return (False, str(e), file_path,)
+            return io.NodeOutput(False, str(e), rel_path, abs_path)
 
 
 LOCAL_NODE_CLASS = {
     "InoStringToggleCase": InoStringToggleCase,
-    "InoStringReplaceSimple": InoStringReplaceSimple,
-    "InoStringReplaceSimple2": InoStringReplaceSimple2,
+    "InoStringReplacePlaceholder": InoStringReplacePlaceholder,
+    "InoStringReplace": InoStringReplace,
     "InoStringStripSimple": InoStringStripSimple,
     "InoStringToAlphabeticString": InoStringToAlphabeticString,
     "InoSaveText": InoSaveText,
 }
 LOCAL_NODE_NAME = {
     "InoStringToggleCase": "Ino String Toggle Case",
-    "InoStringReplaceSimple": "Ino String Replace Simple",
-    "InoStringReplaceSimple2": "Ino String Replace Simple2",
+    "InoStringReplacePlaceholder": "Ino String Replace Placeholder",
+    "InoStringReplace": "Ino String Replace",
     "InoStringStripSimple": "Ino String Strip Simple",
     "InoStringToAlphabeticString": "Ino String To Alphabetic String",
     "InoSaveText": "Ino Save Text",
