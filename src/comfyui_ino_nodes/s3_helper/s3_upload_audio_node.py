@@ -3,7 +3,7 @@ from pathlib import Path
 from inopyutils import ino_is_err, InoUtilHelper
 
 import folder_paths
-from comfy_api.latest import io, IO
+from comfy_api.latest import io
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
