@@ -347,6 +347,148 @@ class InoRemoveDuplicateFiles(io.ComfyNode):
         return io.NodeOutput(res["success"], res["msg"], rel_path, abs_path, res["removed"], res["removed_count"])
 
 
+class InoGetLastFile(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetLastFile",
+            display_name="Ino Get Last File",
+            category="InoFileHelper",
+            description="Returns the most recently modified file in a folder.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("folder", default=""),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="filename"),
+                io.String.Output(display_name="abs_path"),
+            ],
+        )
+
+    @classmethod
+    async def execute(cls, enabled, parent_folder, folder) -> io.NodeOutput:
+        if not enabled:
+            return io.NodeOutput(False, "Node is disabled", "", "")
+
+        _, abs_path = resolve_comfy_path(parent_folder, folder)
+        res = InoFileHelper.get_last_file(path=Path(abs_path))
+        if not res["success"]:
+            return io.NodeOutput(False, res["msg"], "", "")
+        return io.NodeOutput(True, res["msg"], res.get("file_name", ""), res.get("file_path", ""))
+
+
+class InoMovePath(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoMovePath",
+            display_name="Ino Move Path",
+            category="InoFileHelper",
+            description="Moves a file or folder from one location to another with optional overwrite.",
+            is_output_node=True,
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("from_parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("from_folder", default=""),
+                io.String.Input("from_filename", default="", optional=True),
+                io.Combo.Input("to_parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("to_folder", default=""),
+                io.String.Input("to_filename", default="", optional=True),
+                io.Boolean.Input("overwrite", default=False, optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="rel_path"),
+                io.String.Output(display_name="abs_path"),
+            ],
+        )
+
+    @classmethod
+    async def execute(cls, enabled, from_parent_folder, from_folder, from_filename="",
+                      to_parent_folder="output", to_folder="", to_filename="", overwrite=False) -> io.NodeOutput:
+        if not enabled:
+            return io.NodeOutput(False, "Node is disabled", "", "")
+
+        _, from_abs = resolve_comfy_path(from_parent_folder, from_folder, from_filename)
+        rel_path, to_abs = resolve_comfy_path(to_parent_folder, to_folder, to_filename)
+
+        res = await InoFileHelper.move_path(from_path=from_abs, to_path=to_abs, overwrite=overwrite)
+        return io.NodeOutput(res["success"], res["msg"], rel_path, to_abs)
+
+
+class InoGetFileHash(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetFileHash",
+            display_name="Ino Get File Hash",
+            category="InoFileHelper",
+            description="Computes the SHA-256 hash of a file.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("folder", default=""),
+                io.String.Input("filename", default=""),
+                io.Int.Input("chunk_size", default=8, min=1, max=1024, optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="hash"),
+            ],
+        )
+
+    @classmethod
+    async def execute(cls, enabled, parent_folder, folder, filename, chunk_size=8) -> io.NodeOutput:
+        if not enabled:
+            return io.NodeOutput(False, "Node is disabled", "")
+
+        _, abs_path = resolve_comfy_path(parent_folder, folder, filename)
+        res = await InoFileHelper.get_file_hash_sha_256(file_path=Path(abs_path), chunk_size=chunk_size)
+        if not res["success"]:
+            return io.NodeOutput(False, res["msg"], "")
+        return io.NodeOutput(True, res["msg"], res.get("hash", ""))
+
+
+class InoFileToBase64(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoFileToBase64",
+            display_name="Ino File To Base64",
+            category="InoFileHelper",
+            description="Converts a file to a base64 data URI string with auto MIME type detection.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("folder", default=""),
+                io.String.Input("filename", default=""),
+                io.String.Input("mime_type", default="", optional=True, tooltip="Leave empty for auto detection"),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="data_uri"),
+            ],
+        )
+
+    @classmethod
+    async def execute(cls, enabled, parent_folder, folder, filename, mime_type="") -> io.NodeOutput:
+        if not enabled:
+            return io.NodeOutput(False, "Node is disabled", "")
+
+        _, abs_path = resolve_comfy_path(parent_folder, folder, filename)
+        mime = mime_type if mime_type else None
+        res = await InoFileHelper.file_to_base64_data_uri(file_path=abs_path, mime_type=mime)
+        if not res["success"]:
+            return io.NodeOutput(False, res["msg"], "")
+        return io.NodeOutput(True, res["msg"], res.get("data_uri", ""))
+
+
 LOCAL_NODE_CLASS = {
     "InoIncrementBatchName": InoIncrementBatchName,
     "InoZip": InoZip,
@@ -357,6 +499,10 @@ LOCAL_NODE_CLASS = {
     "InoCountFiles": InoCountFiles,
     "InoValidateMediaFiles": InoValidateMediaFiles,
     "InoRemoveDuplicateFiles": InoRemoveDuplicateFiles,
+    "InoGetLastFile": InoGetLastFile,
+    "InoMovePath": InoMovePath,
+    "InoGetFileHash": InoGetFileHash,
+    "InoFileToBase64": InoFileToBase64,
 }
 LOCAL_NODE_NAME = {
     "InoIncrementBatchName": "Ino Increment Batch Name",
@@ -368,4 +514,8 @@ LOCAL_NODE_NAME = {
     "InoCountFiles": "Ino Count Files",
     "InoValidateMediaFiles": "Ino Validate Media Files",
     "InoRemoveDuplicateFiles": "Ino Remove Duplicate Files",
+    "InoGetLastFile": "Ino Get Last File",
+    "InoMovePath": "Ino Move Path",
+    "InoGetFileHash": "Ino Get File Hash",
+    "InoFileToBase64": "Ino File To Base64",
 }
