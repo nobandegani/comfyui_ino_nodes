@@ -11,7 +11,7 @@ import folder_paths
 from comfy.cli_args import args
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
-from ..node_helper import any_type
+from ..node_helper import any_type, PARENT_FOLDER_OPTIONS, resolve_comfy_path
 
 class InoS3UploadImage:
     @classmethod
@@ -22,7 +22,9 @@ class InoS3UploadImage:
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "images": ("IMAGE",),
                 "s3_key": ("STRING", {"default": ""}),
-                "file_name": ("STRING", {"default": ""})
+                "parent_folder": (PARENT_FOLDER_OPTIONS, {"default": "temp"}),
+                "folder": ("STRING", {"default": ""}),
+                "filename": ("STRING", {"default": ""})
             },
             "optional": {
                 "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
@@ -31,29 +33,30 @@ class InoS3UploadImage:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("images", "success", "msg", "result", "file_names", "s3_image_paths",)
+    RETURN_TYPES = ("IMAGE", "BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING",)
+    RETURN_NAMES = ("images", "success", "message", "rel_path", "abs_path", "file_names", "s3_image_paths",)
     FUNCTION = "function"
     OUTPUT_NODE = True
     CATEGORY = "InoS3Helper"
 
-    async def function(self, execute, enabled, images, s3_key, file_name, s3_config, compress_level, date_time_as_name):
+    async def function(self, execute, enabled, images, s3_key, parent_folder, folder, filename, s3_config=None, compress_level=4, date_time_as_name=False):
         if not enabled:
-            return (images, False, "", "", "", "",)
+            return (images, False, "", "", "", "", "",)
 
         if not execute:
-            return (images, False, "", "", "", "",)
+            return (images, False, "", "", "", "", "",)
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (images, False, validate_s3_key["msg"], "", "", "")
+            return (images, False, validate_s3_key["msg"], "", "", "", "")
 
         if date_time_as_name:
-            file_name = InoUtilHelper.get_date_time_utc_base64()
+            filename = InoUtilHelper.get_date_time_utc_base64()
 
-        parent_path = folder_paths.get_temp_directory()
+        _, parent_abs = resolve_comfy_path(parent_folder, folder)
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
-        full_output_folder, filename, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(file_name, parent_path, images[0].shape[1], images[0].shape[0])
+        full_output_folder, file_prefix, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(filename, parent_abs, images[0].shape[1], images[0].shape[0])
         results:dict = {}
         for (batch_number, image) in enumerate(images):
             i = 255. * image.cpu().numpy()
@@ -62,7 +65,7 @@ class InoS3UploadImage:
             if not args.disable_metadata:
                 metadata = PngInfo()
 
-            filename_with_batch_num = filename.replace("%batch_num%", str(batch_number))
+            filename_with_batch_num = file_prefix.replace("%batch_num%", str(batch_number))
             file = f"{filename_with_batch_num}_{counter:05}"
             file_w_ext = file + ".png"
             full_path = os.path.join(full_output_folder, file_w_ext)
@@ -77,7 +80,7 @@ class InoS3UploadImage:
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (images, False, s3_instance["msg"], str(s3_instance), "", "")
+            return (images, False, s3_instance["msg"], rel_path, abs_path, "", "")
         s3_instance = s3_instance["instance"]
 
         for index in results:
@@ -85,10 +88,7 @@ class InoS3UploadImage:
             s3_result = await s3_instance.upload_file(
                 s3_key=s3_full_key,
                 local_file_path=results[index]["full_path"],
-                # bucket_name=bucket_name,
             )
-            #if s3_result["success"]:
-            #    os.remove(results[index]["full_path"])
             results[index]["s3_success"] = s3_result["success"]
             results[index]["s3_msg"] = s3_result["msg"]
             results[index]["s3_key"] = s3_full_key
@@ -104,7 +104,7 @@ class InoS3UploadImage:
                 break
 
         if not final_success:
-            return (images, final_success, final_message, result_str, "", "")
+            return (images, final_success, final_message, rel_path, abs_path, "", "")
 
         s3_paths = []
         file_names = []
@@ -112,4 +112,4 @@ class InoS3UploadImage:
             s3_paths.append(results[index]["s3_key"])
             file_names.append(results[index]["filename"])
 
-        return (images, True, "Success", result_str, str(file_names), str(s3_paths), )
+        return (images, True, "Success", rel_path, abs_path, str(file_names), str(s3_paths), )

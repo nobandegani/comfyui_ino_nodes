@@ -12,6 +12,7 @@ import node_helpers
 from inopyutils import ino_ok, ino_err, ino_is_err, InoUtilHelper
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
 
 class InoS3DownloadImage:
     @classmethod
@@ -20,6 +21,8 @@ class InoS3DownloadImage:
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "s3_key": ("STRING", {"default": "input/example.png"}),
+                "parent_folder": (PARENT_FOLDER_OPTIONS, {"default": "temp"}),
+                "folder": ("STRING", {"default": ""}),
             },
             "optional": {
                 "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
@@ -28,37 +31,37 @@ class InoS3DownloadImage:
         }
 
     CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "IMAGE", "MASK", )
-    RETURN_NAMES = ("success", "msg", "result", "image", "mask", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "IMAGE", "MASK", )
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "image", "mask", )
     FUNCTION = "function"
 
-    async def function(self, enabled, s3_key, s3_config, bucket_name):
+    async def function(self, enabled, s3_key, parent_folder, folder, s3_config=None, bucket_name=None):
         from nodes import EmptyImage
         empty_image = EmptyImage().generate(512, 512)[0]
         if not enabled:
-            return (False, "not enabled", "", empty_image, None, )
+            return (False, "not enabled", "", "", empty_image, None, )
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, validate_s3_key["msg"], "", empty_image, None,)
-
-        parent_path = folder_paths.get_temp_directory()
+            return (False, validate_s3_key["msg"], "", "", empty_image, None,)
 
         random_str = InoUtilHelper.get_date_time_utc_base64()
         file_name = f'{random_str}{Path(s3_key).suffix}'
-        local_save_path: Path = Path(parent_path) / file_name
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder, file_name)
+
+        Path(abs_path).parent.mkdir(parents=True, exist_ok=True)
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (False, s3_instance["msg"], "", empty_image, None,)
+            return (False, s3_instance["msg"], "", "", empty_image, None,)
         s3_instance = s3_instance["instance"]
 
         downloaded = await s3_instance.download_file(
             s3_key=s3_key,
-            local_file_path=str(local_save_path.resolve())
+            local_file_path=abs_path
         )
         if not downloaded["success"]:
-            return (downloaded["success"], downloaded["msg"], str(downloaded), empty_image, None, )
+            return (downloaded["success"], downloaded["msg"], rel_path, abs_path, empty_image, None, )
 
         img = node_helpers.pillow(Image.open, downloaded["local_file"])
 
@@ -102,4 +105,4 @@ class InoS3DownloadImage:
             output_image = output_images[0]
             output_mask = output_masks[0]
 
-        return (downloaded["success"], downloaded["msg"], str(downloaded), output_image, output_mask, )
+        return (downloaded["success"], downloaded["msg"], rel_path, abs_path, output_image, output_mask, )

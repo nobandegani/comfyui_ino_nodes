@@ -15,6 +15,8 @@ from comfy_api.latest import ComfyExtension, io
 
 from inopyutils import InoJsonHelper, ino_is_err
 
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
+
 
 class InoSaveImages:
     """
@@ -26,36 +28,55 @@ class InoSaveImages:
         return {
             "required": {
                 "images": ("IMAGE", {"tooltip": "The images to save."}),
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
                 "filename_prefix": ("STRING", {"default": "ComfyUI", "tooltip": "The prefix for the file to save. This may include formatting information such as %date:yyyy-MM-dd% or %Empty Latent Image.width% to include values from nodes."})
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING" , "INT", "STRING", )
-    RETURN_NAMES = ("Success", "Result", "NumberOfImages", "DateTimeIso", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "INT", "STRING", )
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "number_of_images", "datetime_iso", )
 
     FUNCTION = "function"
     OUTPUT_NODE = True
     CATEGORY = "InoNodes"
 
-    def function(self, images, filename_prefix):
+    def function(self, images, parent_folder, folder, filename_prefix):
         time_now = datetime.now(timezone.utc).isoformat()
 
-        from nodes import SaveImage
-        save_image = SaveImage()
-        save_image_res = save_image.save_images(
-            images=images,
-            filename_prefix=filename_prefix
-        )
-        results = save_image_res["ui"]["images"]
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
-        names = []
-        for result in results:
-            names.append(result["filename"])
+        prefix = f"{folder}/{filename_prefix}" if folder else filename_prefix
+
+        full_output_folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
+            prefix, abs_path if not folder else resolve_comfy_path(parent_folder)[1],
+            images[0].shape[1], images[0].shape[0]
+        )
+
+        from PIL import Image as PILImage
+        from comfy.cli_args import args
+        from PIL.PngImagePlugin import PngInfo
+
+        results = []
+        for (batch_number, image) in enumerate(images):
+            i = 255. * image.cpu().numpy()
+            img = PILImage.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+            metadata = None
+            if not args.disable_metadata:
+                metadata = PngInfo()
+
+            filename_with_batch_num = filename.replace("%batch_num%", str(batch_number))
+            file = f"{filename_with_batch_num}_{counter:05}_.png"
+            full_path = os.path.join(full_output_folder, file)
+            img.save(full_path, pnginfo=metadata, compress_level=4)
+            results.append({"filename": file, "subfolder": subfolder, "type": parent_folder})
+            counter += 1
 
         if len(results) == 0:
-            return (False, "", 0, time_now)
+            return (False, "No images saved", rel_path, abs_path, 0, time_now)
 
-        return (True, str(names), len(results), time_now)
+        names = [r["filename"] for r in results]
+        return (True, str(names), rel_path, abs_path, len(results), time_now)
 
 class InoImageResizeByLongerSideV1:
     @classmethod
@@ -258,6 +279,9 @@ class InoLoadImagesFromFolder(io.ComfyNode):
             ],
             outputs=[
                 io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="rel_path"),
+                io.String.Output(display_name="abs_path"),
                 io.Image.Output(display_name="images", is_output_list=True),
                 io.Int.Output(display_name="number of images"),
             ],
@@ -265,12 +289,13 @@ class InoLoadImagesFromFolder(io.ComfyNode):
 
     @classmethod
     def execute(cls, parent_folder, folder, load_cap, skip_from_first):
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
         output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
         if not output_images:
             from nodes import EmptyImage
             empty_image = EmptyImage().generate(512, 512)[0]
-            return io.NodeOutput(False, [empty_image], 0)
-        return io.NodeOutput(True, output_images, len(output_images))
+            return io.NodeOutput(False, "No images found", rel_path, abs_path, [empty_image], 0)
+        return io.NodeOutput(True, f"Loaded {len(output_images)} images", rel_path, abs_path, output_images, len(output_images))
 
 
 
@@ -539,6 +564,9 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             ],
             outputs=[
                 io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="rel_path"),
+                io.String.Output(display_name="abs_path"),
                 io.Image.Output(display_name="images", is_output_list=True),
                 io.Latent.Output(display_name="latents", is_output_list=True),
                 io.Conditioning.Output(display_name="positive"),
@@ -552,6 +580,8 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         from comfy_extras.nodes_edit_model import ReferenceLatent
         from nodes import VAEEncode
 
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
+
         vae_encoder = VAEEncode()
 
         from nodes import EmptyImage
@@ -559,14 +589,14 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
         empty_latent = vae_encoder.encode(vae, empty_image)[0]
 
         if not enabled:
-            return io.NodeOutput(False, [empty_image], [empty_latent], positive, negative, 0)
+            return io.NodeOutput(False, "Node is disabled", rel_path, abs_path, [empty_image], [empty_latent], positive, negative, 0)
 
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
 
         images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
 
         if not images:
-            return io.NodeOutput(False, [empty_image], [empty_latent], positive, negative, 0)
+            return io.NodeOutput(False, "No images found", rel_path, abs_path, [empty_image], [empty_latent], positive, negative, 0)
 
         scaled_images = []
         for img in images:
@@ -585,7 +615,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
             if neg_cond is not None:
                 neg_cond = ReferenceLatent.execute(neg_cond, latent).args[0]
 
-        return io.NodeOutput(True, images, latents, pos_cond, neg_cond, len(images))
+        return io.NodeOutput(True, f"Loaded {len(images)} images", rel_path, abs_path, images, latents, pos_cond, neg_cond, len(images))
 
 
 class InoImagesToReferenceLatent(io.ComfyNode):

@@ -87,6 +87,26 @@ def get_list_from_csv(is_config: bool, model_type: str, return_only_names):
 
     return data
 
+PARENT_FOLDER_OPTIONS = ["input", "output", "temp"]
+
+def resolve_comfy_path(parent_folder: str, folder: str = "", filename: str = "") -> tuple:
+    """Resolves parent_folder + folder + filename into (rel_path, abs_path)."""
+    import folder_paths
+    if parent_folder == "input":
+        parent_path = folder_paths.get_input_directory()
+    elif parent_folder == "output":
+        parent_path = folder_paths.get_output_directory()
+    else:
+        parent_path = folder_paths.get_temp_directory()
+
+    rel = Path(folder)
+    if filename:
+        rel = rel / filename
+    rel_path = str(rel)
+    abs_path = str((Path(parent_path) / rel).resolve())
+    return rel_path, abs_path
+
+
 def get_model_from_csv(is_config: bool, model_type: str, model_name:str):
     csv_data = _load_csv_as_dict(is_config, model_type)
     data = {}

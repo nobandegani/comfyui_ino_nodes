@@ -6,7 +6,7 @@ import folder_paths
 
 from inopyutils import InoJsonHelper
 
-from ..node_helper import any_type, ino_print_log
+from ..node_helper import any_type, ino_print_log, PARENT_FOLDER_OPTIONS, resolve_comfy_path
 
 
 class InoJsonSetField:
@@ -94,42 +94,45 @@ class InoSaveJson:
                 "execute": (any_type,),
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
                 "json_string": ("STRING", {"default": "{}"}),
-                "local_path": ("STRING", {"default": ""}),
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
+                "filename": ("STRING", {"default": "data.json"}),
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", )
-    RETURN_NAMES = ("Success", "MSG",  "json_file", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", )
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", )
 
     FUNCTION = "function"
     OUTPUT_NODE = True
     CATEGORY = "InoNodes"
 
-    async def function(self, execute, enabled, json_string, local_path):
+    async def function(self, execute, enabled, json_string, parent_folder, folder, filename):
         if not enabled:
-            return (False, "not enabled", "",)
+            return (False, "not enabled", "", "",)
 
         if not execute:
-            return (False, "execute is false", "",)
+            return (False, "execute is false", "", "",)
 
         try:
-            output_path = folder_paths.get_output_directory()
-            save_path :Path = Path(output_path) / Path(local_path)
+            rel_path, abs_path = resolve_comfy_path(parent_folder, folder, filename)
+
+            Path(abs_path).parent.mkdir(parents=True, exist_ok=True)
 
             save_json = await InoJsonHelper.save_string_as_json_async(
                 json_string=json_string,
-                file_path=str(save_path.resolve())
+                file_path=abs_path
             )
 
             if not save_json["success"]:
                 ino_print_log("InoSaveJson", save_json["msg"])
-                return (False, save_json["msg"], "")
+                return (False, save_json["msg"], rel_path, abs_path)
 
             ino_print_log("InoSaveJson", "Success")
-            return (True, save_json["msg"], str(save_path))
+            return (True, save_json["msg"], rel_path, abs_path)
         except Exception as e:
             ino_print_log("InoSaveJson", "",str(e))
-            return (False, f"failed: {e}", "",)
+            return (False, f"failed: {e}", "", "",)
 
 LOCAL_NODE_CLASS = {
     "InoJsonSetField": InoJsonSetField,

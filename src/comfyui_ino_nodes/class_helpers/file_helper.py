@@ -4,6 +4,8 @@ from inspect import cleandoc
 
 from inopyutils import file_helper, InoFileHelper
 
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
+
 
 class InoIncrementBatchName:
     """
@@ -66,26 +68,19 @@ class InoZip:
                     "label": "Seed (0 = random)",
                     "control_after_generate": True,
                 }),
-                "to_zip": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                }),
-                "path_to_save": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                }),
-                "zip_file_name": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                })
+                "source_parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "source_folder": ("STRING", {"default": ""}),
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
+                "filename": ("STRING", {"default": "archive.zip"}),
             },
             "optional": {
                 "dummy_string": ("STRING", {}),
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING")
-    RETURN_NAMES = ("success", "message", "other")
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path")
 
     DESCRIPTION = cleandoc(__doc__)
 
@@ -94,16 +89,21 @@ class InoZip:
 
     CATEGORY = "InoFileHelper"
 
-    async def function(self, enabled, seed, to_zip, path_to_save, zip_file_name, dummy_string):
+    async def function(self, enabled, seed, source_parent_folder, source_folder, parent_folder, folder, filename, dummy_string=None):
         if not enabled:
-            return (False, "Node is disabled", "")
+            return (False, "Node is disabled", "", "")
+
+        _, source_abs = resolve_comfy_path(source_parent_folder, source_folder)
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder, filename)
+
+        Path(abs_path).parent.mkdir(parents=True, exist_ok=True)
 
         res = await InoFileHelper.zip(
-            to_zip=to_zip,
-            path_to_save=path_to_save,
-            zip_file_name=zip_file_name
+            to_zip=source_abs,
+            path_to_save=str(Path(abs_path).parent),
+            zip_file_name=Path(abs_path).name
         )
-        return res["success"], res["msg"], res
+        return (res["success"], res["msg"], rel_path, abs_path)
 
 
 class InoUnzip:
@@ -124,22 +124,19 @@ class InoUnzip:
                     "label": "Seed (0 = random)",
                     "control_after_generate": True,
                 }),
-                "zip_path": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                }),
-                "output_path": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                })
+                "source_parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "source_folder": ("STRING", {"default": ""}),
+                "source_filename": ("STRING", {"default": "archive.zip"}),
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
             },
             "optional": {
                 "dummy_string": ("STRING", {}),
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING")
-    RETURN_NAMES = ("success", "message", "other")
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path")
 
     DESCRIPTION = cleandoc(__doc__)
 
@@ -148,15 +145,18 @@ class InoUnzip:
 
     CATEGORY = "InoFileHelper"
 
-    async def function(self, enabled, seed, zip_path, output_path, dummy_string):
+    async def function(self, enabled, seed, source_parent_folder, source_folder, source_filename, parent_folder, folder, dummy_string=None):
         if not enabled:
-            return (False, "Node is disabled", "")
+            return (False, "Node is disabled", "", "")
+
+        _, zip_abs = resolve_comfy_path(source_parent_folder, source_folder, source_filename)
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
         res = await InoFileHelper.unzip(
-            zip_path=zip_path,
-            output_path=output_path
+            zip_path=zip_abs,
+            output_path=abs_path
         )
-        return res["success"], res["msg"], res
+        return (res["success"], res["msg"], rel_path, abs_path)
 
 class InoRemoveFile:
     """
@@ -176,18 +176,17 @@ class InoRemoveFile:
                     "label": "Seed (0 = random)",
                     "control_after_generate": True,
                 }),
-                "file_path": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                })
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
+                "filename": ("STRING", {"default": ""}),
             },
             "optional": {
                 "dummy_string": ("STRING", {}),
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING")
-    RETURN_NAMES = ("success", "message", "other")
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path")
 
     DESCRIPTION = cleandoc(__doc__)
 
@@ -196,14 +195,16 @@ class InoRemoveFile:
 
     CATEGORY = "InoFileHelper"
 
-    async def function(self, enabled, seed, file_path, dummy_string):
+    async def function(self, enabled, seed, parent_folder, folder, filename, dummy_string=None):
         if not enabled:
-            return (False, "Node is disabled", "")
+            return (False, "Node is disabled", "", "")
+
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder, filename)
 
         res = await InoFileHelper.remove_file(
-            file_path=file_path
+            file_path=abs_path
         )
-        return res["success"], res["msg"], res
+        return (res["success"], res["msg"], rel_path, abs_path)
 
 class InoRemoveFolder:
     """
@@ -223,18 +224,16 @@ class InoRemoveFolder:
                     "label": "Seed (0 = random)",
                     "control_after_generate": True,
                 }),
-                "folder_path": ("STRING", {
-                    "multiline": False,
-                    "default": ""
-                })
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
             },
             "optional": {
                 "dummy_string": ("STRING", {}),
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING")
-    RETURN_NAMES = ("success", "message", "other")
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING")
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path")
 
     DESCRIPTION = cleandoc(__doc__)
 
@@ -243,14 +242,16 @@ class InoRemoveFolder:
 
     CATEGORY = "InoFileHelper"
 
-    async def function(self, enabled, seed, folder_path, dummy_string):
+    async def function(self, enabled, seed, parent_folder, folder, dummy_string=None):
         if not enabled:
-            return (False, "Node is disabled", "")
+            return (False, "Node is disabled", "", "")
+
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
         res = await InoFileHelper.remove_folder(
-            folder_path=Path(folder_path)
+            folder_path=Path(abs_path)
         )
-        return res["success"], res["msg"], res
+        return (res["success"], res["msg"], rel_path, abs_path)
 
 class InoCopyFiles:
     """
@@ -262,8 +263,10 @@ class InoCopyFiles:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "from_path": ("STRING", {"default": ""}),
-                "to_path": ("STRING", {"default": ""}),
+                "from_parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "from_folder": ("STRING", {"default": ""}),
+                "to_parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "to_folder": ("STRING", {"default": ""}),
                 "iterate_subfolders": ("BOOLEAN", {"default": True}),
                 "rename_files": ("BOOLEAN", {"default": True}),
                 "prefix_name": ("STRING", {"default": "file"}),
@@ -272,26 +275,29 @@ class InoCopyFiles:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", )
-    RETURN_NAMES = ("success", "message", "logs", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", )
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "logs", )
 
     FUNCTION = "function"
     OUTPUT_NODE = True
 
     CATEGORY = "InoFileHelper"
 
-    async def function(self, enabled, from_path, to_path, iterate_subfolders, rename_files, prefix_name):
+    async def function(self, enabled, from_parent_folder, from_folder, to_parent_folder, to_folder, iterate_subfolders, rename_files, prefix_name):
         if not enabled:
-            return (False, "Node is disabled", "")
+            return (False, "Node is disabled", "", "", "")
+
+        _, from_abs = resolve_comfy_path(from_parent_folder, from_folder)
+        rel_path, abs_path = resolve_comfy_path(to_parent_folder, to_folder)
 
         res = await InoFileHelper.copy_files(
-            to_path=Path(to_path),
-            from_path=Path(from_path),
+            to_path=Path(abs_path),
+            from_path=Path(from_abs),
             iterate_subfolders=iterate_subfolders,
             rename_files=rename_files,
             prefix_name=prefix_name,
         )
-        return (res["success"], res["msg"], res["logs"], )
+        return (res["success"], res["msg"], rel_path, abs_path, res["logs"], )
 
 class InoCountFiles:
     """
@@ -303,31 +309,32 @@ class InoCountFiles:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "folder_path": ("STRING", {
-                    "default": ""
-                }),
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
                 "recursive": ("BOOLEAN", {"default": True}),
             },
             "optional": {
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "INT", )
-    RETURN_NAMES = ("success", "message", "count", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "INT", )
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "count", )
 
     FUNCTION = "function"
 
     CATEGORY = "InoFileHelper"
 
-    async def function(self, enabled, folder_path, recursive):
+    async def function(self, enabled, parent_folder, folder, recursive):
         if not enabled:
-            return (False, "Node is disabled", "")
+            return (False, "Node is disabled", "", "", 0)
+
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
         res = await InoFileHelper.count_files(
-            path=Path(folder_path),
+            path=Path(abs_path),
             recursive=recursive
         )
-        return (res["success"], res["msg"], res["count"], )
+        return (res["success"], res["msg"], rel_path, abs_path, res["count"], )
 
 class InoValidateMediaFiles:
     """
@@ -339,7 +346,8 @@ class InoValidateMediaFiles:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "input_path": ("STRING", {"default": ""}),
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
                 "include_images": ("BOOLEAN", {"default": True}),
                 "include_videos": ("BOOLEAN", {"default": True}),
             },
@@ -347,27 +355,29 @@ class InoValidateMediaFiles:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", )
-    RETURN_NAMES = ("success", "message", "output_path", "skipped_images_path", "skipped_images_unsupported_path", "skipped_videos_path", "skipped_videos_unsupported_path", "unsupported_files_path", "logs", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", "STRING", )
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "skipped_images_path", "skipped_images_unsupported_path", "skipped_videos_path", "skipped_videos_unsupported_path", "unsupported_files_path", "logs", "output_path", )
 
     FUNCTION = "function"
 
     CATEGORY = "InoFileHelper"
 
-    async def function(self, enabled, input_path, include_images, include_videos):
+    async def function(self, enabled, parent_folder, folder, include_images, include_videos):
         if not enabled:
-            return (False, "Node is disabled", "", "", "", "", "", "", "")
+            return (False, "Node is disabled", "", "", "", "", "", "", "", "", "")
+
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
         res = await InoFileHelper.validate_files(
-            input_path=Path(input_path),
+            input_path=Path(abs_path),
             include_image=include_images,
             include_video=include_videos,
         )
-        return (True, res.get("msg"), input_path, res.get("skipped_images_path"), res.get("skipped_images_unsupported_path"), res.get("skipped_videos_path"), res.get("skipped_videos_unsupported_path"), res.get("unsupported_files_path"), res.get("logs"),)
+        return (True, res.get("msg"), rel_path, abs_path, res.get("skipped_images_path"), res.get("skipped_images_unsupported_path"), res.get("skipped_videos_path"), res.get("skipped_videos_unsupported_path"), res.get("unsupported_files_path"), res.get("logs"), abs_path,)
 
 class InoRemoveDuplicateFiles:
     """
-        Count File
+        Remove Duplicate Files
     """
 
     @classmethod
@@ -375,9 +385,8 @@ class InoRemoveDuplicateFiles:
         return {
             "required": {
                 "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "folder_path": ("STRING", {
-                    "default": ""
-                }),
+                "parent_folder": (PARENT_FOLDER_OPTIONS,),
+                "folder": ("STRING", {"default": ""}),
                 "recursive": ("BOOLEAN", {"default": True}),
             },
             "optional": {
@@ -385,24 +394,26 @@ class InoRemoveDuplicateFiles:
             }
         }
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "INT", )
-    RETURN_NAMES = ("success", "message", "removed_list", "removed_count", )
+    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING", "INT", )
+    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "removed_list", "removed_count", )
 
     FUNCTION = "function"
     OUTPUT_NODE = True
 
     CATEGORY = "InoFileHelper"
 
-    async def function(self, enabled, folder_path, recursive, chunk_size):
+    async def function(self, enabled, parent_folder, folder, recursive, chunk_size=32):
         if not enabled:
-            return (False, "Node is disabled", "", 0)
+            return (False, "Node is disabled", "", "", "", 0)
+
+        rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
         res = await InoFileHelper.remove_duplicate_files(
-            input_path=Path(folder_path),
+            input_path=Path(abs_path),
             recursive=recursive,
             chunk_size=chunk_size
         )
-        return (res["success"], res["msg"], res["removed"], res["removed_count"], )
+        return (res["success"], res["msg"], rel_path, abs_path, res["removed"], res["removed_count"], )
 
 LOCAL_NODE_CLASS = {
     "InoIncrementBatchName": InoIncrementBatchName,
