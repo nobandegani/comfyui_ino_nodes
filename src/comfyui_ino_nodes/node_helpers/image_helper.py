@@ -15,7 +15,7 @@ from comfy_api.latest import ComfyExtension, io
 
 from inopyutils import InoJsonHelper, ino_is_err
 
-from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path, load_image, load_images_from_folder
 
 
 class InoSaveImages:
@@ -232,37 +232,6 @@ class InoImageResizeByLongerSideAndCropV2:
 
         return (cropped_image[0],)
 
-def _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first):
-    from comfy_extras.nodes_dataset import load_and_process_images
-
-    if parent_folder == "input":
-        sub_input_dir = os.path.join(folder_paths.get_input_directory(), folder)
-    elif parent_folder == "output":
-        sub_input_dir = os.path.join(folder_paths.get_output_directory(), folder)
-    else:
-        sub_input_dir = os.path.join(folder_paths.get_temp_directory(), folder)
-
-    if not os.path.isdir(sub_input_dir):
-        return []
-
-    valid_extensions = [".png", ".jpg", ".jpeg", ".webp"]
-    image_files = sorted([
-        f for f in os.listdir(sub_input_dir)
-        if any(f.lower().endswith(ext) for ext in valid_extensions)
-    ])
-
-    skip_from_first = max(0, int(skip_from_first))
-    load_cap = max(0, int(load_cap))
-
-    if skip_from_first:
-        image_files = image_files[skip_from_first:]
-    if load_cap > 0:
-        image_files = image_files[:load_cap]
-
-    if not image_files:
-        return []
-
-    return load_and_process_images(image_files, sub_input_dir)
 
 
 class InoLoadImagesFromFolder(io.ComfyNode):
@@ -291,7 +260,7 @@ class InoLoadImagesFromFolder(io.ComfyNode):
     @classmethod
     def execute(cls, parent_folder, folder, load_cap, skip_from_first):
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
-        output_images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
+        output_images = load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
         if not output_images:
             from nodes import EmptyImage
             empty_image = EmptyImage().generate(512, 512)[0]
@@ -594,7 +563,7 @@ class InoImagesFromFolderToReferenceLatent(io.ComfyNode):
 
         from comfy_extras.nodes_post_processing import ImageScaleToTotalPixels
 
-        images = _load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
+        images = load_images_from_folder(parent_folder, folder, load_cap, skip_from_first)
 
         if not images:
             return io.NodeOutput(False, "No images found", rel_path, abs_path, [empty_image], [empty_latent], positive, negative, 0)
