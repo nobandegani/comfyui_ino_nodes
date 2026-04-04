@@ -15,8 +15,11 @@ import sys
 import subprocess
 from pathlib import Path
 
-PYPROJECT_PATH = Path(__file__).parent / "pyproject.toml"
-ENV_PATH = Path(__file__).parent / ".env"
+ROOT = Path(__file__).parent
+PYPROJECT_PATH = ROOT / "pyproject.toml"
+README_PATH = ROOT / "README.md"
+INIT_PATH = ROOT / "__init__.py"
+ENV_PATH = ROOT / ".env"
 
 
 def load_env():
@@ -55,12 +58,35 @@ def bump_patch(version: str) -> str:
     return ".".join(parts)
 
 
-def set_version(new_version: str):
-    """Update version in pyproject.toml."""
+def set_version(old_version: str, new_version: str):
+    """Update version in pyproject.toml, README.md, and __init__.py."""
+    # pyproject.toml
     content = PYPROJECT_PATH.read_text()
     content = re.sub(r'version\s*=\s*"[^"]+"', f'version = "{new_version}"', content)
     PYPROJECT_PATH.write_text(content)
-    print(f"Updated pyproject.toml to version {new_version}")
+    print(f"  Updated pyproject.toml")
+
+    # README.md
+    if README_PATH.exists():
+        content = README_PATH.read_text()
+        updated = content.replace(old_version, new_version)
+        if updated != content:
+            README_PATH.write_text(updated)
+            print(f"  Updated README.md")
+        else:
+            print(f"  README.md — no version string found to replace")
+
+    # __init__.py
+    if INIT_PATH.exists():
+        content = INIT_PATH.read_text()
+        updated = re.sub(r'__version__\s*=\s*"[^"]+"', f'__version__ = "{new_version}"', content)
+        if updated != content:
+            INIT_PATH.write_text(updated)
+            print(f"  Updated __init__.py")
+        else:
+            print(f"  __init__.py — no __version__ found to replace")
+
+    print(f"Version set to {new_version}")
 
 
 def run(cmd: list[str], check=True, env=None) -> subprocess.CompletedProcess:
@@ -80,7 +106,7 @@ def run(cmd: list[str], check=True, env=None) -> subprocess.CompletedProcess:
 
 def git_commit_and_tag(version: str):
     """Commit version bump and create a git tag."""
-    run(["git", "add", "pyproject.toml"])
+    run(["git", "add", "pyproject.toml", "README.md", "__init__.py"])
     run(["git", "commit", "-m", f"Release v{version}"])
     run(["git", "tag", f"v{version}"])
     print(f"Created git tag v{version}")
@@ -102,14 +128,13 @@ def publish_comfy_registry(token: str):
     print("Published to Comfy Registry")
 
 
-def create_github_release(version: str, token: str):
-    """Create a GitHub release using gh CLI."""
+def create_github_release(version: str):
+    """Create a GitHub release using gh CLI (uses existing gh auth)."""
     run(
         ["gh", "release", "create", f"v{version}",
          "--title", f"v{version}",
          "--notes", f"Release v{version}",
          "--latest"],
-        env={"GH_TOKEN": token},
     )
     print(f"Created GitHub release v{version}")
 
@@ -135,8 +160,8 @@ def main():
     print(f"\nPublishing v{new_version}")
     print("=" * 40)
 
-    # Update version
-    set_version(new_version)
+    # Update version in all files
+    set_version(current, new_version)
 
     # Git commit + tag
     git_commit_and_tag(new_version)
@@ -160,15 +185,11 @@ def main():
     else:
         print("Skipping Comfy Registry (COMFY_REGISTRY_TOKEN not set)")
 
-    # Create GitHub release
-    github_token = os.environ.get("GITHUB_TOKEN", "")
-    if github_token:
-        try:
-            create_github_release(new_version, github_token)
-        except SystemExit:
-            print("Warning: GitHub release creation failed. Continuing...")
-    else:
-        print("Skipping GitHub release (GITHUB_TOKEN not set)")
+    # Create GitHub release (uses existing gh auth)
+    try:
+        create_github_release(new_version)
+    except SystemExit:
+        print("Warning: GitHub release creation failed. Is 'gh' installed and authenticated?")
 
     print(f"\nDone! v{new_version} published.")
 
