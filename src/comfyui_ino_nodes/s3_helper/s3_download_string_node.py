@@ -7,7 +7,6 @@ import folder_paths
 from comfy_api.latest import io
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
-from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
 
 
 class InoS3DownloadString(io.ComfyNode):
