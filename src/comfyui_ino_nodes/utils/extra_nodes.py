@@ -12,7 +12,8 @@ class InoRelay(io.ComfyNode):
         return io.Schema(
             node_id="InoRelay",
             display_name="Ino Relay",
-            category="InoNodes",
+            category="InoExtraNodes",
+            description="Passes through two values of any type. Useful for controlling execution order.",
             inputs=[
                 io.MatchType.Input("execute", template=execute_template, optional=True),
                 io.MatchType.Input("relay", template=relay_template, optional=True),
@@ -36,7 +37,8 @@ class InoAnyEqual(io.ComfyNode):
         return io.Schema(
             node_id="InoAnyEqual",
             display_name="Ino Any Equal",
-            category="InoNodes",
+            category="InoExtraNodes",
+            description="Compares two values of the same type for equality.",
             inputs=[
                 io.MatchType.Input("input", template=template),
                 io.MatchType.Input("compare", template=template),
@@ -58,7 +60,8 @@ class InoDelayAsync(io.ComfyNode):
         return io.Schema(
             node_id="InoDelayAsync",
             display_name="Ino Delay Async",
-            category="InoNodes",
+            category="InoExtraNodes",
+            description="Delays execution for a specified number of seconds before passing through the value.",
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.MatchType.Input("relay", template=template),
@@ -84,7 +87,8 @@ class InoPrintLog(io.ComfyNode):
         return io.Schema(
             node_id="InoPrintLog",
             display_name="Ino Print Log",
-            category="InoNodes",
+            category="InoExtraNodes",
+            description="Prints a log message to the console and passes through the relay value.",
             is_output_node=True,
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
@@ -111,6 +115,7 @@ class InoRandomNoise(io.ComfyNode):
             node_id="InoRandomNoise",
             display_name="Ino Random Noise",
             category="InoSamplerHelper",
+            description="Generates random noise with selectable 32-bit or 64-bit seed precision.",
             inputs=[
                 io.Int.Input("noise_seed", default=0, min=0, max=0xffffffffffffffff, control_after_generate=True),
                 io.Boolean.Input("precision", default=True, label_off="32-bit", label_on="64-bit"),
@@ -140,7 +145,8 @@ class InoSwitchOnBool(io.ComfyNode):
         return io.Schema(
             node_id="InoSwitchOnBool",
             display_name="Ino Switch On Bool",
-            category="logic",
+            category="InoExtraNodes",
+            description="Routes one of two inputs based on a boolean switch. Uses lazy evaluation.",
             is_experimental=True,
             inputs=[
                 io.Boolean.Input("switch"),
@@ -172,7 +178,8 @@ class InoSwitchOnInt(io.ComfyNode):
         return io.Schema(
             node_id="InoSwitchOnInt",
             display_name="Ino Switch On Int",
-            category="InoNodes",
+            category="InoExtraNodes",
+            description="Routes one of up to 10 inputs based on an integer index. Falls back to default if the selected input is not connected.",
             is_experimental=True,
             inputs=[
                 io.Int.Input("switch", default=0, min=0),
@@ -186,15 +193,12 @@ class InoSwitchOnInt(io.ComfyNode):
 
     @classmethod
     def check_lazy_status(cls, switch, default=MISSING, **kwargs):
-        # None = connected but lazy, not yet evaluated → need to request
-        # MISSING = not connected at all → skip, use fallback
         needed = []
         key = f"input_{switch}"
         selected = kwargs.get(key, MISSING)
         if selected is None:
             needed.append(key)
         elif selected is MISSING:
-            # Selected input not connected, need default as fallback
             if default is None:
                 needed.append("default")
         return needed if needed else None
@@ -214,7 +218,8 @@ class InoLength(io.ComfyNode):
         return io.Schema(
             node_id="InoLength",
             display_name="Ino Length",
-            category="InoNodes",
+            category="InoExtraNodes",
+            description="Returns the length of a list or tuple input.",
             is_input_list=True,
             inputs=[
                 io.MatchType.Input("input", template=template),
@@ -236,7 +241,8 @@ class InoTerminalLog(io.ComfyNode):
         return io.Schema(
             node_id="InoTerminalLog",
             display_name="Ino Terminal Log",
-            category="InoNodes",
+            category="InoExtraNodes",
+            description="Captures and returns the last N lines from the terminal stdout.",
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.Int.Input("lines", default=50, min=1, max=10000),
@@ -258,11 +264,8 @@ LOCAL_NODE_CLASS = {
     "InoRelay": InoRelay,
     "InoAnyEqual": InoAnyEqual,
     "InoDelayAsync": InoDelayAsync,
-
     "InoPrintLog": InoPrintLog,
-
     "InoRandomNoise": InoRandomNoise,
-
     "InoSwitchOnBool": InoSwitchOnBool,
     "InoSwitchOnInt": InoSwitchOnInt,
     "InoLength": InoLength,
@@ -272,11 +275,8 @@ LOCAL_NODE_NAME = {
     "InoRelay": "Ino Relay",
     "InoAnyEqual": "Ino Any Equal",
     "InoDelayAsync": "Ino Delay Async",
-
     "InoPrintLog": "Ino Print Log",
-
     "InoRandomNoise": "Ino Random Noise",
-
     "InoSwitchOnBool": "Ino Switch On Bool",
     "InoSwitchOnInt": "Ino Switch On Int",
     "InoLength": "Ino Length",

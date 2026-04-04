@@ -1,4 +1,4 @@
-from comfy_api.latest import ComfyExtension, io
+from comfy_api.latest import io
 
 class InoBooleanEqual(io.ComfyNode):
     @classmethod
@@ -6,7 +6,8 @@ class InoBooleanEqual(io.ComfyNode):
         return io.Schema(
             node_id="InoBooleanEqual",
             display_name="Ino Boolean Equal",
-            category="InoNodes",
+            category="InoBoolHelper",
+            description="Checks if two boolean values are equal.",
             inputs=[
                 io.Boolean.Input("input",default=True),
                 io.Boolean.Input("compare", default=True),
@@ -26,7 +27,8 @@ class InoNotBoolean(io.ComfyNode):
         return io.Schema(
             node_id="InoNotBoolean",
             display_name="Ino Not Boolean",
-            category="InoNodes",
+            category="InoBoolHelper",
+            description="Negates a boolean value (NOT operation).",
             inputs=[
                 io.Boolean.Input("boolean", default=True),
             ],
@@ -41,16 +43,13 @@ class InoNotBoolean(io.ComfyNode):
 
 
 class InoBoolToSwitch(io.ComfyNode):
-    """
-    Convert bool to int, 2 for true, 1 for false. When disabled returns -1.
-    """
-
     @classmethod
     def define_schema(cls) -> io.Schema:
         return io.Schema(
             node_id="InoBoolToSwitch",
             display_name="Ino Bool To Switch",
-            category="InoNodes",
+            category="InoBoolHelper",
+            description="Converts a boolean to an integer: 2 for true, 1 for false, -1 when disabled.",
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.Boolean.Input("input_bool"),
@@ -73,7 +72,8 @@ class InoConditionBoolean(io.ComfyNode):
         return io.Schema(
             node_id="InoConditionBoolean",
             display_name="Ino Condition Boolean",
-            category="InoNodes",
+            category="InoBoolHelper",
+            description="Performs AND or OR operation on two boolean values.",
             inputs=[
                 io.Combo.Input("condition", options=["AND", "OR"]),
                 io.Boolean.Input("bool_1", default=True),
