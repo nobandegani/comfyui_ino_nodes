@@ -114,6 +114,57 @@ def resolve_comfy_path(parent_folder: str, folder: str = "", filename: str = "")
     return rel, abs_path
 
 
+def load_image(image_path: str):
+    """Loads a single image from path with EXIF rotation handling. Returns a torch tensor (1, H, W, C)."""
+    import torch
+    import numpy as np
+    import node_helpers
+    from PIL import Image, ImageOps
+
+    img = node_helpers.pillow(Image.open, image_path)
+    img = node_helpers.pillow(ImageOps.exif_transpose, img)
+
+    if img.mode == "I":
+        img = img.point(lambda i: i * (1 / 255))
+    img = img.convert("RGB")
+    img_array = np.array(img).astype(np.float32) / 255.0
+    return torch.from_numpy(img_array)[None,]
+
+
+def load_images_from_folder(parent_folder: str, folder: str, load_cap: int = 0, skip_from_first: int = 0) -> list:
+    """Loads images from a ComfyUI folder with EXIF rotation handling. Returns list of torch tensors."""
+    import folder_paths
+
+    _, abs_path = resolve_comfy_path(parent_folder, folder)
+
+    if not os.path.isdir(abs_path):
+        return []
+
+    valid_extensions = [".png", ".jpg", ".jpeg", ".webp"]
+    image_files = sorted([
+        f for f in os.listdir(abs_path)
+        if any(f.lower().endswith(ext) for ext in valid_extensions)
+    ])
+
+    skip_from_first = max(0, int(skip_from_first))
+    load_cap = max(0, int(load_cap))
+
+    if skip_from_first:
+        image_files = image_files[skip_from_first:]
+    if load_cap > 0:
+        image_files = image_files[:load_cap]
+
+    if not image_files:
+        return []
+
+    output_images = []
+    for file in image_files:
+        image_path = os.path.join(abs_path, file)
+        output_images.append(load_image(image_path))
+
+    return output_images
+
+
 def get_model_from_csv(is_config: bool, model_type: str, model_name:str):
     csv_data = _load_csv_as_dict(is_config, model_type)
     data = {}
