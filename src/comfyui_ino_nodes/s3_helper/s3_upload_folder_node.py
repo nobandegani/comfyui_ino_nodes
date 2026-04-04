@@ -26,7 +26,7 @@ class InoS3UploadFolder(io.ComfyNode):
                 io.String.Input("folder", default=""),
                 io.Boolean.Input("delete_local", default=True),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
-                io.Int.Input("max_concurrent", default=5, min=1, max=10, optional=True),
+                io.Int.Input("max_concurrent", default=8, min=1, max=16, optional=True),
                 io.Boolean.Input("verify_with_s3", default=False, optional=True),
             ],
             outputs=[

@@ -22,7 +22,7 @@ class InoS3DownloadFolder(io.ComfyNode):
                 io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
                 io.String.Input("folder", default="input/"),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
-                io.Int.Input("max_concurrent", default=5, min=1, max=10, optional=True),
+                io.Int.Input("max_concurrent", default=8, min=1, max=16, optional=True),
             ],
             outputs=[
                 io.Boolean.Output(display_name="success"),
