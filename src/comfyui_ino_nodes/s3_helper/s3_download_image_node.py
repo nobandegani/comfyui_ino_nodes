@@ -22,7 +22,6 @@ class InoS3DownloadImage(io.ComfyNode):
                 io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS, default="temp"),
                 io.String.Input("folder", default=""),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
-                io.String.Input("bucket_name", default="default", optional=True),
             ],
             outputs=[
                 io.Boolean.Output(display_name="success"),
@@ -35,7 +34,7 @@ class InoS3DownloadImage(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(cls, enabled, s3_key, parent_folder, folder, s3_config=None, bucket_name=None) -> io.NodeOutput:
+    async def execute(cls, enabled, s3_key, parent_folder, folder, s3_config=None) -> io.NodeOutput:
         from nodes import EmptyImage
         empty_image = EmptyImage().generate(512, 512)[0]
         if not enabled:

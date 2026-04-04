@@ -22,7 +22,6 @@ class InoS3DownloadFile(io.ComfyNode):
                 io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
                 io.String.Input("folder", default="s3download/"),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
-                io.String.Input("bucket_name", default="default", optional=True),
             ],
             outputs=[
                 io.Boolean.Output(display_name="success"),
@@ -33,7 +32,7 @@ class InoS3DownloadFile(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(cls, enabled, s3_key, parent_folder, folder, s3_config=None, bucket_name=None) -> io.NodeOutput:
+    async def execute(cls, enabled, s3_key, parent_folder, folder, s3_config=None) -> io.NodeOutput:
         if not enabled:
             return io.NodeOutput(False, "not enabled", "", "")
 

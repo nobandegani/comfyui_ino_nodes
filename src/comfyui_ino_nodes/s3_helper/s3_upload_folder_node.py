@@ -26,7 +26,6 @@ class InoS3UploadFolder(io.ComfyNode):
                 io.String.Input("folder", default=""),
                 io.Boolean.Input("delete_local", default=True),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
-                io.String.Input("bucket_name", default="default", optional=True),
                 io.Int.Input("max_concurrent", default=5, min=1, max=10, optional=True),
                 io.Boolean.Input("verify_with_s3", default=False, optional=True),
             ],
@@ -43,7 +42,7 @@ class InoS3UploadFolder(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(cls, execute, enabled, s3_key, parent_folder, folder, delete_local, s3_config=None, bucket_name=None, max_concurrent=5, verify_with_s3=False) -> io.NodeOutput:
+    async def execute(cls, execute, enabled, s3_key, parent_folder, folder, delete_local, s3_config=None, max_concurrent=5, verify_with_s3=False) -> io.NodeOutput:
         if not enabled:
             return io.NodeOutput(False, "", "", "", 0, 0, 0, "")
         if not execute:

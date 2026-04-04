@@ -20,7 +20,6 @@ class InoS3GetDownloadURL(io.ComfyNode):
                 io.Boolean.Input("as_attachment", default=False),
                 io.String.Input("filename", default=""),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
-                io.String.Input("bucket_name", default="default", optional=True),
             ],
             outputs=[
                 io.Boolean.Output(display_name="success"),
@@ -31,7 +30,7 @@ class InoS3GetDownloadURL(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(cls, enabled, s3_key, expires_in=3600, as_attachment=False, filename=None, s3_config=None, bucket_name=None) -> io.NodeOutput:
+    async def execute(cls, enabled, s3_key, expires_in=3600, as_attachment=False, filename=None, s3_config=None) -> io.NodeOutput:
         if not enabled:
             return io.NodeOutput(False, "not enabled", "", "")
 
