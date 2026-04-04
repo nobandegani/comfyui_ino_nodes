@@ -1,67 +1,62 @@
-import folder_paths
-
 from pathlib import Path
 
-class InoGetComfyPath:
-    """
+from comfy_api.latest import io
 
-    """
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
+
+
+class InoGetComfyPath(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetComfyPath",
+            display_name="Ino Get Comfy Path",
+            category="InoPathHelper",
+            description="Returns the absolute path to a ComfyUI directory (input, output, or temp).",
+            inputs=[
+                io.Combo.Input("folder_type", options=PARENT_FOLDER_OPTIONS),
+            ],
+            outputs=[
+                io.String.Output(display_name="path"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "folder_type": (["input", "output", "temp"],),
-            }
-        }
+    def execute(cls, folder_type) -> io.NodeOutput:
+        _, abs_path = resolve_comfy_path(folder_type)
+        return io.NodeOutput(abs_path)
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("String",)
 
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, folder_type):
-        if folder_type == "input":
-            final_path = folder_paths.get_input_directory()
-        elif folder_type == "output":
-            final_path = folder_paths.get_output_directory()
-        else:
-            final_path = folder_paths.get_temp_directory()
-        return (final_path,)
-
-class InoGetLoraPathNameTriggerWord:
-    """
-
-    """
+class InoGetLoraPathNameTriggerWord(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetLoraPathNameTriggerWord",
+            display_name="Ino Get Lora Path Name Trigger Word",
+            category="InoPathHelper",
+            description="Extracts the LoRA ID, name, and trigger word from a file path.",
+            inputs=[
+                io.String.Input("lora_path"),
+            ],
+            outputs=[
+                io.String.Output(display_name="lora_id"),
+                io.String.Output(display_name="lora_name"),
+                io.String.Output(display_name="lora_trigger_word"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "lora_path": ("STRING", {}),
-            }
-        }
-
-    RETURN_TYPES = ("STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("lora_id", "lora_name", "lora_trigger_word",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def function(self, lora_path, ):
+    def execute(cls, lora_path) -> io.NodeOutput:
         lora_path = Path(lora_path)
         lora_id = lora_path.parent.name
         lora_name = lora_path.stem
         trigger_word = lora_name.split('_')[0]
+        return io.NodeOutput(lora_id, lora_name, trigger_word)
 
-        return ( lora_id, lora_name, trigger_word, )
 
 LOCAL_NODE_CLASS = {
     "InoGetComfyPath": InoGetComfyPath,
-    "InoGetLoraPathNameTriggerWord": InoGetLoraPathNameTriggerWord
+    "InoGetLoraPathNameTriggerWord": InoGetLoraPathNameTriggerWord,
 }
 LOCAL_NODE_NAME = {
     "InoGetComfyPath": "Ino Get Comfy Path",
