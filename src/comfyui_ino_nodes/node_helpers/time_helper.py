@@ -1,132 +1,101 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 from inopyutils import InoUtilHelper
 
-from comfy_api.latest import ComfyExtension, io
+from comfy_api.latest import io
 
-class InoDateTimeAsStringSimple:
-    """
-        Date Time As String
-    """
+
+class InoDateTimeAsStringSimple(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoDateTimeAsStringSimple",
+            display_name="Ino DateTime Simple",
+            category="InoTimeHelper",
+            description="Returns the current UTC date and time as a string in ISO or simple format.",
+            inputs=[
+                io.Int.Input("seed", default=0, min=0, max=0xffffffffffffffff, control_after_generate=True),
+                io.Combo.Input("input_timezone", options=["UTC"]),
+                io.Boolean.Input("iso_format", default=True),
+            ],
+            outputs=[
+                io.String.Output(display_name="datetime"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "step": 1,
-                    "label": "Seed (0 = random)",
-                    "control_after_generate": True,
-                }),
-                "input_timezone": (['UTC'], {}),
-                "iso_format": ("BOOLEAN", {"default": True, }),
-            },
-        }
-
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("output_date_time", )
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def __init__(self):
-        pass
-
-    def function(self, seed, input_timezone, iso_format):
+    def execute(cls, seed, input_timezone, iso_format) -> io.NodeOutput:
         now = datetime.now(timezone.utc)
         if iso_format:
-            return (now.isoformat(), )
-        else:
-            return (now.strftime("%Y-%m-%d %H:%M:%S"), )
+            return io.NodeOutput(now.isoformat())
+        return io.NodeOutput(now.strftime("%Y-%m-%d %H:%M:%S"))
 
-class InoGetDateTimeDuration:
-    """
 
-    """
+class InoGetDateTimeDuration(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetDateTimeDuration",
+            display_name="Ino DateTime Duration",
+            category="InoTimeHelper",
+            description="Calculates the duration between two ISO datetime strings.",
+            inputs=[
+                io.String.Input("datetime_a"),
+                io.String.Input("datetime_b"),
+            ],
+            outputs=[
+                io.String.Output(display_name="iso_format"),
+                io.Float.Output(display_name="total_seconds"),
+                io.Float.Output(display_name="total_minutes"),
+                io.Float.Output(display_name="total_hours"),
+                io.Float.Output(display_name="total_days"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "datetime_a": ("STRING", {}),
-                "datetime_b": ("STRING", {}),
-            },
-        }
+    def execute(cls, datetime_a, datetime_b) -> io.NodeOutput:
+        dt_a = datetime.fromisoformat(datetime_a)
+        dt_b = datetime.fromisoformat(datetime_b)
 
-    RETURN_TYPES = ("STRING", "FLOAT", "FLOAT", "FLOAT", "FLOAT",)
-    RETURN_NAMES = ("iso_format", "total_seconds", "total_minutes", "total_hours", "total_days",)
-    FUNCTION = "function"
+        time_delta = dt_a - dt_b
+        total_seconds = time_delta.total_seconds()
 
-    CATEGORY = "InoNodes"
+        return io.NodeOutput(
+            str(time_delta),
+            total_seconds,
+            total_seconds / 60,
+            total_seconds / 3600,
+            float(time_delta.days),
+        )
 
-    def __init__(self):
-        pass
 
-    def function(self, datetime_a, datetime_b, ):
-        datetime_a: datetime = datetime.fromisoformat(datetime_a)
-        datetime_b: datetime = datetime.fromisoformat(datetime_b)
-
-        time_delta: timedelta = datetime_a - datetime_b
-        total_seconds: float = time_delta.total_seconds()
-
-        return (str(time_delta), total_seconds, float(total_seconds/60), float(total_seconds/3600), float(time_delta.days),)
-
-class InoDateTimeAsString:
-    """
-        Date Time As String
-    """
+class InoDateTimeAsString(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoDateTimeAsString",
+            display_name="Ino DateTime Custom",
+            category="InoTimeHelper",
+            description="Returns the current date and time as a customizable string with selectable components and separators.",
+            inputs=[
+                io.Int.Input("seed", default=0, min=0, max=0xffffffffffffffff, control_after_generate=True),
+                io.Boolean.Input("include_year", default=True, label_off="Exclude", label_on="Include"),
+                io.Boolean.Input("include_month", default=True, label_off="Exclude", label_on="Include"),
+                io.Boolean.Input("include_day", default=True, label_off="Exclude", label_on="Include"),
+                io.Boolean.Input("include_hour", default=True, label_off="Exclude", label_on="Include"),
+                io.Boolean.Input("include_minute", default=True, label_off="Exclude", label_on="Include"),
+                io.Boolean.Input("include_second", default=True, label_off="Exclude", label_on="Include"),
+                io.String.Input("date_sep", default="-"),
+                io.String.Input("datetime_sep", default="-"),
+                io.String.Input("time_sep", default="-"),
+            ],
+            outputs=[
+                io.String.Output(display_name="datetime"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "seed": ("INT", {
-                    "default": 0,
-                    "min": 0,
-                    "max": 0xffffffffffffffff,
-                    "step": 1,
-                    "label": "Seed (0 = random)",
-                    "control_after_generate": True,
-                }),
-                "include_year": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_month": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_day": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_hour": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_minute": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "include_second": ("BOOLEAN", {"default": True, "label_off": "Exclude", "label_on": "Include"}),
-                "date_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-                "datetime_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-                "time_sep": ("STRING", {
-                    "multiline": False,
-                    "default": "-"
-                }),
-            },
-        }
-
-    RETURN_TYPES = ("STRING", )
-    RETURN_NAMES = ("output_date_time", )
-    FUNCTION = "function"
-
-    CATEGORY = "InoNodes"
-
-    def __init__(self):
-        pass
-
-    def function(
-        self, seed,
-        include_year, include_month, include_day,
-        include_hour, include_minute, include_second,
-        date_sep="-", datetime_sep=" ", time_sep=":"
-    ):
+    def execute(cls, seed, include_year, include_month, include_day, include_hour, include_minute, include_second, date_sep="-", datetime_sep=" ", time_sep=":") -> io.NodeOutput:
         now = datetime.now()
 
         date_parts = []
@@ -150,30 +119,26 @@ class InoDateTimeAsString:
         time_str = time_sep.join(time_parts) if time_parts else ""
 
         if date_str and time_str:
-            return (f"{date_str}{datetime_sep}{time_str}", )
+            return io.NodeOutput(f"{date_str}{datetime_sep}{time_str}")
         elif date_str:
-            return (date_str, )
+            return io.NodeOutput(date_str)
         elif time_str:
-            return (time_str, )
-        else:
-            return ("", )
+            return io.NodeOutput(time_str)
+        return io.NodeOutput("")
+
 
 class InoGetDateTimeAsBase64(io.ComfyNode):
-    """
-
-    """
-
     @classmethod
-    def define_schema(cls) -> io.Schema:
+    def define_schema(cls):
         return io.Schema(
             node_id="InoGetDateTimeAsBase64",
-            display_name="Ino Get Date Time As Base64",
-            category="InoNodes",
-            inputs=[
-            ],
+            display_name="Ino DateTime Base64",
+            category="InoTimeHelper",
+            description="Returns the current UTC datetime encoded as a base64 string. Unique per execution.",
+            inputs=[],
             outputs=[
-                io.String.Output()
-            ]
+                io.String.Output(display_name="base64"),
+            ],
         )
 
     @classmethod
@@ -181,8 +146,9 @@ class InoGetDateTimeAsBase64(io.ComfyNode):
         return InoUtilHelper.get_date_time_utc_base64()
 
     @classmethod
-    def execute(cls,) -> io.NodeOutput:
+    def execute(cls) -> io.NodeOutput:
         return io.NodeOutput(InoUtilHelper.get_date_time_utc_base64())
+
 
 LOCAL_NODE_CLASS = {
     "InoDateTimeAsStringSimple": InoDateTimeAsStringSimple,
@@ -191,8 +157,8 @@ LOCAL_NODE_CLASS = {
     "InoGetDateTimeAsBase64": InoGetDateTimeAsBase64,
 }
 LOCAL_NODE_NAME = {
-    "InoDateTimeAsStringSimple": "Ino Date Time As String Simple",
-    "InoGetDateTimeDuration": "Ino Get Date Time Duration",
-    "InoDateTimeAsString": "Ino Date Time As String",
-    "InoGetDateTimeAsBase64": "Ino Get Date Time As Base64",
+    "InoDateTimeAsStringSimple": "Ino DateTime Simple",
+    "InoGetDateTimeDuration": "Ino DateTime Duration",
+    "InoDateTimeAsString": "Ino DateTime Custom",
+    "InoGetDateTimeAsBase64": "Ino DateTime Base64",
 }
