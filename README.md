@@ -14,7 +14,7 @@ Every file-related node follows a unified pattern with `parent_folder` (input/ou
 
 ---
 
-> **Important:** This package requires `inopyutils` and `inocloudreve` packages. All S3 operations require S3 credentials configured via environment variables or the S3 Config node. OpenAI and Runpod nodes require their respective API keys. Basic Auth middleware is optional and only activates when `COMFYUI_USERNAME` and `COMFYUI_PASSWORD` are set.
+> **Important:** This package requires `inopyutils`. All S3 operations require S3 credentials configured via environment variables or the S3 Config node. OpenAI and Runpod nodes require their respective API keys. Basic Auth middleware is optional and only activates when `COMFYUI_USERNAME` and `COMFYUI_PASSWORD` are set.
 
 ---
 
@@ -322,7 +322,6 @@ Video preview.
 | Package | Purpose |
 |---|---|
 | `inopyutils` | Core utility functions (file, S3, HTTP, JSON helpers) |
-| `inocloudreve` | Cloudreve cloud storage integration |
 | `openai` | OpenAI API client |
 | `aiohttp` | Async HTTP client and server middleware |
 | `numpy` | Array operations |

@@ -8,7 +8,7 @@ Custom node package for ComfyUI (v1.3.2) providing 125+ nodes across 18 categori
 - **Python**: >= 3.10
 - **Entry point**: `__init__.py` (aggregates all nodes via `NODE_CLASS_MAPPINGS`)
 - **Tests**: `cd src/comfyui_ino_nodes && pytest`
-- **Dependencies**: inopyutils, inocloudreve, openai, aiohttp, numpy, Pillow, torch, huggingface_hub, hf_xet
+- **Dependencies**: inopyutils, openai, aiohttp, numpy, Pillow, torch, huggingface_hub, hf_xet
 
 ## Architecture
 
