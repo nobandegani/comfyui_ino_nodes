@@ -73,8 +73,11 @@ class FileSyncer:
             ("SYNC_S3_URL", self.s3_url), ("SYNC_S3_BUCKET", self.s3_bucket),
             ("SYNC_S3_ID", self.s3_id), ("SYNC_S3_SECRET", self.s3_secret),
         ] if not val]
-        if missing:
-            raise EnvironmentError(f"Missing required env vars: {', '.join(missing)}")
+        self.enabled = len(missing) == 0
+        if not self.enabled:
+            print(f"[FileSyncer] Disabled — missing env vars: {', '.join(missing)}")
+            self.s3_client = None
+            return
 
         self.s3_client = InoS3Helper()
         self.s3_client.init(
@@ -99,6 +102,10 @@ class FileSyncer:
         return items
 
     def prepare_comfy_models(self):
+        if not self.enabled:
+            print("[FileSyncer] Skipping prepare — not configured.")
+            return
+
         valid_models: list[str] = []
 
         existing_folders = [folder.strip() for folder in self.sync_folders if folder.strip()]
@@ -142,6 +149,9 @@ class FileSyncer:
             print(f"Syncing folder finished for {folder}")
 
     async def sync_files(self):
+        if not self.enabled:
+            print("[FileSyncer] Skipping sync — not configured.")
+            return
         await asyncio.gather(*[self._sync_one(folder) for folder in self.sync_folders])
 
 async def main():
