@@ -6,37 +6,48 @@ import collections
 import threading
 
 
-class LogCapture:
-    """Captures terminal output (stdout) into a ring buffer."""
+class _StreamInterceptor:
+    """Wraps a stream (stdout/stderr) and copies output to a shared buffer."""
 
-    def __init__(self, max_lines=10000):
-        self._buffer = collections.deque(maxlen=max_lines)
-        self._lock = threading.Lock()
-        self._original_stdout = None
-        self._installed = False
-
-    def install(self):
-        if self._installed:
-            return
-        self._original_stdout = sys.stdout
-        sys.stdout = self
-        self._installed = True
+    def __init__(self, original, buffer, lock):
+        self._original = original
+        self._buffer = buffer
+        self._lock = lock
 
     @property
     def encoding(self):
-        return getattr(self._original_stdout, "encoding", "utf-8")
+        return getattr(self._original, "encoding", "utf-8")
 
     def write(self, text):
-        if self._original_stdout:
-            self._original_stdout.write(text)
+        if self._original:
+            self._original.write(text)
         if text and text != "\n":
             with self._lock:
                 for line in text.rstrip("\n").split("\n"):
                     self._buffer.append(line)
 
     def flush(self):
-        if self._original_stdout:
-            self._original_stdout.flush()
+        if self._original:
+            self._original.flush()
+
+    def __getattr__(self, name):
+        return getattr(self._original, name)
+
+
+class LogCapture:
+    """Captures terminal output (stdout + stderr) into a ring buffer."""
+
+    def __init__(self, max_lines=10000):
+        self._buffer = collections.deque(maxlen=max_lines)
+        self._lock = threading.Lock()
+        self._installed = False
+
+    def install(self):
+        if self._installed:
+            return
+        sys.stdout = _StreamInterceptor(sys.stdout, self._buffer, self._lock)
+        sys.stderr = _StreamInterceptor(sys.stderr, self._buffer, self._lock)
+        self._installed = True
 
     def get_lines(self, count):
         with self._lock:
