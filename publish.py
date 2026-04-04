@@ -191,10 +191,15 @@ def main():
         print("Skipping Comfy Registry (COMFY_REGISTRY_TOKEN not set)")
 
     # Create GitHub release (uses existing gh auth)
-    try:
-        create_github_release(new_version)
-    except SystemExit:
-        print("Warning: GitHub release creation failed. Is 'gh' installed and authenticated?")
+    import shutil
+    if shutil.which("gh"):
+        try:
+            create_github_release(new_version)
+        except Exception as e:
+            print(f"Warning: GitHub release creation failed: {e}")
+    else:
+        print("Skipping GitHub release ('gh' CLI not installed)")
+        print(f"  Create manually: gh release create v{new_version} --title 'v{new_version}' --latest")
 
     print(f"\nDone! v{new_version} published.")
 
