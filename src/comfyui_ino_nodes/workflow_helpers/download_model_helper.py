@@ -3,292 +3,259 @@ import shutil
 
 from pathlib import Path
 from huggingface_hub import hf_hub_download, snapshot_download
-from inopyutils import InoJsonHelper, InoHttpHelper, InoFileHelper, ino_ok, ino_err, ino_is_err, InoCivitHelper
+from inopyutils import InoJsonHelper, InoHttpHelper, ino_is_err, InoCivitHelper
 
 import folder_paths
 
-from comfy_api.latest import ComfyExtension, io, ui
+from comfy_api.latest import io
 
 from ..s3_helper.s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import ino_print_log, MODEL_TYPES
 from ..node_helper import get_list_from_csv, get_model_from_csv
 
-#todo add progress bar
 
-class InoCreateDownloadModelConfig:
-    """
-
-    """
+class InoCreateDownloadModelConfig(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoCreateModelFileConfig",
+            display_name="Ino Create Model File Config",
+            category="InoModelHelper",
+            description="Creates a model download configuration from individual fields.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("host", options=["s3", "hf", "civitai"]),
+                io.Combo.Input("model_type", options=list(MODEL_TYPES)),
+                io.String.Input("model_subfolder", default="flux1dev"),
+                io.String.Input("repo_id", default="", tooltip="depends on the host."),
+                io.String.Input("filename", default="", tooltip="depends on the host."),
+                io.String.Input("subfolder", default="", tooltip="depends on the host."),
+                io.String.Input("repo_type", default="", tooltip="depends on the host."),
+                io.String.Input("revision", default="", tooltip="depends on the host."),
+            ],
+            outputs=[
+                io.String.Output(display_name="ModelConfig"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "host": (["s3", "hf", "civitai"], {}),
-                "model_type": (MODEL_TYPES, {}),
-                "model_subfolder": ("STRING", {"default": "flux1dev", "tooltip": ""}),
-                "repo_id": ("STRING", {"default": "", "tooltip": "depends on the host."}),
-                "filename": ("STRING", {"default": "", "tooltip": "depends on the host."}),
-                "subfolder": ("STRING", {"default": "", "tooltip": "depends on the host."}),
-                "repo_type": ("STRING", {"default": "", "tooltip": "depends on the host."}),
-                "revision": ("STRING", {"default": "", "tooltip": "depends on the host."}),
-            },
-            "optional": {
-            }
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("ModelConfig",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoSamplerHelper"
-
-    def function(self, enabled, host: str, model_type: str, model_subfolder: str, repo_id: str, filename: str,
-                 subfolder: str, repo_type: str, revision: str):
+    def execute(cls, enabled, host, model_type, model_subfolder, repo_id, filename, subfolder, repo_type, revision) -> io.NodeOutput:
         if not enabled:
             ino_print_log("InoCreateDownloadModelConfig", "Attempt to run but disabled")
-            return ("",)
+            return io.NodeOutput("")
 
-        config = {}
-        config["host"] = host
-        config["model_type"] = model_type
-        config["model_subfolder"] = model_subfolder
-        config["repo_id"] = repo_id
-        config["filename"] = filename
-        config["subfolder"] = subfolder
-        config["repo_type"] = repo_type
-        config["revision"] = revision
-
+        config = {
+            "host": host,
+            "model_type": model_type,
+            "model_subfolder": model_subfolder,
+            "repo_id": repo_id,
+            "filename": filename,
+            "subfolder": subfolder,
+            "repo_type": repo_type,
+            "revision": revision,
+        }
         config_str = InoJsonHelper.dict_to_string(config)["data"]
-
         ino_print_log("InoCreateDownloadModelConfig", "config created")
-        return (config_str,)
+        return io.NodeOutput(config_str)
 
-class InoGetImageModelDownloadConfig:
-    """
 
-    """
+class InoGetImageModelDownloadConfig(io.ComfyNode):
     MODELS_LIST = get_list_from_csv(False, "image_models_files", True)
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model": (s.MODELS_LIST, {}),
-            },
-            "optional": {
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetImageModelDownloadConfig",
+            display_name="Ino Get Image Model Download Config",
+            category="InoModelHelper",
+            description="Retrieves image model download configuration from CSV.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("model", options=cls.MODELS_LIST),
+            ],
+            outputs=[
+                io.String.Output(display_name="ModelConfig"),
+            ],
+        )
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("ModelConfig",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoModelHelper"
-
-    def function(self, enabled, model):
+    @classmethod
+    def execute(cls, enabled, model) -> io.NodeOutput:
         if not enabled:
-            return ("",)
-
+            return io.NodeOutput("")
         model_dict = get_model_from_csv(False, "image_models_files", model)
-
         data = InoJsonHelper.dict_to_string(model_dict)["data"]
-        return (data,)
+        return io.NodeOutput(data)
 
-class InoGetVideoModelDownloadConfig:
-    """
 
-    """
+class InoGetVideoModelDownloadConfig(io.ComfyNode):
     MODELS_LIST = get_list_from_csv(False, "video_models_files", True)
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model": (s.MODELS_LIST, {}),
-            },
-            "optional": {
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetVideoModelDownloadConfig",
+            display_name="Ino Get Video Model Download Config",
+            category="InoModelHelper",
+            description="Retrieves video model download configuration from CSV.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("model", options=cls.MODELS_LIST),
+            ],
+            outputs=[
+                io.String.Output(display_name="ModelConfig"),
+            ],
+        )
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("ModelConfig",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoModelHelper"
-
-    def function(self, enabled, model):
+    @classmethod
+    def execute(cls, enabled, model) -> io.NodeOutput:
         if not enabled:
-            return ("",)
-
+            return io.NodeOutput("")
         model_dict = get_model_from_csv(False, "video_models_files", model)
-
         data = InoJsonHelper.dict_to_string(model_dict)["data"]
-        return (data,)
+        return io.NodeOutput(data)
 
-class InoGetVaeDownloadConfig:
-    """
 
-    """
+class InoGetVaeDownloadConfig(io.ComfyNode):
     MODELS_LIST = get_list_from_csv(False, "vae_files", True)
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model": (s.MODELS_LIST, {}),
-            },
-            "optional": {
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetVaeDownloadConfig",
+            display_name="Ino Get Vae Download Config",
+            category="InoModelHelper",
+            description="Retrieves VAE model download configuration from CSV.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("model", options=cls.MODELS_LIST),
+            ],
+            outputs=[
+                io.String.Output(display_name="ModelConfig"),
+            ],
+        )
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("ModelConfig",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoModelHelper"
-
-    def function(self, enabled, model):
+    @classmethod
+    def execute(cls, enabled, model) -> io.NodeOutput:
         if not enabled:
-            return ("",)
-
+            return io.NodeOutput("")
         model_dict = get_model_from_csv(False, "vae_files", model)
-
         data = InoJsonHelper.dict_to_string(model_dict)["data"]
-        return (data,)
+        return io.NodeOutput(data)
 
-class InoGetClipDownloadConfig:
-    """
 
-    """
+class InoGetClipDownloadConfig(io.ComfyNode):
     MODELS_LIST = get_list_from_csv(False, "clip_files", True)
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model": (s.MODELS_LIST, {}),
-            },
-            "optional": {
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetClipDownloadConfig",
+            display_name="Ino Get Clip Download Config",
+            category="InoModelHelper",
+            description="Retrieves CLIP model download configuration from CSV.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("model", options=cls.MODELS_LIST),
+            ],
+            outputs=[
+                io.String.Output(display_name="ModelConfig"),
+            ],
+        )
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("ModelConfig",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoModelHelper"
-
-    def function(self, enabled, model):
+    @classmethod
+    def execute(cls, enabled, model) -> io.NodeOutput:
         if not enabled:
-            return ("",)
-
+            return io.NodeOutput("")
         model_dict = get_model_from_csv(False, "clip_files", model)
-
         data = InoJsonHelper.dict_to_string(model_dict)["data"]
-        return (data,)
+        return io.NodeOutput(data)
 
-class InoGetControlnetDownloadConfig:
-    """
 
-    """
+class InoGetControlnetDownloadConfig(io.ComfyNode):
     MODELS_LIST = get_list_from_csv(False, "controlnet_files", True)
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model": (s.MODELS_LIST, {}),
-            },
-            "optional": {
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetControlnetDownloadConfig",
+            display_name="Ino Get Controlnet Download Config",
+            category="InoModelHelper",
+            description="Retrieves ControlNet model download configuration from CSV.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("model", options=cls.MODELS_LIST),
+            ],
+            outputs=[
+                io.String.Output(display_name="ModelConfig"),
+            ],
+        )
 
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("ModelConfig",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoModelHelper"
-
-    def function(self, enabled, model):
+    @classmethod
+    def execute(cls, enabled, model) -> io.NodeOutput:
         if not enabled:
-            return ("",)
-
+            return io.NodeOutput("")
         model_dict = get_model_from_csv(False, "controlnet_files", model)
-
         data = InoJsonHelper.dict_to_string(model_dict)["data"]
-        return (data,)
+        return io.NodeOutput(data)
 
-class InoGetLoraDownloadConfig:
-    """
 
-    """
+class InoGetLoraDownloadConfig(io.ComfyNode):
     MODELS_LIST = get_list_from_csv(False, "lora_files", True)
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model": (s.MODELS_LIST, {}),
-            },
-            "optional": {
-            }
-        }
-
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("ModelConfig",)
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoModelHelper"
-
-    def function(self, enabled, model):
-        if not enabled:
-            return ("",)
-
-        model_dict = get_model_from_csv(False, "lora_files", model)
-
-        data = InoJsonHelper.dict_to_string(model_dict)["data"]
-        return (data,)
-
-class InoHttpDownloadModel:
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoGetLoraDownloadConfig",
+            display_name="Ino Get Lora Download Config",
+            category="InoModelHelper",
+            description="Retrieves LoRA model download configuration from CSV.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Combo.Input("model", options=cls.MODELS_LIST),
+            ],
+            outputs=[
+                io.String.Output(display_name="ModelConfig"),
+            ],
+        )
 
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model_config": ("STRING", {"default": "{}"}),
-                "model_type": (MODEL_TYPES, {}),
-                "model_subfolder": ("STRING", {"default": "flux1dev"}),
-                "url": ("STRING", {"default": "https://download.pl"}),
-            },
-            "optional": {
-            }
-        }
+    def execute(cls, enabled, model) -> io.NodeOutput:
+        if not enabled:
+            return io.NodeOutput("")
+        model_dict = get_model_from_csv(False, "lora_files", model)
+        data = InoJsonHelper.dict_to_string(model_dict)["data"]
+        return io.NodeOutput(data)
 
-    CATEGORY = "InoModelHelper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
-    FUNCTION = "function"
 
-    async def function(self, enabled, model_config, model_type="", model_subfolder="", url=""):
+class InoHttpDownloadModel(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoHttpDownloadModel",
+            display_name="Ino Http Download Model",
+            category="InoModelHelper",
+            description="Downloads a model file from an HTTP URL.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("model_config", default="{}"),
+                io.Combo.Input("model_type", options=list(MODEL_TYPES)),
+                io.String.Input("model_subfolder", default="flux1dev"),
+                io.String.Input("url", default="https://download.pl"),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="msg"),
+                io.String.Output(display_name="model_type"),
+                io.String.Output(display_name="abs_path"),
+                io.String.Output(display_name="rel_path"),
+            ],
+        )
+
+    @classmethod
+    async def execute(cls, enabled, model_config, model_type="", model_subfolder="", url="") -> io.NodeOutput:
         if not enabled:
             ino_print_log("InoHttpDownloadModel", "Attempt to run but disabled")
-            return (False, "", "", "", "",)
+            return io.NodeOutput(False, "", "", "", "")
 
         try:
             if isinstance(model_config, str):
@@ -302,62 +269,62 @@ class InoHttpDownloadModel:
                 url = model_config.get("filename", url)
 
             parent_path = Path(folder_paths.get_input_directory()).parent
-            model_path_base: Path = parent_path / "models" / model_type
-            model_path:Path = model_path_base / model_subfolder / Path(url).name
+            model_path_base = parent_path / "models" / model_type
+            model_path = model_path_base / model_subfolder / Path(url).name
             rel_path = Path(model_path).relative_to(model_path_base)
 
             need_download = not model_path.is_file()
             if not need_download:
-                ino_print_log("InoHttpDownloadModel", "model already downloaded", )
-                return (True, "model validated", model_type, str(model_path), str(rel_path),)
+                ino_print_log("InoHttpDownloadModel", "model already downloaded")
+                return io.NodeOutput(True, "model validated", model_type, str(model_path), str(rel_path))
 
             model_path.parent.mkdir(parents=True, exist_ok=True)
 
             http_instance = InoHttpHelper()
-
             http_result = await http_instance.download(
-                url=url,
-                dest_path=model_path,
-                resume=True,
-                allow_redirects=True,
-                mkdirs=True,
-                connection=6
+                url=url, dest_path=model_path, resume=True,
+                allow_redirects=True, mkdirs=True, connection=6
             )
             if ino_is_err(http_result):
-                return (False, "failed to download", model_type, str(model_path), str(rel_path),)
+                return io.NodeOutput(False, "failed to download", model_type, str(model_path), str(rel_path))
 
-            ino_print_log("InoHttpDownloadModel", "file downloaded successfully", )
-            return (http_result["success"], http_result["msg"], model_type, str(model_path), str(rel_path), )
+            ino_print_log("InoHttpDownloadModel", "file downloaded successfully")
+            return io.NodeOutput(http_result["success"], http_result["msg"], model_type, str(model_path), str(rel_path))
         except Exception as e:
             ino_print_log("InoHttpDownloadModel", "", e)
-            return (False, f"Error: {e}", "", "", "",)
+            return io.NodeOutput(False, f"Error: {e}", "", "", "")
 
-class InoS3DownloadModel:
+
+class InoS3DownloadModel(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model_config": ("STRING", {"default": "{}"}),
-                "model_type": (MODEL_TYPES, {}),
-                "model_subfolder": ("STRING", {"default": "flux1dev"}),
-                "s3_key": ("STRING", {"default": "uploads/lora/aly_v001.safetensors"}),
-            },
-            "optional": {
-                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
-                "bucket_name": ("STRING", {"default": "default"}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoS3DownloadModel",
+            display_name="Ino S3 Download Model",
+            category="InoModelHelper",
+            description="Downloads a model file from S3.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("model_config", default="{}"),
+                io.Combo.Input("model_type", options=list(MODEL_TYPES)),
+                io.String.Input("model_subfolder", default="flux1dev"),
+                io.String.Input("s3_key", default="uploads/lora/aly_v001.safetensors"),
+                io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="msg"),
+                io.String.Output(display_name="model_type"),
+                io.String.Output(display_name="abs_path"),
+                io.String.Output(display_name="rel_path"),
+            ],
+        )
 
-    CATEGORY = "InoModelHelper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
-    FUNCTION = "function"
-
-    async def function(self, enabled, model_config, model_type="", model_subfolder="", s3_key="", s3_config="{}", bucket_name="default"):
+    @classmethod
+    async def execute(cls, enabled, model_config, model_type="", model_subfolder="", s3_key="", s3_config="{}") -> io.NodeOutput:
         if not enabled:
             ino_print_log("InoS3DownloadModel", "Attempt to run but disabled")
-            return (False, "", "", "", "",)
+            return io.NodeOutput(False, "", "", "", "")
 
         try:
             if isinstance(model_config, str):
@@ -370,71 +337,73 @@ class InoS3DownloadModel:
                 model_subfolder = model_config.get("model_subfolder", model_subfolder)
                 s3_config = model_config.get("repo_id", s3_config)
                 s3_key = model_config.get("filename", s3_key)
-                bucket_name = model_config.get("subfolder", bucket_name)
 
             parent_path = Path(folder_paths.get_input_directory()).parent
-            model_path_base: Path = parent_path / "models" / model_type
-            model_path:Path = model_path_base / model_subfolder / Path(s3_key).name
+            model_path_base = parent_path / "models" / model_type
+            model_path = model_path_base / model_subfolder / Path(s3_key).name
             rel_path = Path(model_path).relative_to(model_path_base)
 
             need_download = not model_path.is_file()
             if not need_download:
-                ino_print_log("InoS3DownloadModel", "model already downloaded", )
-                return (True, "model validated", model_type, str(model_path), str(rel_path),)
+                ino_print_log("InoS3DownloadModel", "model already downloaded")
+                return io.NodeOutput(True, "model validated", model_type, str(model_path), str(rel_path))
 
             validate_s3_key = S3Helper.validate_s3_key(s3_key)
             if not validate_s3_key["success"]:
-                ino_print_log("InoS3DownloadModel", validate_s3_key["msg"], )
-                return (False, validate_s3_key["msg"], "", "", "",)
+                ino_print_log("InoS3DownloadModel", validate_s3_key["msg"])
+                return io.NodeOutput(False, validate_s3_key["msg"], "", "", "")
 
             model_path.parent.mkdir(parents=True, exist_ok=True)
 
             s3_instance = S3Helper.get_instance(s3_config)
             if ino_is_err(s3_instance):
-                return (False, s3_instance["msg"], "", "", "",)
+                return io.NodeOutput(False, s3_instance["msg"], "", "", "")
             s3_instance = s3_instance["instance"]
 
-            s3_result = await s3_instance.download_file(
-                s3_key=s3_key,
-                local_file_path=model_path
-            )
+            s3_result = await s3_instance.download_file(s3_key=s3_key, local_file_path=model_path)
 
-            ino_print_log("InoS3DownloadModel", "file downloaded successfully", )
-            return (s3_result["success"], s3_result["msg"], model_type, str(model_path), str(rel_path), )
+            ino_print_log("InoS3DownloadModel", "file downloaded successfully")
+            return io.NodeOutput(s3_result["success"], s3_result["msg"], model_type, str(model_path), str(rel_path))
         except Exception as e:
             ino_print_log("InoS3DownloadModel", "", e)
-            return (False, f"Error: {e}", "", "", "",)
+            return io.NodeOutput(False, f"Error: {e}", "", "", "")
 
-class InoHuggingFaceDownloadModel:
+
+class InoHuggingFaceDownloadModel(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model_config": ("STRING", {"default": "{}"}),
-                "model_type": (MODEL_TYPES, {}),
-                "model_subfolder": ("STRING", {"default": "flux1dev"}),
-                "repo_id": ("STRING", {"default": ""}),
-                "filename": ("STRING", {"default": ""}),
-                "subfolder": ("STRING", {"default": ""}),
-            },
-            "optional": {
-                "token": ("STRING", {"default": ""}),
-                "repo_type": ("STRING", {"default": ""}),
-                "revision": ("STRING", {"default": ""}),
-                "ignore_repo_dir": ("BOOLEAN", {"default": False}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoHuggingFaceDownloadModel",
+            display_name="Ino Hugging Face Download Model",
+            category="InoModelHelper",
+            description="Downloads a single model file from HuggingFace.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("model_config", default="{}"),
+                io.Combo.Input("model_type", options=list(MODEL_TYPES)),
+                io.String.Input("model_subfolder", default="flux1dev"),
+                io.String.Input("repo_id", default=""),
+                io.String.Input("filename", default=""),
+                io.String.Input("subfolder", default=""),
+                io.String.Input("token", default="", optional=True),
+                io.String.Input("repo_type", default="", optional=True),
+                io.String.Input("revision", default="", optional=True),
+                io.Boolean.Input("ignore_repo_dir", default=False, optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="msg"),
+                io.String.Output(display_name="model_type"),
+                io.String.Output(display_name="abs_path"),
+                io.String.Output(display_name="rel_path"),
+            ],
+        )
 
-    CATEGORY = "InoModelHelper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
-    FUNCTION = "function"
-
-    async def function(self, enabled, model_config, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision="", ignore_repo_dir=False):
+    @classmethod
+    async def execute(cls, enabled, model_config, model_type="", model_subfolder="", repo_id="", filename="", subfolder="", token="", repo_type="", revision="", ignore_repo_dir=False) -> io.NodeOutput:
         if not enabled:
-            ino_print_log("InoHuggingFaceDownloadFile", "Attempt to run but disabled")
-            return (False, "", "", "", "",)
+            ino_print_log("InoHuggingFaceDownloadModel", "Attempt to run but disabled")
+            return io.NodeOutput(False, "", "", "", "")
 
         try:
             if isinstance(model_config, str):
@@ -451,10 +420,9 @@ class InoHuggingFaceDownloadModel:
                 repo_type = model_config.get("repo_type", repo_type)
                 revision = model_config.get("revision", revision)
 
-
             parent_path = Path(folder_paths.get_input_directory()).parent
-            model_path_base: Path = parent_path / "models" / model_type
-            model_path: Path = model_path_base / model_subfolder
+            model_path_base = parent_path / "models" / model_type
+            model_path = model_path_base / model_subfolder
             if model_path.is_file():
                 model_path = model_path.parent
 
@@ -467,11 +435,10 @@ class InoHuggingFaceDownloadModel:
                 args["repo_type"] = repo_type
             if revision:
                 args["revision"] = revision
-
             args["local_dir"] = model_path
         except Exception as e:
-            ino_print_log("InoHuggingFaceDownloadFile", "", e)
-            return (False, f"Error: {e}", "", "", "")
+            ino_print_log("InoHuggingFaceDownloadModel", "", e)
+            return io.NodeOutput(False, f"Error: {e}", "", "", "")
 
         try:
             result = hf_hub_download(repo_id, filename, **args)
@@ -479,39 +446,45 @@ class InoHuggingFaceDownloadModel:
                 shutil.move(result, model_path)
                 result = f"{model_path}/{Path(result).name}"
             rel_path = Path(result).relative_to(model_path_base)
-            ino_print_log("InoHuggingFaceDownloadFile", "file downloaded successfully", )
-            return (True, "Successfull", model_type, str(result), str(rel_path))
+            ino_print_log("InoHuggingFaceDownloadModel", "file downloaded successfully")
+            return io.NodeOutput(True, "Successful", model_type, str(result), str(rel_path))
         except Exception as e:
-            ino_print_log("InoHuggingFaceDownloadFile", "", e)
-            return (False, f"Error: {e}", "", "", "")
+            ino_print_log("InoHuggingFaceDownloadModel", "", e)
+            return io.NodeOutput(False, f"Error: {e}", "", "", "")
 
-class InoHuggingFaceDownloadRepo:
+
+class InoHuggingFaceDownloadRepo(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model_config": ("STRING", {"default": "{}"}),
-                "model_type": (MODEL_TYPES, {}),
-                "model_subfolder": ("STRING", {"default": "flux1dev"}),
-                "repo_id": ("STRING", {"default": ""}),
-            },
-            "optional": {
-                "token": ("STRING", {"default": ""}),
-                "repo_type": ("STRING", {"default": ""}),
-                "revision": ("STRING", {"default": ""})
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoHuggingFaceDownloadRepo",
+            display_name="Ino Hugging Face Download Repo",
+            category="InoModelHelper",
+            description="Downloads an entire repository from HuggingFace.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("model_config", default="{}"),
+                io.Combo.Input("model_type", options=list(MODEL_TYPES)),
+                io.String.Input("model_subfolder", default="flux1dev"),
+                io.String.Input("repo_id", default=""),
+                io.String.Input("token", default="", optional=True),
+                io.String.Input("repo_type", default="", optional=True),
+                io.String.Input("revision", default="", optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="msg"),
+                io.String.Output(display_name="model_type"),
+                io.String.Output(display_name="abs_path"),
+                io.String.Output(display_name="rel_path"),
+            ],
+        )
 
-    CATEGORY = "InoModelHelper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
-    FUNCTION = "function"
-
-    async def function(self, enabled, model_config, model_type="", model_subfolder="", repo_id="", token="", repo_type="", revision=""):
+    @classmethod
+    async def execute(cls, enabled, model_config, model_type="", model_subfolder="", repo_id="", token="", repo_type="", revision="") -> io.NodeOutput:
         if not enabled:
             ino_print_log("InoHuggingFaceDownloadRepo", "Attempt to run but disabled")
-            return (False, "", "", "", "",)
+            return io.NodeOutput(False, "", "", "", "")
 
         try:
             if isinstance(model_config, str):
@@ -526,10 +499,9 @@ class InoHuggingFaceDownloadRepo:
                 repo_type = model_config.get("repo_type", repo_type)
                 revision = model_config.get("revision", revision)
 
-
             parent_path = Path(folder_paths.get_input_directory()).parent
-            model_path_base: Path = parent_path / "models" / model_type
-            model_path: Path = model_path_base / model_subfolder
+            model_path_base = parent_path / "models" / model_type
+            model_path = model_path_base / model_subfolder
             if model_path.is_file():
                 model_path = model_path.parent
 
@@ -540,49 +512,54 @@ class InoHuggingFaceDownloadRepo:
                 args["repo_type"] = repo_type
             if revision:
                 args["revision"] = revision
-
             args["local_dir"] = model_path
         except Exception as e:
             ino_print_log("InoHuggingFaceDownloadRepo", "", e)
-            return (False, f"Error: {e}", "", "", "")
+            return io.NodeOutput(False, f"Error: {e}", "", "", "")
 
         try:
             result = snapshot_download(repo_id, **args)
             rel_path = Path(result).relative_to(model_path_base)
-            ino_print_log("InoHuggingFaceDownloadRepo", "file downloaded successfully", )
-            return (True, "Successfull", model_type, str(result), str(rel_path))
+            ino_print_log("InoHuggingFaceDownloadRepo", "file downloaded successfully")
+            return io.NodeOutput(True, "Successful", model_type, str(result), str(rel_path))
         except Exception as e:
             ino_print_log("InoHuggingFaceDownloadRepo", "", e)
-            return (False, f"Error: {e}", "", "", "")
+            return io.NodeOutput(False, f"Error: {e}", "", "", "")
 
-class InoCivitaiDownloadModel:
+
+class InoCivitaiDownloadModel(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "model_config": ("STRING", {"default": "{}"}),
-                "model_type": (MODEL_TYPES, {}),
-                "model_subfolder": ("STRING", {"default": "flux1dev"}),
-                "model_version": ("STRING", {"default": ""}),
-            },
-            "optional": {
-                "token": ("STRING", {"default": ""}),
-                "model_id": ("STRING", {"default": ""}),
-                "file_id": ("INT", {"min": 0, "max": 100, "step": 1, "default": 0}),
-                "chunk_size": ([8, 16, 32, 64], {"default": 8})
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoCivitaiDownloadModel",
+            display_name="Ino Civitai Download Model",
+            category="InoModelHelper",
+            description="Downloads a model file from Civitai.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("model_config", default="{}"),
+                io.Combo.Input("model_type", options=list(MODEL_TYPES)),
+                io.String.Input("model_subfolder", default="flux1dev"),
+                io.String.Input("model_version", default=""),
+                io.String.Input("token", default="", optional=True),
+                io.String.Input("model_id", default="", optional=True),
+                io.Int.Input("file_id", default=0, min=0, max=100, step=1, optional=True),
+                io.Combo.Input("chunk_size", options=["8", "16", "32", "64"], optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="msg"),
+                io.String.Output(display_name="model_type"),
+                io.String.Output(display_name="abs_path"),
+                io.String.Output(display_name="rel_path"),
+            ],
+        )
 
-    CATEGORY = "InoModelHelper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
-    FUNCTION = "function"
-
-    async def function(self, enabled, model_config, model_type="", model_subfolder="", model_version="", token="", model_id="", file_id=0, chunk_size=8):
+    @classmethod
+    async def execute(cls, enabled, model_config, model_type="", model_subfolder="", model_version="", token="", model_id="", file_id=0, chunk_size="8") -> io.NodeOutput:
         if not enabled:
-            ino_print_log("InoCivitaiDownloadFile", "Attempt to run but disabled")
-            return (False, "", "", "", "", )
+            ino_print_log("InoCivitaiDownloadModel", "Attempt to run but disabled")
+            return io.NodeOutput(False, "", "", "", "")
 
         try:
             if isinstance(model_config, str):
@@ -598,7 +575,7 @@ class InoCivitaiDownloadModel:
                 file_id = int(model_config.get("filename", file_id))
 
             parent_path = Path(folder_paths.get_input_directory()).parent
-            model_path_base: Path = parent_path / "models" / model_type
+            model_path_base = parent_path / "models" / model_type
             model_path = model_path_base / model_subfolder
             if model_path.is_file():
                 model_path = model_path.parent
@@ -614,46 +591,50 @@ class InoCivitaiDownloadModel:
                 file_id=file_id,
             )
             if ino_is_err(download_model):
-                return (False, download_model["msg"], model_type, "", "",)
+                return io.NodeOutput(False, download_model["msg"], model_type, "", "")
 
             await civit_client.close()
 
             abs_path = download_model["local_file_path"]
             rel_path = Path(abs_path).relative_to(model_path_base)
 
-            return (True, download_model["msg"], model_type, str(abs_path), str(rel_path), )
+            return io.NodeOutput(True, download_model["msg"], model_type, str(abs_path), str(rel_path))
         except Exception as e:
-            ino_print_log("InoCivitaiDownloadFile", "", e)
-            return (False, str(e), "", "", "",)
+            ino_print_log("InoCivitaiDownloadModel", "", e)
+            return io.NodeOutput(False, str(e), "", "", "")
 
-class InoHandleDownloadModel:
+
+class InoHandleDownloadModel(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "config": ("STRING", {"default": "{}"}),
-            },
-            "optional": {
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoHandleDownloadModel",
+            display_name="Ino Handle Download Model",
+            category="InoModelHelper",
+            description="Delegates model download to the appropriate handler (S3, HuggingFace, or Civitai) based on config.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("config", default="{}"),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="msg"),
+                io.String.Output(display_name="model_type"),
+                io.String.Output(display_name="abs_path"),
+                io.String.Output(display_name="rel_path"),
+            ],
+        )
 
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("success", "msg", "model_type", "abs_path", "rel_path")
-
-    FUNCTION = "function"
-
-    CATEGORY = "InoSamplerHelper"
-
-    async def function(self, enabled, config: str):
+    @classmethod
+    async def execute(cls, enabled, config) -> io.NodeOutput:
         if not enabled:
             ino_print_log("InoHandleDownloadModel", "Attempt to run but disabled")
-            return (False, "not enabled", "", "", "")
+            return io.NodeOutput(False, "not enabled", "", "", "")
 
         config_dict = InoJsonHelper.string_to_dict(config)
         if not config_dict["success"]:
             ino_print_log("InoHandleDownloadModel", "invalid config string")
-            return (False, config_dict["msg"], "", "", "")
+            return io.NodeOutput(False, config_dict["msg"], "", "", "")
 
         config_dict = config_dict["data"]
 
@@ -666,11 +647,12 @@ class InoHandleDownloadModel:
             loader = InoCivitaiDownloadModel()
         else:
             ino_print_log("InoHandleDownloadModel", "unknown host")
-            return (False, "unknown host", "", "", "")
+            return io.NodeOutput(False, "unknown host", "", "", "")
 
-        result = await loader.function(enabled=True, model_config=config)
+        result = await loader.execute(enabled=True, model_config=config)
         ino_print_log("InoHandleDownloadModel", "delegated to loader completed")
         return result
+
 
 LOCAL_NODE_CLASS = {
     "InoCreateModelFileConfig": InoCreateDownloadModelConfig,
