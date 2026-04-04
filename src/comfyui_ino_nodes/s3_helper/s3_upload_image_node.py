@@ -26,10 +26,10 @@ class InoS3UploadImage(io.ComfyNode):
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.Image.Input("image"),
                 io.String.Input("s3_path_key", default=""),
-                io.String.Input("filename", default=""),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
                 io.Int.Input("compress_level", default=4, min=1, max=9, optional=True),
                 io.Boolean.Input("unique_file_name", default=True, optional=True, label_off="Use filename", label_on="Unique name"),
+                io.String.Input("filename", default="", optional=True),
             ],
             outputs=[
                 io.Image.Output(display_name="image"),

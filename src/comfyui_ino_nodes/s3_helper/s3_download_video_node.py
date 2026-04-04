@@ -55,7 +55,7 @@ class InoS3DownloadVideo(io.ComfyNode):
         if not downloaded["success"]:
             return io.NodeOutput(False, downloaded["msg"], None)
 
-        from comfy_api.latest import Input
-        video = Input.Video.from_path(full_path)
+        from comfy_api.latest import VideoFromFile
+        video = VideoFromFile(full_path)
 
         return io.NodeOutput(True, "Success", video)

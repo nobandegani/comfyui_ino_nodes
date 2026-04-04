@@ -22,9 +22,9 @@ class InoS3UploadAudio(io.ComfyNode):
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.Audio.Input("audio"),
                 io.String.Input("s3_path_key", default=""),
-                io.String.Input("filename", default=""),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
                 io.Boolean.Input("unique_file_name", default=True, optional=True, label_off="Use filename", label_on="Unique name"),
+                io.String.Input("filename", default="", optional=True),
             ],
             outputs=[
                 io.Audio.Output(display_name="audio"),
