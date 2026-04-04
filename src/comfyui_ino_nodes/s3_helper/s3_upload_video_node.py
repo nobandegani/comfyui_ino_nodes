@@ -21,10 +21,10 @@ class InoS3UploadVideo(io.ComfyNode):
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.Video.Input("video"),
-                io.String.Input("s3_key", default=""),
+                io.String.Input("s3_path_key", default=""),
                 io.String.Input("filename", default=""),
                 io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
-                io.Boolean.Input("date_time_as_name", default=False, optional=True),
+                io.Boolean.Input("unique_file_name", default=True, optional=True, label_off="Use filename", label_on="Unique name"),
                 io.Combo.Input("video_format", options=["mp4", "auto"], optional=True),
                 io.Combo.Input("video_codec", options=["h264", "auto"], optional=True),
             ],
@@ -38,33 +38,34 @@ class InoS3UploadVideo(io.ComfyNode):
         )
 
     @classmethod
-    async def execute(cls, enabled, video: Input.Video, s3_key, filename, s3_config=None, date_time_as_name=False, video_format="mp4", video_codec="h264") -> io.NodeOutput:
+    async def execute(cls, enabled, video: Input.Video, s3_path_key, filename, s3_config=None, unique_file_name=True, video_format="mp4", video_codec="h264") -> io.NodeOutput:
         if not enabled:
             return io.NodeOutput(video, False, "", "", "")
 
-        validate_s3_key = S3Helper.validate_s3_key(s3_key)
+        validate_s3_key = S3Helper.validate_s3_key(s3_path_key)
         if not validate_s3_key["success"]:
             return io.NodeOutput(video, False, validate_s3_key["msg"], "", "")
 
-        if date_time_as_name:
-            filename = InoUtilHelper.get_date_time_utc_base64()
-
         temp_path = folder_paths.get_temp_directory()
-        width, height = video.get_dimensions()
+        save_dir = os.path.join(temp_path, "s3_upload_video")
+        os.makedirs(save_dir, exist_ok=True)
 
-        full_output_folder, file_prefix, counter, subfolder, _ = folder_paths.get_save_image_path(filename, temp_path, width, height)
+        ext = Types.VideoContainer.get_extension(video_format)
+        local_name = InoUtilHelper.get_date_time_utc_base64()
+        local_file = f"{local_name}.{ext}"
+        full_path = os.path.join(save_dir, local_file)
 
-        filename_w_ext = f"{file_prefix}.{Types.VideoContainer.get_extension(video_format)}"
-        file_path = os.path.join(full_output_folder, filename_w_ext)
+        video.save_to(full_path, format=Types.VideoContainer(video_format), codec=Types.VideoCodec(video_codec))
 
-        video.save_to(file_path, format=Types.VideoContainer(video_format), codec=Types.VideoCodec(video_codec))
+        s3_name = local_name if unique_file_name else Path(filename).stem
+        s3_file = f"{s3_name}.{ext}"
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
             return io.NodeOutput(video, False, s3_instance["msg"], "", "")
         s3_instance = s3_instance["instance"]
 
-        s3_full_key = s3_key + "/" + filename_w_ext
-        s3_result = await s3_instance.upload_file(s3_key=s3_full_key, local_file_path=file_path)
+        s3_full_key = f"{s3_path_key.rstrip('/')}/{s3_file}"
+        s3_result = await s3_instance.upload_file(s3_key=s3_full_key, local_file_path=full_path)
 
-        return io.NodeOutput(video, s3_result["success"], s3_result["msg"], filename_w_ext, s3_full_key)
+        return io.NodeOutput(video, s3_result["success"], s3_result["msg"], s3_file, s3_full_key)
