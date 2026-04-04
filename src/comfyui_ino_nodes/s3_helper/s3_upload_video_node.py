@@ -1,56 +1,58 @@
 import os
 from pathlib import Path
-from datetime import datetime
 
-from PIL import Image, ImageOps, ImageSequence
-from PIL.PngImagePlugin import PngInfo
-import numpy as np
-from inopyutils import InoJsonHelper, ino_ok, ino_err, ino_is_err, InoUtilHelper
+from inopyutils import ino_is_err, InoUtilHelper
 
 import folder_paths
-from comfy.cli_args import args
-from comfy_api.latest import ComfyExtension, io, ui, Input, InputImpl, Types
+from comfy_api.latest import io, Input, Types
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
-from ..node_helper import any_type, PARENT_FOLDER_OPTIONS, resolve_comfy_path
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
 
-class InoS3UploadVideo:
+
+class InoS3UploadVideo(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "execute": (any_type,),
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "video": ("VIDEO",),
-                "s3_key": ("STRING", {"default": ""}),
-                "parent_folder": (PARENT_FOLDER_OPTIONS, {"default": "temp"}),
-                "folder": ("STRING", {"default": ""}),
-                "filename": ("STRING", {"default": ""})
-            },
-            "optional": {
-                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
-                "date_time_as_name": ("BOOLEAN", {"default": False}),
-                "video_format": (("mp4", "auto"), {}),
-                "video_codec": (("h264", "auto"), {}),
-            },
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoS3UploadVideo",
+            display_name="Ino S3 Upload Video",
+            category="InoS3Helper",
+            description="Saves video locally then uploads it to S3.",
+            is_output_node=True,
+            inputs=[
+                io.AnyType.Input("execute"),
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.Video.Input("video"),
+                io.String.Input("s3_key", default=""),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS, default="temp"),
+                io.String.Input("folder", default=""),
+                io.String.Input("filename", default=""),
+                io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
+                io.Boolean.Input("date_time_as_name", default=False, optional=True),
+                io.Combo.Input("video_format", options=["mp4", "auto"], optional=True),
+                io.Combo.Input("video_codec", options=["h264", "auto"], optional=True),
+            ],
+            outputs=[
+                io.Video.Output(display_name="video"),
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="rel_path"),
+                io.String.Output(display_name="abs_path"),
+                io.String.Output(display_name="file_name"),
+                io.String.Output(display_name="s3_video_path"),
+            ],
+        )
 
-    RETURN_TYPES = ("Video", "BOOLEAN", "STRING", "STRING", "STRING", "STRING", "STRING",)
-    RETURN_NAMES = ("video", "success", "message", "rel_path", "abs_path", "file_name", "s3_video_path",)
-    FUNCTION = "function"
-    OUTPUT_NODE = True
-    CATEGORY = "InoS3Helper"
-
-    async def function(self, execute, enabled, video: Input.Video, s3_key, parent_folder, folder, filename, s3_config=None, date_time_as_name=False, video_format="mp4", video_codec="h264"):
+    @classmethod
+    async def execute(cls, execute, enabled, video: Input.Video, s3_key, parent_folder, folder, filename, s3_config=None, date_time_as_name=False, video_format="mp4", video_codec="h264") -> io.NodeOutput:
         if not enabled:
-            return (video, False, "", "", "", "", "",)
-
+            return io.NodeOutput(video, False, "", "", "", "", "")
         if not execute:
-            return (video, False, "", "", "", "", "",)
+            return io.NodeOutput(video, False, "", "", "", "", "")
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (video, False, validate_s3_key["msg"], "", "", "", "")
+            return io.NodeOutput(video, False, validate_s3_key["msg"], "", "", "", "")
 
         if date_time_as_name:
             filename = InoUtilHelper.get_date_time_utc_base64()
@@ -58,36 +60,19 @@ class InoS3UploadVideo:
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
         width, height = video.get_dimensions()
 
-        full_output_folder, file_prefix, counter, subfolder, filename_prefix = folder_paths.get_save_image_path(
-            filename,
-            abs_path,
-            width,
-            height
-        )
-
-        saved_metadata = None
+        full_output_folder, file_prefix, counter, subfolder, _ = folder_paths.get_save_image_path(filename, abs_path, width, height)
 
         filename_w_ext = f"{file_prefix}.{Types.VideoContainer.get_extension(video_format)}"
         file_path = os.path.join(full_output_folder, filename_w_ext)
 
-        video.save_to(
-            file_path,
-            format=Types.VideoContainer(video_format),
-            codec=video_codec,
-            metadata=saved_metadata
-        )
+        video.save_to(file_path, format=Types.VideoContainer(video_format), codec=Types.VideoCodec(video_codec))
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (video, False, s3_instance["msg"], rel_path, abs_path, "", "")
+            return io.NodeOutput(video, False, s3_instance["msg"], rel_path, abs_path, "", "")
         s3_instance = s3_instance["instance"]
 
         s3_full_key = s3_key + "/" + filename_w_ext
-        s3_result = await s3_instance.upload_file(
-            s3_key=s3_full_key,
-            local_file_path=file_path,
-        )
-        if not s3_result["success"]:
-            return (video, s3_result["success"], s3_result["msg"], rel_path, abs_path, filename, s3_full_key,)
+        s3_result = await s3_instance.upload_file(s3_key=s3_full_key, local_file_path=file_path)
 
-        return (video, s3_result["success"], s3_result["msg"], rel_path, abs_path, filename, s3_full_key,)
+        return io.NodeOutput(video, s3_result["success"], s3_result["msg"], rel_path, abs_path, filename, s3_full_key)

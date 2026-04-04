@@ -3,6 +3,8 @@ from pathlib import Path
 
 from inopyutils import InoS3Helper, InoJsonHelper, ino_ok, ino_err, ino_is_err
 
+from comfy_api.latest import io
+
 S3_EMPTY_CONFIG = {
     "access_key_id": "",
     "access_key_secret": "",
@@ -61,14 +63,14 @@ class S3Helper:
         if s3_config_dict.get("access_key_id", None) is None:
             return {
                 "success": False,
-                "msg": f"S3 configuration missing access_key_id",
+                "msg": "S3 configuration missing access_key_id",
                 "config": ""
             }
 
         if s3_config_dict.get("access_key_secret", None) is None:
             return {
                 "success": False,
-                "msg": f"S3 configuration missing access_key_secret",
+                "msg": "S3 configuration missing access_key_secret",
                 "config": ""
             }
 
@@ -81,61 +83,19 @@ class S3Helper:
     @staticmethod
     def validate_s3_key(s3_key) -> dict:
         if not s3_key or not s3_key.strip():
-            return {
-                "success": False,
-                "msg": "S3 key is required and cannot be empty"
-            }
-        return {
-            "success": True,
-            "msg": "S3 key is valid"
-        }
+            return {"success": False, "msg": "S3 key is required and cannot be empty"}
+        return {"success": True, "msg": "S3 key is valid"}
 
     @staticmethod
     def validate_local_path(local_path) -> dict:
         if not local_path:
-            return {
-                "success": False,
-                "msg": "Local path is required and cannot be empty"
-            }
-
+            return {"success": False, "msg": "Local path is required and cannot be empty"}
         if not Path(local_path).is_file() and not Path(local_path).is_dir():
-            return {
-                "success": False,
-                "msg": "Local path does not exist"
-            }
-        return {
-            "success": True,
-            "msg": "Local path is valid"
-        }
+            return {"success": False, "msg": "Local path does not exist"}
+        return {"success": True, "msg": "Local path is valid"}
 
     @staticmethod
     def get_save_path(s3_key: str, save_path: str):
-        """
-            Generate a local file path for saving an S3 object, handling various path formats.
-
-            This function intelligently determines the appropriate local file path based on the
-            provided save_path format and the S3 key. It handles three scenarios:
-            1. Directory path - saves file with original name from S3 key
-            2. Full file path with extension - replaces extension with S3 object's extension
-            3. File path without extension - appends S3 object's extension
-
-            Args:
-                s3_key (str): The S3 object key (path) from which to extract the filename and extension.
-                             Example: "folder/subfolder/document.pdf"
-                save_path (str): The desired local save path. Can be:
-                                - Directory path ending with '/' or '\\': "/local/dir/"
-                                - Full file path with extension: "/local/dir/myfile.txt"
-                                - File path without extension: "/local/dir/myfile"
-
-            Returns:
-                Path: A pathlib.Path object representing the complete local file path where
-                      the S3 object should be saved, including the appropriate file extension.
-
-            Note:
-                - The function preserves the file extension from the S3 key in all cases
-                - Both forward slashes (/) and backslashes (\\) are recognized as directory indicators
-                - If save_path has an extension, it will be replaced with the S3 object's extension
-            """
         save_path_obj = Path(save_path)
         s3_key_obj = Path(s3_key)
 
@@ -151,26 +111,31 @@ class S3Helper:
 
         return local_file_path
 
-class InoS3Config:
+
+class InoS3Config(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required":{
-                "access_key_id": ("STRING", {"default": ""}),
-                "access_key_secret": ("STRING", {"default": ""}),
-                "endpoint_url": ("STRING", {"default": ""}),
-                "region_name": ("STRING", {"default": ""}),
-                "bucket_name": ("STRING", {"default": ""}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoS3Config",
+            display_name="Ino S3 Config",
+            category="InoS3Helper",
+            description="Creates an S3 configuration string from credentials.",
+            inputs=[
+                io.String.Input("access_key_id", default=""),
+                io.String.Input("access_key_secret", default=""),
+                io.String.Input("endpoint_url", default=""),
+                io.String.Input("region_name", default=""),
+                io.String.Input("bucket_name", default=""),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="config"),
+            ],
+        )
 
-    CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", )
-    RETURN_NAMES = ("success", "config", )
-    FUNCTION = "function"
-
-    async def function(self, access_key_id, access_key_secret, endpoint_url, region_name, bucket_name):
-        s3_config ={
+    @classmethod
+    async def execute(cls, access_key_id, access_key_secret, endpoint_url, region_name, bucket_name) -> io.NodeOutput:
+        s3_config = {
             "access_key_id": access_key_id,
             "access_key_secret": access_key_secret,
             "endpoint_url": endpoint_url,
@@ -179,6 +144,5 @@ class InoS3Config:
         }
         dict_to_string = InoJsonHelper.dict_to_string(s3_config)
         if not dict_to_string["success"]:
-            return (False, dict_to_string["msg"], )
-
-        return (True, dict_to_string["data"], )
+            return io.NodeOutput(False, dict_to_string["msg"])
+        return io.NodeOutput(True, dict_to_string["data"])

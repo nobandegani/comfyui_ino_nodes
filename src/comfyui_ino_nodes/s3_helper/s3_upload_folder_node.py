@@ -1,70 +1,71 @@
-import os
 import shutil
 from pathlib import Path
 
-import folder_paths
+from inopyutils import ino_is_err
 
-from inopyutils import ino_ok, ino_err, ino_is_err
+from comfy_api.latest import io
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
-from ..node_helper import any_type, PARENT_FOLDER_OPTIONS, resolve_comfy_path
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
 
-class InoS3UploadFolder:
+
+class InoS3UploadFolder(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required":{
-                "execute": (any_type,),
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "s3_key": ("STRING", {"default": ""}),
-                "parent_folder": (PARENT_FOLDER_OPTIONS, ),
-                "folder": ("STRING", {"default": ""}),
-                "delete_local": ("BOOLEAN", {"default": True}),
-            },
-            "optional": {
-                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
-                "bucket_name": ("STRING", {"default": "default"}),
-                "max_concurrent": ("INT", {"default": 5, "min": 1, "max": 10}),
-                "verify_with_s3": ("BOOLEAN", {"default": False}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoS3UploadFolder",
+            display_name="Ino S3 Upload Folder",
+            category="InoS3Helper",
+            description="Uploads an entire local folder to S3 with concurrent uploads and optional verification.",
+            is_output_node=True,
+            inputs=[
+                io.AnyType.Input("execute"),
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("s3_key", default=""),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS),
+                io.String.Input("folder", default=""),
+                io.Boolean.Input("delete_local", default=True),
+                io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
+                io.String.Input("bucket_name", default="default", optional=True),
+                io.Int.Input("max_concurrent", default=5, min=1, max=10, optional=True),
+                io.Boolean.Input("verify_with_s3", default=False, optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="rel_path"),
+                io.String.Output(display_name="abs_path"),
+                io.Int.Output(display_name="total_files"),
+                io.Int.Output(display_name="uploaded_successfully"),
+                io.Int.Output(display_name="failed_uploads"),
+                io.String.Output(display_name="errors"),
+            ],
+        )
 
-    CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "INT", "INT", "INT", "STRING", )
-    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "total_files", "uploaded_successfully", "failed_uploads", "errors", )
-    FUNCTION = "function"
-    OUTPUT_NODE = True
-
-    async def function(self, execute, enabled, s3_key, parent_folder, folder, delete_local, s3_config=None, bucket_name=None, max_concurrent=5, verify_with_s3=False):
+    @classmethod
+    async def execute(cls, execute, enabled, s3_key, parent_folder, folder, delete_local, s3_config=None, bucket_name=None, max_concurrent=5, verify_with_s3=False) -> io.NodeOutput:
         if not enabled:
-            return (False, "", "", "", 0, 0, 0, "", )
-
+            return io.NodeOutput(False, "", "", "", 0, 0, 0, "")
         if not execute:
-            return (False, "", "", "", 0, 0, 0, "", )
+            return io.NodeOutput(False, "", "", "", 0, 0, 0, "")
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, validate_s3_key["msg"], "", "", 0, 0, 0, "", )
+            return io.NodeOutput(False, validate_s3_key["msg"], "", "", 0, 0, 0, "")
 
         rel_path, abs_path = resolve_comfy_path(parent_folder, folder)
 
-        local_upload_path = Path(abs_path)
-        validate_local_path = S3Helper.validate_local_path(local_upload_path)
+        validate_local_path = S3Helper.validate_local_path(Path(abs_path))
         if not validate_local_path["success"]:
-            return (False, validate_local_path["msg"], rel_path, abs_path, 0, 0, 0, "", )
+            return io.NodeOutput(False, validate_local_path["msg"], rel_path, abs_path, 0, 0, 0, "")
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (False, s3_instance["msg"], rel_path, abs_path, 0, 0, 0, "", )
+            return io.NodeOutput(False, s3_instance["msg"], rel_path, abs_path, 0, 0, 0, "")
         s3_instance = s3_instance["instance"]
 
-        s3_result = await s3_instance.upload_folder(
-            s3_folder_key=s3_key,
-            local_folder_path=abs_path,
-            max_concurrent=max_concurrent,
-            verify=verify_with_s3
-        )
+        s3_result = await s3_instance.upload_folder(s3_folder_key=s3_key, local_folder_path=abs_path, max_concurrent=max_concurrent, verify=verify_with_s3)
         if s3_result["success"] and delete_local:
-            shutil.rmtree(local_upload_path)
+            shutil.rmtree(Path(abs_path))
 
-        return (s3_result["success"], s3_result["msg"], rel_path, abs_path, s3_result["total_files"], s3_result["uploaded_successfully"], s3_result["failed_uploads"], str(s3_result["errors"]), )
+        return io.NodeOutput(s3_result["success"], s3_result["msg"], rel_path, abs_path, s3_result["total_files"], s3_result["uploaded_successfully"], s3_result["failed_uploads"], str(s3_result["errors"]))

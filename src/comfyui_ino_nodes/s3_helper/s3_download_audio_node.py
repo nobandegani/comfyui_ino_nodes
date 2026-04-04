@@ -2,39 +2,45 @@ from pathlib import Path
 
 from inopyutils import ino_is_err, InoUtilHelper
 
-import folder_paths
+from comfy_api.latest import io
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
 from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path
 
-class InoS3DownloadAudio:
+
+class InoS3DownloadAudio(io.ComfyNode):
     @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "enabled": ("BOOLEAN", {"default": True, "label_off": "OFF", "label_on": "ON"}),
-                "s3_key": ("STRING", {"default": "input/example.wav"}),
-                "parent_folder": (PARENT_FOLDER_OPTIONS, {"default": "temp"}),
-                "folder": ("STRING", {"default": ""}),
-            },
-            "optional": {
-                "s3_config": ("STRING", {"default": S3_EMPTY_CONFIG_STRING, "tooltip": "you can leave it empty and pass it with env vars"}),
-                "bucket_name": ("STRING", {"default": "default"}),
-            }
-        }
+    def define_schema(cls):
+        return io.Schema(
+            node_id="InoS3DownloadAudio",
+            display_name="Ino S3 Download Audio",
+            category="InoS3Helper",
+            description="Downloads an audio file from S3 and returns it as an AUDIO tensor.",
+            inputs=[
+                io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
+                io.String.Input("s3_key", default="input/example.wav"),
+                io.Combo.Input("parent_folder", options=PARENT_FOLDER_OPTIONS, default="temp"),
+                io.String.Input("folder", default=""),
+                io.String.Input("s3_config", default=S3_EMPTY_CONFIG_STRING, optional=True, tooltip="you can leave it empty and pass it with env vars"),
+                io.String.Input("bucket_name", default="default", optional=True),
+            ],
+            outputs=[
+                io.Boolean.Output(display_name="success"),
+                io.String.Output(display_name="message"),
+                io.String.Output(display_name="rel_path"),
+                io.String.Output(display_name="abs_path"),
+                io.Audio.Output(display_name="audio"),
+            ],
+        )
 
-    CATEGORY = "InoS3Helper"
-    RETURN_TYPES = ("BOOLEAN", "STRING", "STRING", "STRING", "AUDIO", )
-    RETURN_NAMES = ("success", "message", "rel_path", "abs_path", "audio", )
-    FUNCTION = "function"
-
-    async def function(self, enabled, s3_key, parent_folder, folder, s3_config=None, bucket_name=None):
+    @classmethod
+    async def execute(cls, enabled, s3_key, parent_folder, folder, s3_config=None, bucket_name=None) -> io.NodeOutput:
         if not enabled:
-            return (False, "not enabled", "", "", None, )
+            return io.NodeOutput(False, "not enabled", "", "", None)
 
         validate_s3_key = S3Helper.validate_s3_key(s3_key)
         if not validate_s3_key["success"]:
-            return (False, validate_s3_key["msg"], "", "", None, )
+            return io.NodeOutput(False, validate_s3_key["msg"], "", "", None)
 
         random_str = InoUtilHelper.get_date_time_utc_base64()
         file_name = f'{random_str}{Path(s3_key).suffix}'
@@ -44,24 +50,20 @@ class InoS3DownloadAudio:
 
         s3_instance = S3Helper.get_instance(s3_config)
         if ino_is_err(s3_instance):
-            return (False, s3_instance["msg"], "", "", None, )
+            return io.NodeOutput(False, s3_instance["msg"], "", "", None)
         s3_instance = s3_instance["instance"]
 
-        downloaded = await s3_instance.download_file(
-            s3_key=s3_key,
-            local_file_path=abs_path
-        )
+        downloaded = await s3_instance.download_file(s3_key=s3_key, local_file_path=abs_path)
         if not downloaded["success"]:
-            return (downloaded["success"], downloaded["msg"], rel_path, abs_path, None, )
+            return io.NodeOutput(downloaded["success"], downloaded["msg"], rel_path, abs_path, None)
 
         from comfy_extras.nodes_audio import LoadAudio
 
-        # Build annotated name for ComfyUI's audio loader
         folder_suffix = folder if folder else ""
         annotated_name = f"{folder_suffix}/{file_name} [{parent_folder}]" if folder_suffix else f"{file_name} [{parent_folder}]"
         load_audio = LoadAudio.execute(audio=annotated_name)
 
         if load_audio[0]:
-            return (True, "Success", rel_path, abs_path, load_audio[0],)
+            return io.NodeOutput(True, "Success", rel_path, abs_path, load_audio[0])
 
-        return (False, "failed to load the audio", rel_path, abs_path, None,)
+        return io.NodeOutput(False, "failed to load the audio", rel_path, abs_path, None)
