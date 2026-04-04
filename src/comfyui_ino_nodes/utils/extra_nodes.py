@@ -85,6 +85,7 @@ class InoPrintLog(io.ComfyNode):
             node_id="InoPrintLog",
             display_name="Ino Print Log",
             category="InoNodes",
+            is_output_node=True,
             inputs=[
                 io.Boolean.Input("enabled", default=True, label_off="OFF", label_on="ON"),
                 io.MatchType.Input("relay", template=template),
