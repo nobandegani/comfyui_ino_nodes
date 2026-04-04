@@ -15,7 +15,7 @@ from comfy_api.latest import ComfyExtension, io
 
 from inopyutils import InoJsonHelper, ino_is_err
 
-from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path, load_image, load_images_from_folder
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path, load_images_from_folder
 
 
 class InoSaveImages:

@@ -5,7 +5,7 @@ from inopyutils import ino_is_err, InoUtilHelper
 import folder_paths
 
 from .s3_helper import S3Helper, S3_EMPTY_CONFIG_STRING
-from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path, load_image_with_mask
+from ..node_helper import PARENT_FOLDER_OPTIONS, resolve_comfy_path, load_image
 
 class InoS3DownloadImage:
     @classmethod
@@ -56,6 +56,6 @@ class InoS3DownloadImage:
         if not downloaded["success"]:
             return (downloaded["success"], downloaded["msg"], rel_path, abs_path, empty_image, None, )
 
-        output_image, output_mask = load_image_with_mask(downloaded["local_file"])
+        output_image, output_mask = load_image(downloaded["local_file"])
 
         return (downloaded["success"], downloaded["msg"], rel_path, abs_path, output_image, output_mask, )
