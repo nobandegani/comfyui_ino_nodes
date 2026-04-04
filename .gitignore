@@ -101,3 +101,6 @@ cookiecutter-pypackage-env/
 
 # Environment variables
 .env
+
+# Build artifacts
+node.zip
